@@ -8,6 +8,10 @@
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
+#define PROGNAME "shuffle++"
+#define VERSION  "0.10"
+#define PROGDATE "2011-03-10"
+
 extern int verbose;
 
 #define _DNA_DATA	0

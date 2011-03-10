@@ -10,10 +10,6 @@ using namespace std;
 
 int verbose = 0;
 
-#define PROGNAME "shuffle++"
-#define VERSION  "0.10"
-#define PROGDATE "2011-03-10"
-
 typedef struct opt_struct
 {
 	string inputAlignment;
@@ -31,7 +27,7 @@ void parseArguments(int argc, char** argv, Options *options)
 {
 	char c;
 
-	options->dataType = 0;
+	options->dataType = _DNA_DATA;
 	options->randomizations = 100;
 	options->minCompatibility = 0;
 	options->minPOC = 0.0;
@@ -43,10 +39,10 @@ void parseArguments(int argc, char** argv, Options *options)
 		switch (c)
 		{
 			case 'a':
-				options->dataType = 1;	// AA
+				options->dataType = _AA_DATA;
 				break;
 			case 'd':
-				options->dataType = 0;	// DNA
+				options->dataType = _DNA_DATA;
 				break;
 			case 'i':
 				options->inputAlignment = optarg;
