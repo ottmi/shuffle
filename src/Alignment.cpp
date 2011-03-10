@@ -152,8 +152,10 @@ void Alignment::writeSummary(string fileName)
 
 	file << "Site No.,MNIC,Compatibility,POC,Entropy" << endl;
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
-		file << i + 1 << "," << _informativeSites[i]->getMNIC() << "," << _informativeSites[i]->getCompScore() << ","
-				<< _informativeSites[i]->getPOC() << "," << _informativeSites[i]->getEntropy() << endl;
+	{
+		Site* s = _informativeSites[i];
+		file << s->getCol() + 1 << "," << s->getMNIC() << "," << s->getCompScore() << "," << s->getPOC() << "," << s->getEntropy() << endl;
+	}
 }
 
 
