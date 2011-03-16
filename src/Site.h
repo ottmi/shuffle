@@ -19,7 +19,7 @@ public:
 	void initialize(vector<Sequence>* alignment);
 	BaseOccurenceMap getBaseOccurences();
 	bool checkCompatibility(Site* site);
-	void incComp() { _compSites++; };
+	void incComp();
 	void computeCompScore(unsigned int cols);
 	Site* randomize();
 	void setPOC(double poc);

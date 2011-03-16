@@ -155,6 +155,12 @@ bool Site::checkCompatibility(Site* site)
 }
 
 
+void Site::incComp()
+{
+	_compSites++;
+}
+
+
 void Site::setPOC(double poc)
 {
 	_poc = poc;
