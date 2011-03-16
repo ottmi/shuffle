@@ -1,3 +1,7 @@
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <stdlib.h>
@@ -48,9 +52,9 @@ Alignment::Alignment(string fileName, int dataType)
 		//delete s;
 	}
 
-	cout << "Alignment contains " << getNumOfRows() << " sequences with " << getNumOfCols() << " sites, " << _informativeSites.size() << " of which are informative." << endl;
+	cout << "Alignment contains " << getNumOfRows() << " sequences with " << getNumOfCols() << " sites, " << _informativeSites.size()
+			<< " of which are informative." << endl;
 }
-
 
 Alignment::~Alignment()
 {
@@ -58,12 +62,10 @@ Alignment::~Alignment()
 		delete _informativeSites[i];
 }
 
-
 void Alignment::addSequence(Sequence s)
 {
 	_alignment.push_back(s);
 }
-
 
 void Alignment::computeCompatibilityScores(int randomizations)
 {
@@ -72,47 +74,63 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	long t1 = time(NULL);
 	unsigned int total = _informativeSites.size() * randomizations;
 	unsigned int count = 0;
+	int myTid = 0;
 
-	for (unsigned int i = 0; i < _informativeSites.size(); i++)
+#ifdef _OPENMP
+	#pragma omp parallel shared(count) private(myTid)
 	{
-		for (unsigned int j = i + 1; j < _informativeSites.size(); j++)
-			if (_informativeSites[i]->checkCompatibility(_informativeSites[j]))
-			{
-				_informativeSites[i]->incComp();
-				_informativeSites[j]->incComp();
-			}
-		_informativeSites[i]->computeCompScore(_informativeSites.size());
-
-		int poc = 0;
-		for (int r = 0; r < randomizations; r++)
+		myTid = omp_get_thread_num();
+		#pragma omp for
+#endif
+		for (unsigned int i = 0; i < _informativeSites.size(); i++)
 		{
-			if ((count * 100 % total) == 0)
-				cout << "\r" << count * 100 / total << "%" << flush;
-
-			int comp = 0;
-			Site* randomSite = _informativeSites[i]->randomize();
-			for (unsigned int j = 0; j < _informativeSites.size(); j++)
-			{
-				if (i != j && randomSite->checkCompatibility(_informativeSites[j]))
-					comp++;
-			}
-			delete randomSite;
-			if (_informativeSites[i]->getComp() <= comp)
-				poc++;
-			count++;
+			for (unsigned int j = i + 1; j < _informativeSites.size(); j++)
+				if (_informativeSites[i]->checkCompatibility(_informativeSites[j]))
+				{
+					_informativeSites[i]->incComp();
+					_informativeSites[j]->incComp();
+				}
 		}
-		_informativeSites[i]->setPOC((double) poc / randomizations);
+
+#ifdef _OPENMP
+		#pragma omp for
+#endif
+		for (unsigned int i = 0; i < _informativeSites.size(); i++)
+		{
+			_informativeSites[i]->computeCompScore(_informativeSites.size());
+
+			int poc = 0;
+			for (int r = 0; r < randomizations; r++)
+			{
+				int comp = 0;
+				Site* randomSite = _informativeSites[i]->randomize();
+				for (unsigned int j = 0; j < _informativeSites.size(); j++)
+				{
+					if (i != j && randomSite->checkCompatibility(_informativeSites[j]))
+						comp++;
+				}
+				delete randomSite;
+				if (_informativeSites[i]->getComp() <= comp)
+					poc++;
+			}
+
+			count += randomizations;
+
+			if (myTid == 0)
+				cout << "\r" << count * 100 / total << "%" << flush;
+			_informativeSites[i]->setPOC((double) poc / randomizations);
+		}
+#ifdef _OPENMP
 	}
+#endif
 	long t2 = time(NULL);
 	cout << "\rFinished computing scores, taking " << t2 - t1 << "s." << endl;
 }
 
-
 Alignment Alignment::getModifiedAlignment(double minComp, double minPOC, int maxMNIC, double maxEntropy)
 {
 	Alignment a(_dataType);
-	cout << "Creating new alignment with minComp=" << minComp << " minPOC=" << minPOC << " maxMNIC=" << maxMNIC << " maxEntropy="
-			<< maxEntropy << endl;
+	cout << "Creating new alignment with minComp=" << minComp << " minPOC=" << minPOC << " maxMNIC=" << maxMNIC << " maxEntropy=" << maxEntropy << endl;
 	vector<int> sites;
 
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
@@ -142,7 +160,6 @@ Alignment Alignment::getModifiedAlignment(double minComp, double minPOC, int max
 	return a;
 }
 
-
 void Alignment::writeSummary(string fileName)
 {
 	ofstream file(fileName.c_str(), ifstream::trunc);
@@ -157,7 +174,6 @@ void Alignment::writeSummary(string fileName)
 		file << s->getCol() + 1 << "," << s->getMNIC() << "," << s->getCompScore() << "," << s->getPOC() << "," << s->getEntropy() << endl;
 	}
 }
-
 
 void Alignment::write(string fileName)
 {

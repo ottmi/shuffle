@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS  = -Wall -g -O3
+CXXFLAGS  = -Wall -g -O3 -fopenmp
 LDFLAGS = -lm 
 
 OBJ = AASite.o Alignment.o AlignmentReader.o DNASite.o FastaReader.o PhylipReader.o Sequence.o Site.o shuffle.o

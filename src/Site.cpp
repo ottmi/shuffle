@@ -157,6 +157,9 @@ bool Site::checkCompatibility(Site* site)
 
 void Site::incComp()
 {
+#ifdef _OPENMP
+	#pragma omp atomic
+#endif
 	_compSites++;
 }
 
