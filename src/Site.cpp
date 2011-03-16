@@ -174,10 +174,16 @@ Site* Site::randomize()
 	string r;
 	Site* randomizedSite = NULL;
 
+	vector <char> positions;
+
+	for (unsigned int i=0; i<_site.length(); i++)
+		positions.push_back(_site[i]);
+
 	for (unsigned int i=0; i<_site.length(); i++)
 	{
-		unsigned int j = rand() % _site.length();
-		r+= _site[j];
+		unsigned int j = rand() % positions.size();
+		r+= positions[j];
+		positions.erase(positions.begin()+j);
 	}
 	switch (_type)
 	{
