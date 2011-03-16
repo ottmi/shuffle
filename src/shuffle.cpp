@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
 	if (options.outputAlignment.length())
 	{
 		Alignment modifiedAlignment = alignment.getModifiedAlignment(options.minCompatibility, options.minPOC, options.maxMNIC, options.maxEntropy);
-		modifiedAlignment.write("outfile.fasta");
+		modifiedAlignment.write(options.outputAlignment);
 	}
 
 	return 0;
