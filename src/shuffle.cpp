@@ -17,9 +17,9 @@ typedef struct opt_struct
 	string outputAlignment;
 	int randomizations;
 	string summaryFile;
-	double minCompatibility;
+	double minCo;
 	double minPOC;
-	int maxMNIC;
+	int maxSmin;
 	double maxEntropy;
 	int help;
 } Options;
@@ -30,9 +30,9 @@ void parseArguments(int argc, char** argv, Options *options)
 
 	options->dataType = -1;
 	options->randomizations = 100;
-	options->minCompatibility = 0;
+	options->minCo = 0;
 	options->minPOC = 0.0;
-	options->maxMNIC = INT_MAX;
+	options->maxSmin = INT_MAX;
 	options->maxEntropy = DBL_MAX;
 	options->help = 0;
 
@@ -59,13 +59,13 @@ void parseArguments(int argc, char** argv, Options *options)
 				options->outputAlignment = optarg;
 				break;
 			case 'c':
-				options->minCompatibility = atof(optarg);
+				options->minCo = atof(optarg);
 				break;
 			case 'p':
 				options->minPOC = atof(optarg);
 				break;
 			case 'm':
-				options->maxMNIC = atoi(optarg);
+				options->maxSmin = atoi(optarg);
 				break;
 			case 'e':
 				options->maxEntropy = atof(optarg);
@@ -95,9 +95,9 @@ void printSyntax()
 	cout << "  -d\tInput alignment is DNA data" << endl;
 	cout << "  -r\tNumber of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -o\tOutput alignment" << endl;
-	cout << "  -c\tMinimum compatibility score [default: 0]" << endl;
+	cout << "  -c\tMinimum Co score [default: 0]" << endl;
 	cout << "  -p\tMinimum POC score [default: 0.0]" << endl;
-	cout << "  -m\tMaximum MNIC [default: " << INT_MAX << "]" << endl;
+	cout << "  -m\tMaximum Smin [default: " << INT_MAX << "]" << endl;
 	cout << "  -e\tMaximum entropy [default: " << DBL_MAX << "]" << endl;
 	cout << "  -s\tOutput file for site summary" << endl;
 	cout << "  -v\tBe verbose " << endl;
@@ -127,7 +127,7 @@ int main(int argc, char** argv) {
 		alignment.writeSummary(options.summaryFile);
 	if (options.outputAlignment.length())
 	{
-		Alignment modifiedAlignment = alignment.getModifiedAlignment(options.minCompatibility, options.minPOC, options.maxMNIC, options.maxEntropy);
+		Alignment modifiedAlignment = alignment.getModifiedAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
 		modifiedAlignment.write(options.outputAlignment);
 	}
 

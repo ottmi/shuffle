@@ -17,7 +17,7 @@ public:
 	void addSequence(Sequence sequence);
 	void computeCompatibilityScores(int randomizations);
 	void writeSummary(string fileName);
-	Alignment getModifiedAlignment(double minComp, double minPOC, int maxMNIC, double maxEntropy);
+	Alignment getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
 	void write(string fileName);
 
 	vector<Sequence>* getAlignment() { return &_alignment; };

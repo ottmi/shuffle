@@ -127,16 +127,16 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	cout << "\rFinished computing scores, taking " << t2 - t1 << "s." << endl;
 }
 
-Alignment Alignment::getModifiedAlignment(double minComp, double minPOC, int maxMNIC, double maxEntropy)
+Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy)
 {
 	Alignment a(_dataType);
-	cout << "Creating new alignment with minComp=" << minComp << " minPOC=" << minPOC << " maxMNIC=" << maxMNIC << " maxEntropy=" << maxEntropy << endl;
+	cout << "Creating new alignment with minCo=" << minCo << " minPOC=" << minPOC << " maxSmin=" << maxSmin << " maxEntropy=" << maxEntropy << endl;
 	vector<int> sites;
 
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
 		Site site = *_informativeSites[i];
-		if (site.getCompScore() >= minComp && site.getPOC() >= minPOC && site.getMNIC() <= maxMNIC && site.getEntropy() <= maxEntropy)
+		if (site.getCo() >= minCo && site.getPOC() >= minPOC && site.getSmin() <= maxSmin && site.getEntropy() <= maxEntropy)
 			sites.push_back(i);
 	}
 
@@ -167,11 +167,11 @@ void Alignment::writeSummary(string fileName)
 		throw("\n\nError, cannot open file " + fileName);
 	cout << "Writing site summary to " << fileName << endl;
 
-	file << "Site No.,MNIC,Compatibility,POC,Entropy" << endl;
+	file << "Site No.,Smin,Co,POC,Entropy" << endl;
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
 		Site* s = _informativeSites[i];
-		file << s->getCol() + 1 << "," << s->getMNIC() << "," << s->getCompScore() << "," << s->getPOC() << "," << s->getEntropy() << endl;
+		file << s->getCol() + 1 << "," << s->getSmin() << "," << s->getCo() << "," << s->getPOC() << "," << s->getEntropy() << endl;
 	}
 }
 

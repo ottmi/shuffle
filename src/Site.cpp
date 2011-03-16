@@ -31,7 +31,7 @@ void Site::initialize(vector<Sequence>* alignment)
 	srand ( time(NULL) );
 
 	_compSites = 0;
-	_compScore = .0;
+	_coScore = .0;
 
 	BaseOccurenceMap r;
 	BaseOccurenceMapIterator r_it;
@@ -45,7 +45,7 @@ void Site::initialize(vector<Sequence>* alignment)
 		r[c]++;
 		_site += c;
 	}
-	_mnic = r.size() - 1;
+	_smin = r.size() - 1;
 
 	long prod_r = 1;
 	for (r_it = r.begin(); r_it != r.end(); r_it++)
@@ -168,13 +168,13 @@ void Site::setPOC(double poc)
 {
 	_poc = poc;
 	if (verbose)
-		cout << "Site #" << _col << ": compSites=" << _compSites << " co=" << _compScore << " poc=" << _poc << " entropy=" << _entropy << " mnic=" << _mnic << endl;
+		cout << "Site #" << _col << ": compSites=" << _compSites << " co=" << _coScore << " poc=" << _poc << " entropy=" << _entropy << " smin=" << _smin << endl;
 }
 
 
 void Site::computeCompScore(unsigned int cols)
 {
-	_compScore = ((double) _compSites) / cols;
+	_coScore = ((double) _compSites) / cols;
 }
 
 

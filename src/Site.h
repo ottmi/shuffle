@@ -28,10 +28,10 @@ public:
 	int getCol() { return _col; };
 	bool isInformative() { return _isInformative; };
 	int getComp() { return _compSites; };
-	double getCompScore() { return _compScore; };
+	double getCo() { return _coScore; };
 	double getPOC() { return _poc; };
 	double getEntropy() { return _entropy; };
-	int getMNIC() { return _mnic; };
+	int getSmin() { return _smin; };
 
 protected:
 	int _type; // 0=DNA, 1=AA
@@ -42,10 +42,10 @@ protected:
 	string _site;
 	int _compSites;
 	bool _isInformative;
-	double _compScore;
+	double _coScore;
 	double _poc;
 	double _entropy;
-	int _mnic;
+	int _smin;
 };
 
 #endif /* SITE_H_ */
