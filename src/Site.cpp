@@ -42,7 +42,8 @@ void Site::initialize(vector<Sequence>* alignment)
 	{
 		Sequence sequence = alignment->at(i);
 		char c = sequence.getSequence().at(_col);
-		r[c]++;
+		if (charIsUnambiguous(c))
+			r[c]++;
 		_site += c;
 	}
 	_smin = r.size() - 1;
