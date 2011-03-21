@@ -18,11 +18,13 @@ Site::~Site()
 }
 
 
-long factorial(long n)
+double factorial(int n)
 {
-	for (long i = n - 1; i > 1; i--)
-		n *= i;
-	return n;
+	double m = (double) n;
+	for (int i = n - 1; i > 1; i--)
+		m *= i;
+
+	return m;
 }
 
 
@@ -48,19 +50,19 @@ void Site::initialize(vector<Sequence>* alignment)
 	}
 	_smin = r.size() - 1;
 
-	long prod_r = 1;
+	double prod_r = 1.0;
 	for (r_it = r.begin(); r_it != r.end(); r_it++)
 	{
 		t[r_it->second]++;
 		prod_r *= factorial(r_it->second);
 	}
 
-	long prod_t = 1;
+	double prod_t = 1.0;
 	for (t_it = t.begin(); t_it != t.end(); t_it++)
 	{
 		prod_t *= factorial(t_it->second);
 	}
-	_entropy = log((double) factorial(alignment->size()) / (prod_r * prod_t));
+	_entropy = log(factorial(alignment->size()) / (prod_r * prod_t));
 
 	int informative = 0;
 	for (unsigned int i=0; i<_unambiguousCharacters.length(); i++)
