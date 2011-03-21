@@ -39,13 +39,17 @@ void Site::initialize(vector<Sequence>* alignment)
 	BaseOccurenceMapIterator r_it;
 	map<int, int> t;
 	map<int, int>::const_iterator t_it;
+	unsigned int unambiguousCount = 0;
 
 	for (unsigned int i = 0; i < alignment->size(); i++)
 	{
 		Sequence sequence = alignment->at(i);
 		char c = sequence.getSequence().at(_col);
 		if (charIsUnambiguous(c))
+		{
 			r[c]++;
+			unambiguousCount++;
+		}
 		_site += c;
 	}
 	_smin = r.size() - 1;
@@ -62,7 +66,7 @@ void Site::initialize(vector<Sequence>* alignment)
 	{
 		prod_t *= factorial(t_it->second);
 	}
-	_entropy = log(factorial(alignment->size()) / (prod_r * prod_t));
+	_entropy = log(factorial(unambiguousCount) / (prod_r * prod_t));
 
 	int informative = 0;
 	for (unsigned int i=0; i<_unambiguousCharacters.length(); i++)
