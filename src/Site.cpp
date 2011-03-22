@@ -88,8 +88,8 @@ void Site::initialize(vector<Sequence>* alignment)
 		char c = _unambiguousCharacters[i];
 		d+= (n - r[c]) * r[c];
 	}
-	double k = (n*n-n)/2;
-	_ov = (double) n/k;
+	double k = n*(n-1);
+	_ov = (double) d/k;
 }
 
 
