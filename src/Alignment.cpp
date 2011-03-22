@@ -167,11 +167,11 @@ void Alignment::writeSummary(string fileName)
 		throw("\n\nError, cannot open file " + fileName);
 	cout << "Writing site summary to " << fileName << endl;
 
-	file << "Site No.,Smin,Entropy,Co,Poc" << endl;
+	file << "Site No.,Smin,Entropy,OV,Co,Poc" << endl;
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
 		Site* s = _informativeSites[i];
-		file << s->getCol() + 1 << "," << s->getSmin() << "," << s->getEntropy()  << "," << s->getCo() << "," << s->getPOC()<< endl;
+		file << s->getCol() + 1 << "," << s->getSmin() << "," << s->getEntropy()  << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC()<< endl;
 	}
 }
 

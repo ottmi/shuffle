@@ -32,6 +32,7 @@ public:
 	double getPOC() { return _poc; };
 	double getEntropy() { return _entropy; };
 	int getSmin() { return _smin; };
+	double getOV() { return _ov; };
 
 protected:
 	int _type; // 0=DNA, 1=AA
@@ -46,6 +47,7 @@ protected:
 	double _poc;
 	double _entropy;
 	int _smin;
+	double _ov;
 };
 
 #endif /* SITE_H_ */

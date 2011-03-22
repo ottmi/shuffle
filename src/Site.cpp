@@ -69,16 +69,27 @@ void Site::initialize(vector<Sequence>* alignment)
 	_entropy = log(factorial(unambiguousCount) / (prod_r * prod_t));
 
 	int informative = 0;
+	unsigned int n = 0;
+	unsigned int d = 0;
 	for (unsigned int i=0; i<_unambiguousCharacters.length(); i++)
 	{
 		char c = _unambiguousCharacters[i];
 		if (r[c] >= 2)
 			informative++;
+		n+= r[c];
 	}
 	if (informative >= 2)
 		_isInformative = true;
 	else
 		_isInformative = false;
+
+	for (unsigned int i=0; i<_unambiguousCharacters.length(); i++)
+	{
+		char c = _unambiguousCharacters[i];
+		d+= (n - r[c]) * r[c];
+	}
+	double k = (n*n-n)/2;
+	_ov = (double) n/k;
 }
 
 
