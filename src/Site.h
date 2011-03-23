@@ -20,11 +20,10 @@ public:
 	BaseOccurenceMap getBaseOccurences();
 	bool checkCompatibility(Site* site);
 	void incComp();
-	void computeCompScore(unsigned int cols);
+	void computeScores(unsigned int cols);
 	Site* randomize();
 	void setPOC(double poc);
-	virtual bool charIsUnambiguous(char c);
-	string getString() { return _site; };
+	vector<char> getSite() { return _site; };
 	int getCol() { return _col; };
 	bool isInformative() { return _isInformative; };
 	int getComp() { return _compSites; };
@@ -33,14 +32,17 @@ public:
 	double getEntropy() { return _entropy; };
 	int getSmin() { return _smin; };
 	double getOV() { return _ov; };
+	bool charIsUnambiguous(char c);
+	virtual char mapNumToChar(char c) = 0;
+	virtual char mapCharToNum(char c) = 0;
 
 protected:
 	int _type; // 0=DNA, 1=AA
-	string _unambiguousCharacters;
-	string _ambiguousCharacters;
-	string _missingCharacters;
+	vector<char> _site;
+	char _unambiguousThreshold;
+	BaseOccurenceMap _r;
+	int _unambiguousCount;
 	int _col;
-	string _site;
 	int _compSites;
 	bool _isInformative;
 	double _coScore;

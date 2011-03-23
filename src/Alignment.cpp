@@ -44,9 +44,9 @@ Alignment::Alignment(string fileName, int dataType)
 	for (unsigned int i = 0; i < getNumOfCols(); i++)
 	{
 		if (_dataType == 0)
-			s = new DNASite(this, i);
+			s = new DNASite(&_alignment, i);
 		else
-			s = new AASite(this, i);
+			s = new AASite(&_alignment, i);
 		if (s->isInformative())
 			_informativeSites.push_back(s);
 		//delete s;
@@ -97,7 +97,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 #endif
 		for (unsigned int i = 0; i < _informativeSites.size(); i++)
 		{
-			_informativeSites[i]->computeCompScore(_informativeSites.size());
+			_informativeSites[i]->computeScores(_informativeSites.size());
 
 			int poc = 0;
 			for (int r = 0; r < randomizations; r++)
@@ -115,7 +115,6 @@ void Alignment::computeCompatibilityScores(int randomizations)
 			}
 
 			count += randomizations;
-
 			if (myTid == 0)
 				cout << "\r" << count * 100 / total << "%" << flush;
 			_informativeSites[i]->setPOC((double) poc / randomizations);
@@ -135,8 +134,8 @@ Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSm
 
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
-		Site site = *_informativeSites[i];
-		if (site.getCo() >= minCo && site.getPOC() >= minPOC && site.getSmin() <= maxSmin && site.getEntropy() <= maxEntropy)
+		Site *site = _informativeSites[i];
+		if (site->getCo() >= minCo && site->getPOC() >= minPOC && site->getSmin() <= maxSmin && site->getEntropy() <= maxEntropy)
 			sites.push_back(i);
 	}
 
@@ -146,8 +145,8 @@ Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSm
 		seq = _alignment[i].getSequence();
 		for (unsigned int j = 0; j < sites.size(); j++)
 		{
-			Site site = *_informativeSites[sites[j]];
-			newSeq += seq[site.getCol()];
+			Site *site = _informativeSites[sites[j]];
+			newSeq += seq[site->getCol()];
 		}
 		if (newSeq.length())
 		{

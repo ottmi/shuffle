@@ -13,6 +13,7 @@ Site::Site()
 {
 }
 
+
 Site::~Site()
 {
 }
@@ -35,68 +36,39 @@ void Site::initialize(vector<Sequence>* alignment)
 	_compSites = 0;
 	_coScore = .0;
 
-	BaseOccurenceMap r;
-	BaseOccurenceMapIterator r_it;
-	map<int, int> t;
-	map<int, int>::const_iterator t_it;
-	unsigned int unambiguousCount = 0;
-
+	_unambiguousCount = 0;
 	for (unsigned int i = 0; i < alignment->size(); i++)
 	{
 		Sequence sequence = alignment->at(i);
-		char c = sequence.getSequence().at(_col);
+		char c = this->mapCharToNum(sequence.getSequence().at(_col));
+
 		if (charIsUnambiguous(c))
 		{
-			r[c]++;
-			unambiguousCount++;
+			_r[c]++;
+			_unambiguousCount++;
 		}
-		_site += c;
+		_site.push_back(c);
 	}
-	_smin = r.size() - 1;
-
-	double prod_r = 1.0;
-	for (r_it = r.begin(); r_it != r.end(); r_it++)
-	{
-		t[r_it->second]++;
-		prod_r *= factorial(r_it->second);
-	}
-
-	double prod_t = 1.0;
-	for (t_it = t.begin(); t_it != t.end(); t_it++)
-	{
-		prod_t *= factorial(t_it->second);
-	}
-	_entropy = log(factorial(unambiguousCount) / (prod_r * prod_t));
 
 	int informative = 0;
-	unsigned int n = 0;
-	unsigned int d = 0;
-	for (unsigned int i=0; i<_unambiguousCharacters.length(); i++)
+	for (char c=0; c<=_unambiguousThreshold; c++)
 	{
-		char c = _unambiguousCharacters[i];
-		if (r[c] >= 2)
+		BaseOccurenceMapIterator it = _r.find(c);
+		if (it != _r.end() && it->second >= 2)
 			informative++;
-		n+= r[c];
 	}
+
 	if (informative >= 2)
 		_isInformative = true;
 	else
 		_isInformative = false;
-
-	for (unsigned int i=0; i<_unambiguousCharacters.length(); i++)
-	{
-		char c = _unambiguousCharacters[i];
-		d+= (n - r[c]) * r[c];
-	}
-	double k = n*(n-1);
-	_ov = (double) d/k;
 }
 
 
 bool Site::checkCompatibility(Site* site)
 {
-	string s1 = _site;
-	string s2 = site->getString();
+	vector<char> s1 = _site;
+	vector<char> s2 = site->getSite();
 
 	list<pair<char, char> > pairs;
 	list<pair<char, char> >::iterator it1;
@@ -190,28 +162,57 @@ void Site::setPOC(double poc)
 }
 
 
-void Site::computeCompScore(unsigned int cols)
+void Site::computeScores(unsigned int cols)
 {
+	_smin = _r.size() - 1;
+
+	BaseOccurenceMapIterator r_it;
+	map<int, int> t;
+	map<int, int>::const_iterator t_it;
+
+	double prod_r = 1.0;
+	for (r_it = _r.begin(); r_it != _r.end(); r_it++)
+	{
+		t[r_it->second]++;
+		prod_r *= factorial(r_it->second);
+	}
+
+	double prod_t = 1.0;
+	for (t_it = t.begin(); t_it != t.end(); t_it++)
+	{
+		prod_t *= factorial(t_it->second);
+	}
+	_entropy = log(factorial(_unambiguousCount) / (prod_r * prod_t));
+
+	unsigned int n = 0;
+	for (char c=0; c<=_unambiguousThreshold; c++)
+		n+= _r[c];
+
+	unsigned int d = 0;
+	for (char c=0; c<=_unambiguousThreshold; c++)
+	{
+		d+= (n - _r[c]) * _r[c];
+	}
+	double k = n*(n-1);
+	_ov = (double) d/k;
+
 	_coScore = ((double) _compSites) / cols;
 }
 
 
 Site* Site::randomize()
 {
-	string r;
+	vector<char> r;
 	Site* randomizedSite = NULL;
+	vector<char> positions = _site;
 
-	vector <char> positions;
-
-	for (unsigned int i=0; i<_site.length(); i++)
-		positions.push_back(_site[i]);
-
-	for (unsigned int i=0; i<_site.length(); i++)
+	for (unsigned int i=0; i<_site.size(); i++)
 	{
 		unsigned int j = rand() % positions.size();
-		r+= positions[j];
+		r.push_back(positions[j]);
 		positions.erase(positions.begin()+j);
 	}
+
 	switch (_type)
 	{
 		case _DNA_DATA:
@@ -231,5 +232,5 @@ Site* Site::randomize()
 
 bool Site::charIsUnambiguous(char c)
 {
-	return (_unambiguousCharacters.find(c) != string::npos);
+	return (c <= _unambiguousThreshold);
 }
