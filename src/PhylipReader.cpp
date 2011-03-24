@@ -41,8 +41,12 @@ vector<Sequence> PhylipReader::getSequences()
 
    			if ((int) seq.length() < _cols)
    				cerr << "Sequence #" << sequences.size() + 1 << " (" << name << ") has only " << seq.length() << " characters." << endl;
-   			Sequence s(name, seq);
-   			sequences.push_back(s);
+   			seq = adjustString(seq);
+   			if (name.length() && seq.length())
+   			{
+   				Sequence s(name, seq);
+   				sequences.push_back(s);
+   			}
    		}
     }
 	if ((int) sequences.size() < _rows)

@@ -12,6 +12,7 @@ public:
 	AlignmentReader();
 	virtual ~AlignmentReader();
 	virtual vector<Sequence> getSequences();
+	string adjustString(string s);
 };
 
 #endif /* ALIGNMENTREADER_H_ */
