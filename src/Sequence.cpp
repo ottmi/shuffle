@@ -23,6 +23,16 @@ string Sequence::getSequence()
 	return _sequence;
 }
 
+string Sequence::getColumns(vector<int> cols)
+{
+	string s;
+
+	for (unsigned int i=0; i<cols.size(); i++)
+		s+= _sequence[cols[i]];
+
+	return s;
+}
+
 size_t Sequence::getLength()
 {
 	return _sequence.length();

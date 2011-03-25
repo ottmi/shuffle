@@ -1,6 +1,6 @@
 #include "AASite.h"
 
-AASite::AASite(vector<Sequence>* alignment, int col)
+AASite::AASite(vector<Sequence>* alignment, vector<int> grouping, int offset)
 {
 /*
 	_unambiguousCharacters = "ACDEFGHIKLMNPQRSTVWY";
@@ -10,16 +10,18 @@ AASite::AASite(vector<Sequence>* alignment, int col)
 */
 	_unambiguousThreshold = 19;
 	_type = 1;
-	_col = col;
+	for (unsigned int i=0; i<grouping.size(); i++)
+		_cols.push_back(grouping[i]+offset);
+
 	initialize(alignment);
 }
 
 
-AASite::AASite(vector<char> site, int col)
+AASite::AASite(vector<int> site)
 {
 	_unambiguousThreshold = 19;
 	_type = 1;
-	_col = col;
+	_cols = vector<int>(1, -1);
 	_site = site;
 }
 
@@ -29,18 +31,18 @@ AASite::~AASite()
 }
 
 
-char AASite::mapNumToChar(char c)
+string AASite::mapNumToChar(int n)
 {
 	string map = "ACDEFGHIKLMNPQRSTVWYBJXZ?-";
-	return map[c];
+	return map.substr(n, 1);
 }
 
 
-char AASite::mapCharToNum(char c)
+int AASite::mapCharToNum(string s)
 {
 	char d;
 
-	switch(c)
+	switch(s[0])
 	{
 		case 'A': // unambiguous
 			d = 0;

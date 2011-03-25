@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <float.h>
+#include <sstream>
 #include "globals.h"
 #include "Alignment.h"
 
@@ -22,6 +23,7 @@ typedef struct opt_struct
 	int maxSmin;
 	double maxEntropy;
 	int help;
+	vector<int> grouping;
 } Options;
 
 void parseArguments(int argc, char** argv, Options *options)
@@ -35,8 +37,9 @@ void parseArguments(int argc, char** argv, Options *options)
 	options->maxSmin = INT_MAX;
 	options->maxEntropy = DBL_MAX;
 	options->help = 0;
+	options->grouping.push_back(0);
 
-	while ( (c = getopt(argc, argv, "adi:r:s:o:c:p:m:e:v")) != -1)
+	while ( (c = getopt(argc, argv, "i:adg:r:s:o:c:p:m:e:v")) != -1)
 	{
 		switch (c)
 		{
@@ -49,6 +52,19 @@ void parseArguments(int argc, char** argv, Options *options)
 			case 'd':
 				options->dataType = _DNA_DATA;
 				break;
+			case 'g':
+			{
+				options->grouping.clear();
+				int i;
+				stringstream ss(optarg);
+				while (ss >> i)
+				{
+					options->grouping.push_back(i);
+					if (ss.peek() == ',')
+						ss.ignore();
+				}
+				break;
+			}
 			case 'r':
 				options->randomizations = atoi(optarg);
 				break;
@@ -85,7 +101,7 @@ void parseArguments(int argc, char** argv, Options *options)
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
-	cout << "  shuffle -i <FILE> <-a|-d> [-r NUM] [-o FILE [-c NUM] [-p NUM] [-m NUM] -[e NUM]] [-s FILE] [-v]" << endl;
+	cout << "  shuffle -i <FILE> <-a|-d> [-g LIST] [-r NUM] [-o FILE [-c NUM] [-p NUM] [-m NUM] -[e NUM]] [-s FILE] [-v]" << endl;
 	cout << "  shuffle -h" << endl;
 	cout << endl;
 
@@ -93,6 +109,7 @@ void printSyntax()
 	cout << "  -i\tInput alignment" << endl;
 	cout << "  -a\tInput alignment is AA data" << endl;
 	cout << "  -d\tInput alignment is DNA data" << endl;
+	cout << "  -g\tGrouping of columns into sites, e.g. 0,1 for duplets and 0,1,2 for codons" << endl;
 	cout << "  -r\tNumber of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -o\tOutput alignment" << endl;
 	cout << "  -c\tMinimum Co score [default: 0]" << endl;
@@ -121,7 +138,7 @@ int main(int argc, char** argv) {
 	if (!(options.inputAlignment.length() && options.dataType >= 0) || options.help)
 		printSyntax();
 
-	Alignment alignment(options.inputAlignment, options.dataType);
+	Alignment alignment(options.inputAlignment, options.dataType, options.grouping);
 	alignment.computeCompatibilityScores(options.randomizations);
 	if (options.summaryFile.length())
 		alignment.writeSummary(options.summaryFile);

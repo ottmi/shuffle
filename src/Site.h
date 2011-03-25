@@ -8,8 +8,8 @@
 
 using namespace std;
 
-typedef map<char,int> BaseOccurenceMap;
-typedef map<char,int>::iterator BaseOccurenceMapIterator;
+typedef map<int,int> BaseOccurenceMap;
+typedef map<int,int>::iterator BaseOccurenceMapIterator;
 
 class Site
 {
@@ -23,8 +23,8 @@ public:
 	void computeScores(unsigned int cols);
 	Site* randomize();
 	void setPOC(double poc);
-	vector<char> getSite() { return _site; };
-	int getCol() { return _col; };
+	vector<int> getSite() { return _site; };
+	vector<int> getCols() { return _cols; };
 	bool isInformative() { return _isInformative; };
 	int getComp() { return _compSites; };
 	double getCo() { return _coScore; };
@@ -32,17 +32,17 @@ public:
 	double getEntropy() { return _entropy; };
 	int getSmin() { return _smin; };
 	double getOV() { return _ov; };
-	bool charIsUnambiguous(char c);
-	virtual char mapNumToChar(char c) = 0;
-	virtual char mapCharToNum(char c) = 0;
+	bool charIsUnambiguous(int n);
+	virtual string mapNumToChar(int n) =0;
+	virtual int mapCharToNum(string s) =0;
 
 protected:
 	int _type; // 0=DNA, 1=AA
-	vector<char> _site;
+	vector<int> _site;
 	char _unambiguousThreshold;
 	BaseOccurenceMap _r;
 	int _unambiguousCount;
-	int _col;
+	vector<int> _cols;
 	int _compSites;
 	bool _isInformative;
 	double _coScore;

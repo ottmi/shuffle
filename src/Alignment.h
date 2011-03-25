@@ -12,7 +12,7 @@ class Alignment
 {
 public:
 	Alignment(int dataType);
-	Alignment(string fileName, int dataType);
+	Alignment(string fileName, int dataType, vector<int> grouping);
 	virtual ~Alignment();
 	void addSequence(Sequence sequence);
 	void computeCompatibilityScores(int randomizations);

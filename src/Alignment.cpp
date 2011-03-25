@@ -11,14 +11,12 @@
 #include "DNASite.h"
 #include "Alignment.h"
 
-
 Alignment::Alignment(int dataType)
 {
 	_dataType = dataType;
 }
 
-
-Alignment::Alignment(string fileName, int dataType)
+Alignment::Alignment(string fileName, int dataType, vector<int> grouping)
 {
 	AlignmentReader *alignmentReader;
 
@@ -41,19 +39,29 @@ Alignment::Alignment(string fileName, int dataType)
 	delete alignmentReader;
 
 	Site *s;
-	for (unsigned int i = 0; i < getNumOfCols(); i++)
+	unsigned int numOfSites = getNumOfCols() / grouping.size();
+	for (unsigned int i = 0; i < numOfSites; i++)
 	{
 		if (_dataType == 0)
-			s = new DNASite(&_alignment, i);
+			s = new DNASite(&_alignment, grouping, i);
 		else
-			s = new AASite(&_alignment, i);
+			s = new AASite(&_alignment, grouping, i);
 		if (s->isInformative())
 			_informativeSites.push_back(s);
 		//delete s;
 	}
 
-	cout << "Alignment contains " << getNumOfRows() << " sequences with " << getNumOfCols() << " sites, " << _informativeSites.size()
-			<< " of which are informative." << endl;
+	if (grouping.size() > 1)
+	{
+		cout << "Alignment contains " << getNumOfRows() << " sequences with " << getNumOfCols() << " columns." << endl;
+		cout << "Columns are being grouped into groups of " << grouping.size() << ", resulting into " << numOfSites << " sites, " << _informativeSites.size()
+				<< " of which are informative." << endl;
+	}
+	else
+	{
+		cout << "Alignment contains " << getNumOfRows() << " sequences with " << getNumOfCols() << " sites, " << _informativeSites.size()
+				<< " of which are informative." << endl;
+	}
 }
 
 Alignment::~Alignment()
@@ -77,28 +85,30 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	int myTid = 0;
 
 #ifdef _OPENMP
-	#pragma omp parallel shared(count) private(myTid)
+#pragma omp parallel shared(count) private(myTid)
 	{
 		myTid = omp_get_thread_num();
-		#pragma omp for
+#pragma omp for
 #endif
-		for (unsigned int i = 0; i < _informativeSites.size(); i++)
-		{
-			for (unsigned int j = i + 1; j < _informativeSites.size(); j++)
-				if (_informativeSites[i]->checkCompatibility(_informativeSites[j]))
-				{
-					_informativeSites[i]->incComp();
-					_informativeSites[j]->incComp();
-				}
-		}
+	for (unsigned int i = 0; i < _informativeSites.size(); i++)
+	{
+		for (unsigned int j = i + 1; j < _informativeSites.size(); j++)
+			if (_informativeSites[i]->checkCompatibility(_informativeSites[j]))
+			{
+				_informativeSites[i]->incComp();
+				_informativeSites[j]->incComp();
+			}
+	}
 
 #ifdef _OPENMP
-		#pragma omp for
+#pragma omp for
 #endif
-		for (unsigned int i = 0; i < _informativeSites.size(); i++)
-		{
-			_informativeSites[i]->computeScores(_informativeSites.size());
+	for (unsigned int i = 0; i < _informativeSites.size(); i++)
+	{
+		_informativeSites[i]->computeScores(_informativeSites.size());
 
+		if (randomizations)
+		{
 			int poc = 0;
 			for (int r = 0; r < randomizations; r++)
 			{
@@ -119,8 +129,11 @@ void Alignment::computeCompatibilityScores(int randomizations)
 				cout << "\r" << count * 100 / total << "%" << flush;
 			_informativeSites[i]->setPOC((double) poc / randomizations);
 		}
-#ifdef _OPENMP
+		else
+			_informativeSites[i]->setPOC(.0);
 	}
+#ifdef _OPENMP
+}
 #endif
 	long t2 = time(NULL);
 	cout << "\rFinished computing scores, taking " << t2 - t1 << "s." << endl;
@@ -146,7 +159,7 @@ Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSm
 		for (unsigned int j = 0; j < sites.size(); j++)
 		{
 			Site *site = _informativeSites[sites[j]];
-			newSeq += seq[site->getCol()];
+			newSeq += seq[site->getCols()[0]];
 		}
 		if (newSeq.length())
 		{
@@ -170,7 +183,7 @@ void Alignment::writeSummary(string fileName)
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
 		Site* s = _informativeSites[i];
-		file << s->getCol() + 1 << "," << s->getSmin() << "," << s->getEntropy()  << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC()<< endl;
+		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC() << endl;
 	}
 }
 

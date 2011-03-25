@@ -2,6 +2,8 @@
 #define SEQUENCE_H_
 
 #include <string>
+#include <vector>
+
 using namespace std;
 
 class Sequence {
@@ -10,6 +12,7 @@ public:
 	virtual ~Sequence();
 	string getName();
 	string getSequence();
+	string getColumns(vector<int> cols);
 	size_t getLength();
 
 private:

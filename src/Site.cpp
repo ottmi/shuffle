@@ -40,7 +40,7 @@ void Site::initialize(vector<Sequence>* alignment)
 	for (unsigned int i = 0; i < alignment->size(); i++)
 	{
 		Sequence sequence = alignment->at(i);
-		char c = this->mapCharToNum(sequence.getSequence().at(_col));
+		int c = this->mapCharToNum(sequence.getColumns(_cols));
 
 		if (charIsUnambiguous(c))
 		{
@@ -51,12 +51,9 @@ void Site::initialize(vector<Sequence>* alignment)
 	}
 
 	int informative = 0;
-	for (char c=0; c<=_unambiguousThreshold; c++)
-	{
-		BaseOccurenceMapIterator it = _r.find(c);
-		if (it != _r.end() && it->second >= 2)
+	for (BaseOccurenceMapIterator it=_r.begin(); it!=_r.end(); it++)
+		if (charIsUnambiguous(it->first) && it->second >= 2)
 			informative++;
-	}
 
 	if (informative >= 2)
 		_isInformative = true;
@@ -67,18 +64,18 @@ void Site::initialize(vector<Sequence>* alignment)
 
 bool Site::checkCompatibility(Site* site)
 {
-	vector<char> s1 = _site;
-	vector<char> s2 = site->getSite();
+	vector<int> s1 = _site;
+	vector<int> s2 = site->getSite();
 
-	list<pair<char, char> > pairs;
-	list<pair<char, char> >::iterator it1;
-	list<pair<char, char> >::iterator it2;
+	list<pair<int, int> > pairs;
+	list<pair<int, int> >::iterator it1;
+	list<pair<int, int> >::iterator it2;
 
 	for (unsigned int i = 0; i < s1.size(); i++)
 	{
 		if (charIsUnambiguous(s1[i]) && charIsUnambiguous(s2[i])) // contains no unknown, missing, or ambiguous characters
 		{
-			pair<char, char> p(s1[i], s2[i]);
+			pair<int, int> p(s1[i], s2[i]);
 			pairs.push_back(p);
 		}
 	}
@@ -158,23 +155,23 @@ void Site::setPOC(double poc)
 {
 	_poc = poc;
 	if (verbose)
-		cout << "Site #" << _col << ": compSites=" << _compSites << " co=" << _coScore << " poc=" << _poc << " entropy=" << _entropy << " smin=" << _smin << endl;
+		cout << "Site #" << _cols[0] << ": compSites=" << _compSites << " co=" << _coScore << " poc=" << _poc << " entropy=" << _entropy << " smin=" << _smin << endl;
 }
 
 
 void Site::computeScores(unsigned int cols)
 {
 	_smin = _r.size() - 1;
-
-	BaseOccurenceMapIterator r_it;
 	map<int, int> t;
 	map<int, int>::const_iterator t_it;
 
+	unsigned int n = 0;
 	double prod_r = 1.0;
-	for (r_it = _r.begin(); r_it != _r.end(); r_it++)
+	for (BaseOccurenceMapIterator it = _r.begin(); it != _r.end(); it++)
 	{
-		t[r_it->second]++;
-		prod_r *= factorial(r_it->second);
+		n+= it->second;
+		t[it->second]++;
+		prod_r *= factorial(it->second);
 	}
 
 	double prod_t = 1.0;
@@ -184,27 +181,23 @@ void Site::computeScores(unsigned int cols)
 	}
 	_entropy = log(factorial(_unambiguousCount) / (prod_r * prod_t));
 
-	unsigned int n = 0;
-	for (char c=0; c<=_unambiguousThreshold; c++)
-		n+= _r[c];
-
 	unsigned int d = 0;
-	for (char c=0; c<=_unambiguousThreshold; c++)
-	{
-		d+= (n - _r[c]) * _r[c];
-	}
+	for (BaseOccurenceMapIterator it=_r.begin(); it!=_r.end(); it++)
+		if (charIsUnambiguous(it->first))
+			d+= (n - it->second) * it->second;
+
 	double k = n*(n-1);
 	_ov = (double) d/k;
 
-	_coScore = ((double) _compSites) / cols;
+	_coScore = ((double) _compSites) / (cols-1);
 }
 
 
 Site* Site::randomize()
 {
-	vector<char> r;
+	vector<int> r;
 	Site* randomizedSite = NULL;
-	vector<char> positions = _site;
+	vector<int> positions = _site;
 
 	for (unsigned int i=0; i<_site.size(); i++)
 	{
@@ -216,10 +209,10 @@ Site* Site::randomize()
 	switch (_type)
 	{
 		case _DNA_DATA:
-			randomizedSite = new DNASite(r, -1);
+			randomizedSite = new DNASite(r);
 			break;
 		case _AA_DATA:
-			randomizedSite = new AASite(r, -1);
+			randomizedSite = new AASite(r);
 			break;
 		default:
 			cerr << "Unknown data type " << _type << " at Site::randomize()" << endl;
@@ -230,7 +223,13 @@ Site* Site::randomize()
 }
 
 
-bool Site::charIsUnambiguous(char c)
+bool Site::charIsUnambiguous(int n)
 {
-	return (c <= _unambiguousThreshold);
+	for (unsigned int i = 0; i < _cols.size(); i++)
+	{
+		if ((n & 255) > _unambiguousThreshold)
+			return false;
+		n = n >> 8;
+	}
+	return true;
 }

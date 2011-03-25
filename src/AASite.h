@@ -5,13 +5,13 @@
 class AASite: public Site
 {
 public:
-	AASite(vector<Sequence>* alignment, int col);
-	AASite(vector<char> site, int col);
+	AASite(vector<Sequence>* alignment, vector<int> grouping, int offset);
+	AASite(vector<int> site);
 	virtual ~AASite();
 
 private:
-	char mapNumToChar(char c);
-	char mapCharToNum(char c);
+	string mapNumToChar(int n);
+	int mapCharToNum(string s);
 };
 
 #endif /* AASITE_H_ */
