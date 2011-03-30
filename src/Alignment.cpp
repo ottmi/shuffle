@@ -156,12 +156,12 @@ Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSm
 
 	for (unsigned int i = 0; i < _alignment.size(); i++)
 	{
-		string seq, newSeq;
-		seq = _alignment[i].getSequence();
+		string newSeq;
+		Sequence seq = _alignment[i];
 		for (unsigned int j = 0; j < sites.size(); j++)
 		{
 			Site *site = _informativeSites[sites[j]];
-			newSeq += seq[site->getCols()[0]];
+			newSeq += seq.getColumns(site->getCols());
 		}
 		if (newSeq.length())
 		{
@@ -169,7 +169,7 @@ Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSm
 			a.addSequence(s);
 		}
 	}
-	cout << "New alignment contains " << a.getNumOfRows() << " sequences with " << a.getNumOfCols() << " sites." << endl;
+	cout << "New alignment contains " << a.getNumOfRows() << " sequences with " << a.getNumOfCols() << " columns." << endl;
 
 	return a;
 }
