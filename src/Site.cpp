@@ -170,8 +170,8 @@ void Site::incComp()
 void Site::setPOC(double poc)
 {
 	_poc = poc;
-	if (verbose)
-		cout << "Site #" << _cols[0] << ": compSites=" << _compSites << " co=" << _coScore << " poc=" << _poc << " entropy=" << _entropy << " smin=" << _smin << endl;
+	if (debug >= 4)
+		cout << "\rSite [" << colsToString() << "]: compSites=" << _compSites << " co=" << _coScore << " poc=" << _poc << " entropy=" << _entropy << " smin=" << _smin << endl;
 }
 
 
