@@ -14,4 +14,4 @@ $(BIN): $(OBJ)
 	$(CXX) $(CXXFLAGS) -c $<
 
 clean:
-	rm -fr $(BIN) $(OBJ)
+	$(RM) $(BIN) $(OBJ)
