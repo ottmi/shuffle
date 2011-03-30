@@ -8,7 +8,7 @@ $(BIN): force_look
 
 clean :
 	$(RM) $(BIN)
-	cd src; $(MAKE) cleana
+	cd src; $(MAKE) clean
 
 force_look:
 	true
