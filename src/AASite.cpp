@@ -2,151 +2,159 @@
 
 AASite::AASite(vector<Sequence>* alignment, vector<int> grouping, int offset)
 {
-/*
-	_unambiguousCharacters = "ACDEFGHIKLMNPQRSTVWY";
-	_ambiguousCharacters = "BJXZ?";
-	_missingCharacters = '-';
-	_unambiguousThreshold = 19;
-*/
+	/*
+	 _unambiguousCharacters = "ACDEFGHIKLMNPQRSTVWY";
+	 _ambiguousCharacters = "BJXZ?";
+	 _missingCharacters = '-';
+	 _unambiguousThreshold = 19;
+	 */
 	_unambiguousThreshold = 19;
 	_type = 1;
-	for (unsigned int i=0; i<grouping.size(); i++)
-		_cols.push_back(grouping[i]+offset);
+	for (unsigned int i = 0; i < grouping.size(); i++)
+		_cols.push_back(grouping[i] + offset);
 
 	initialize(alignment);
 }
-
 
 AASite::AASite(vector<int> site)
 {
 	_unambiguousThreshold = 19;
 	_type = 1;
-	_cols = vector<int>(1, -1);
+	_cols = vector<int> (1, -1);
 	_site = site;
 }
-
 
 AASite::~AASite()
 {
 }
 
-
 string AASite::mapNumToChar(int n)
 {
 	string map = "ACDEFGHIKLMNPQRSTVWYBJXZ?-";
-	return map.substr(n, 1);
-}
+	string s;
 
+	for (unsigned int i = 0; i < _cols.size(); i++)
+	{
+		s = map[n & 255] + s;
+		n = n >> 8;
+	}
+
+	return s;
+}
 
 int AASite::mapCharToNum(string s)
 {
-	char d;
-
-	switch(s[0])
+	int d = 0;
+	for (unsigned int i = 0; i < s.size(); i++)
 	{
-		case 'A': // unambiguous
-			d = 0;
-			break;
+		int c = s[i];
+		d = d << 8;
+		switch (c)
+		{
+			case 'A': // unambiguous
+				d = 0x00;
+				break;
 
-		case 'C':
-			d = 1;
-			break;
+			case 'C':
+				d = 0x01;
+				break;
 
-		case 'D':
-			d = 2;
-			break;
+			case 'D':
+				d = 0x02;
+				break;
 
-		case 'E':
-			d = 3;
-			break;
+			case 'E':
+				d = 0x03;
+				break;
 
-		case 'F':
-			d = 4;
-			break;
+			case 'F':
+				d = 0x04;
+				break;
 
-		case 'G':
-			d = 5;
-			break;
+			case 'G':
+				d = 0x05;
+				break;
 
-		case 'H':
-			d = 6;
-			break;
+			case 'H':
+				d = 0x06;
+				break;
 
-		case 'I':
-			d = 7;
-			break;
+			case 'I':
+				d = 0x07;
+				break;
 
-		case 'K':
-			d = 8;
-			break;
+			case 'K':
+				d = 0x08;
+				break;
 
-		case 'L':
-			d = 9;
-			break;
+			case 'L':
+				d = 0x09;
+				break;
 
-		case 'M':
-			d = 10;
-			break;
+			case 'M':
+				d = 0x0A;
+				break;
 
-		case 'N':
-			d = 11;
-			break;
+			case 'N':
+				d = 0x0B;
+				break;
 
-		case 'P':
-			d = 12;
-			break;
+			case 'P':
+				d = 0x0C;
+				break;
 
-		case 'Q':
-			d = 13;
-			break;
+			case 'Q':
+				d = 0x0D;
+				break;
 
-		case 'R':
-			d = 14;
-			break;
+			case 'R':
+				d = 0x0E;
+				break;
 
-		case 'S':
-			d = 15;
-			break;
+			case 'S':
+				d = 0x0F;
+				break;
 
-		case 'T':
-			d = 16;
-			break;
+			case 'T':
+				d = 0x10;
+				break;
 
-		case 'V':
-			d = 17;
-			break;
+			case 'V':
+				d = 0x11;
+				break;
 
-		case 'W':
-			d = 18;
-			break;
+			case 'W':
+				d = 0x12;
+				break;
 
-		case 'Y':
-			d = 19;
-			break;
+			case 'Y':
+				d = 0x13;
+				break;
 
-		case 'B': // ambiguous
-			d = 20;
-			break;
+			case 'B': // ambiguous
+				d = 0x14;
+				break;
 
-		case 'J':
-			d = 21;
-			break;
+			case 'J':
+				d = 0x15;
+				break;
 
-		case 'X':
-			d = 22;
-			break;
+			case 'X':
+				d = 0x16;
+				break;
 
-		case 'Z':
-			d = 23;
-			break;
+			case 'Z':
+				d = 0x17;
+				break;
 
-		case '?':
-			d = 24;
-			break;
+			case '?':
+				d = 0x18;
+				break;
 
-		default: // missing
-			d = 25;
-			break;
+			default: // missing
+				d = 0x19;
+				break;
+		}
 	}
 
 	return d;
