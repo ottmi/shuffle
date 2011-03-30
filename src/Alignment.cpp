@@ -48,7 +48,8 @@ Alignment::Alignment(Options *options)
 			s = new AASite(&_alignment, options->grouping, options->groupLength*i+options->groupOffset);
 		if (s->isInformative())
 			_informativeSites.push_back(s);
-		//delete s;
+		else
+			delete s;
 	}
 
 	if (options->groupLength > 1)
