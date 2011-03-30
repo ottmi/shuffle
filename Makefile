@@ -2,10 +2,13 @@ BIN = shuffle
 
 all: $(BIN)
 
-$(BIN):
+$(BIN): force_look
 	cd src; $(MAKE) $(MFLAGS)
 	mv src/$(BIN) .
 
 clean :
 	$(RM) $(BIN)
-	cd src; $(MAKE) clean
+	cd src; $(MAKE) cleana
+
+force_look:
+	true
