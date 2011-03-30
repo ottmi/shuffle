@@ -2,6 +2,7 @@
 #define ALIGNMENT_H_
 #include <vector>
 #include <string>
+#include "globals.h"
 #include "Sequence.h"
 #include "Site.h"
 
@@ -12,7 +13,7 @@ class Alignment
 {
 public:
 	Alignment(int dataType);
-	Alignment(string fileName, int dataType, vector<int> grouping);
+	Alignment(Options *options);
 	virtual ~Alignment();
 	void addSequence(Sequence sequence);
 	void computeCompatibilityScores(int randomizations);

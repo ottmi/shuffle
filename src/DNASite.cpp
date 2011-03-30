@@ -13,7 +13,7 @@ DNASite::DNASite(vector<Sequence>* alignment, vector<int> grouping, int offset)
 	_unambiguousThreshold = 5;
 	_type = 0;
 	for (unsigned int i = 0; i < grouping.size(); i++)
-		_cols.push_back(grouping[i] + offset*grouping.size());
+		_cols.push_back(grouping[i] + offset);
 	initialize(alignment);
 }
 

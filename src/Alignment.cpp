@@ -16,18 +16,18 @@ Alignment::Alignment(int dataType)
 	_dataType = dataType;
 }
 
-Alignment::Alignment(string fileName, int dataType, vector<int> grouping)
+Alignment::Alignment(Options *options)
 {
 	AlignmentReader *alignmentReader;
 
-	string ext = fileName.substr(fileName.find_last_of('.') + 1);
+	string ext = options->inputAlignment.substr(options->inputAlignment.find_last_of('.') + 1);
 	if (!ext.compare("phy") || !ext.compare("phylip"))
 	{
-		alignmentReader = new PhylipReader(fileName);
+		alignmentReader = new PhylipReader(options->inputAlignment);
 	}
 	else if (!ext.compare("fsa") || !ext.compare("fasta"))
 	{
-		alignmentReader = new FastaReader(fileName);
+		alignmentReader = new FastaReader(options->inputAlignment);
 	}
 	else
 	{
@@ -35,26 +35,26 @@ Alignment::Alignment(string fileName, int dataType, vector<int> grouping)
 		exit(255);
 	}
 	_alignment = alignmentReader->getSequences();
-	_dataType = dataType;
+	_dataType = options->dataType;
 	delete alignmentReader;
 
 	Site *s;
-	unsigned int numOfSites = getNumOfCols() / grouping.size();
+	unsigned int numOfSites = getNumOfCols() / options->groupLength;
 	for (unsigned int i = 0; i < numOfSites; i++)
 	{
 		if (_dataType == 0)
-			s = new DNASite(&_alignment, grouping, i);
+			s = new DNASite(&_alignment, options->grouping, options->groupLength*i+options->groupOffset);
 		else
-			s = new AASite(&_alignment, grouping, i);
+			s = new AASite(&_alignment, options->grouping, options->groupLength*i+options->groupOffset);
 		if (s->isInformative())
 			_informativeSites.push_back(s);
 		//delete s;
 	}
 
-	if (grouping.size() > 1)
+	if (options->groupLength > 1)
 	{
 		cout << "Alignment contains " << getNumOfRows() << " sequences with " << getNumOfCols() << " columns." << endl;
-		cout << "Columns are being grouped into groups of " << grouping.size() << ", resulting into " << numOfSites << " sites, " << _informativeSites.size()
+		cout << "Columns are being grouped into groups of " << options->groupLength << ", resulting into " << numOfSites << " sites, " << _informativeSites.size()
 				<< " of which are informative." << endl;
 	}
 	else

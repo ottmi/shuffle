@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
@@ -10,21 +11,6 @@
 using namespace std;
 
 int verbose = 0;
-
-typedef struct opt_struct
-{
-	string inputAlignment;
-	int dataType;
-	string outputAlignment;
-	int randomizations;
-	string summaryFile;
-	double minCo;
-	double minPOC;
-	int maxSmin;
-	double maxEntropy;
-	int help;
-	vector<int> grouping;
-} Options;
 
 void parseArguments(int argc, char** argv, Options *options)
 {
@@ -96,6 +82,11 @@ void parseArguments(int argc, char** argv, Options *options)
 				cerr << "Unknown parameter: " << c << endl;
 		}
 	}
+
+	vector<int>::iterator min = min_element(options->grouping.begin(), options->grouping.end());
+	vector<int>::iterator max = max_element(options->grouping.begin(), options->grouping.end());
+	options->groupOffset = *min;
+	options->groupLength = *max-*min+1;
 }
 
 void printSyntax()
@@ -138,7 +129,7 @@ int main(int argc, char** argv) {
 	if (!(options.inputAlignment.length() && options.dataType >= 0) || options.help)
 		printSyntax();
 
-	Alignment alignment(options.inputAlignment, options.dataType, options.grouping);
+	Alignment alignment(&options);
 	alignment.computeCompatibilityScores(options.randomizations);
 	if (options.summaryFile.length())
 		alignment.writeSummary(options.summaryFile);
