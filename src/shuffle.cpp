@@ -11,8 +11,9 @@
 using namespace std;
 
 int verbose = 0;
+int debug = 0;
 
-void parseArguments(int argc, char** argv, Options *options)
+int parseArguments(int argc, char** argv, Options *options)
 {
 	char c;
 
@@ -25,7 +26,7 @@ void parseArguments(int argc, char** argv, Options *options)
 	options->help = 0;
 	options->grouping.push_back(0);
 
-	while ( (c = getopt(argc, argv, "i:adg:r:s:o:c:p:m:e:v")) != -1)
+	while ( (c = getopt(argc, argv, "i:adg:r:s:o:c:p:m:e:vx:h")) != -1)
 	{
 		switch (c)
 		{
@@ -75,11 +76,16 @@ void parseArguments(int argc, char** argv, Options *options)
 			case 'v':
 				verbose = 1;
 				break;
+			case 'x':
+				debug = atoi(optarg);
+				verbose = 1;
+				break;
 			case 'h':
 				options->help = 1;
 				break;
 			default:
 				cerr << "Unknown parameter: " << c << endl;
+				return 1;
 		}
 	}
 
@@ -87,6 +93,8 @@ void parseArguments(int argc, char** argv, Options *options)
 	vector<int>::iterator max = max_element(options->grouping.begin(), options->grouping.end());
 	options->groupOffset = *min;
 	options->groupLength = *max-*min+1;
+
+	return 0;
 }
 
 void printSyntax()
@@ -125,7 +133,9 @@ int main(int argc, char** argv) {
 
 	cout << PROGNAME << " " << VERSION << " [" << PROGDATE << "]" << endl << endl;
 
-	parseArguments(argc, argv, &options);
+	int ret = parseArguments(argc, argv, &options);
+	if (ret)
+		return ret;
 	if (!(options.inputAlignment.length() && options.dataType >= 0) || options.help)
 		printSyntax();
 
