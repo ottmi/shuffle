@@ -35,6 +35,9 @@ public:
 	bool charIsUnambiguous(int n);
 	virtual string mapNumToChar(int n) =0;
 	virtual int mapCharToNum(string s) =0;
+	string toString();
+	string toNumString();
+	string colsToString();
 
 protected:
 	int _type; // 0=DNA, 1=AA

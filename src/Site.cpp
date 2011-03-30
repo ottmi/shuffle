@@ -1,5 +1,7 @@
 #include <iostream>
+#include <iomanip>
 #include <list>
+#include <sstream>
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
@@ -56,9 +58,23 @@ void Site::initialize(vector<Sequence>* alignment)
 			informative++;
 
 	if (informative >= 2)
+	{
+		if (debug >= 1)
+			cout << "Site [" << colsToString() << "] is informative" << endl;
 		_isInformative = true;
+	}
 	else
+	{
+		if (debug >= 2)
+			cout << "Site [" << colsToString() << "] is uninformative" << endl;
 		_isInformative = false;
+	}
+
+	if (debug >= 2)
+		cout << "   " << toString() << endl;
+	if (debug >= 3)
+		cout << "   " << toNumString() << endl;
+
 }
 
 
@@ -232,4 +248,42 @@ bool Site::charIsUnambiguous(int n)
 		n = n >> 8;
 	}
 	return true;
+}
+
+string Site::toString()
+{
+	string s;
+
+	for (unsigned int i = 0; i < _site.size()-1; i++)
+	{
+		s+= mapNumToChar(_site[i]);
+		s+= ", ";
+	}
+	s+= mapNumToChar(_site[_site.size()-1]);
+
+	return s;
+}
+
+string Site::toNumString()
+{
+	stringstream s;
+
+	s <<  hex << setfill('0');
+	for (unsigned j=0; j<_site.size()-1; j++)
+		s << setw(_cols.size()*2) << _site[j] << ", ";
+	s << setw(_cols.size()*2) << _site[_site.size()-1];
+
+	return s.str();
+}
+
+
+string Site::colsToString()
+{
+	stringstream s;
+
+	for (unsigned int i = 0; i < _cols.size()-1; i++)
+		s << _cols[i] << ",";
+	s << _cols[_cols.size()-1];
+
+	return s.str();
 }
