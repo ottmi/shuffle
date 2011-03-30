@@ -39,13 +39,14 @@ Alignment::Alignment(Options *options)
 	delete alignmentReader;
 
 	Site *s;
-	unsigned int numOfSites = getNumOfCols() / options->groupLength;
+	unsigned int numOfSites = (getNumOfCols()-options->groupOffset) / options->groupLength;
 	for (unsigned int i = 0; i < numOfSites; i++)
 	{
 		if (_dataType == 0)
-			s = new DNASite(&_alignment, options->grouping, options->groupLength*i+options->groupOffset);
+			s = new DNASite(&_alignment, options->grouping, options->groupLength*i);
 		else
-			s = new AASite(&_alignment, options->grouping, options->groupLength*i+options->groupOffset);
+			s = new AASite(&_alignment, options->grouping, options->groupLength*i);
+
 		if (s->isInformative())
 			_informativeSites.push_back(s);
 		else
@@ -55,8 +56,8 @@ Alignment::Alignment(Options *options)
 	if (options->groupLength > 1)
 	{
 		cout << "Alignment contains " << getNumOfRows() << " sequences with " << getNumOfCols() << " columns." << endl;
-		cout << "Columns are being grouped into groups of " << options->groupLength << ", resulting into " << numOfSites << " sites, " << _informativeSites.size()
-				<< " of which are informative." << endl;
+		cout << "Columns are being grouped into groups of " << options->groupLength << " with an offset of " << options->groupOffset << "." << endl;
+		cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative." << endl;
 	}
 	else
 	{
