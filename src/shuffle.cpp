@@ -26,6 +26,9 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->help = 0;
 	options->grouping.push_back(0);
 
+	int minGroup = 255;
+	int maxGroup = 0;
+
 	while ( (c = getopt(argc, argv, "i:adg:r:s:o:c:p:m:e:vx:h")) != -1)
 	{
 		switch (c)
@@ -46,7 +49,15 @@ int parseArguments(int argc, char** argv, Options *options)
 				stringstream ss(optarg);
 				while (ss >> i)
 				{
-					options->grouping.push_back(i);
+					if (i >= 0)
+						options->grouping.push_back(i);
+					else
+						i = -i;
+					if (i > maxGroup)
+						maxGroup = i;
+					if (i < minGroup)
+						minGroup = i;
+
 					if (ss.peek() == ',')
 						ss.ignore();
 				}
@@ -89,10 +100,8 @@ int parseArguments(int argc, char** argv, Options *options)
 		}
 	}
 
-	vector<int>::iterator min = min_element(options->grouping.begin(), options->grouping.end());
-	vector<int>::iterator max = max_element(options->grouping.begin(), options->grouping.end());
-	options->groupOffset = *min;
-	options->groupLength = *max-*min+1;
+	options->groupOffset = minGroup;
+	options->groupLength = maxGroup - minGroup + 1;
 
 	return 0;
 }
