@@ -1,10 +1,3 @@
-/*
- * globals.h
- *
- *  Created on: Mar 10, 2011
- *      Author: ottmi
- */
-
 #ifndef GLOBALS_H_
 #define GLOBALS_H_
 
@@ -13,8 +6,8 @@
 using namespace std;
 
 #define PROGNAME "shuffle++"
-#define VERSION  "0.10"
-#define PROGDATE "2011-03-10"
+#define VERSION  "0.20"
+#define PROGDATE "2011-03-30"
 
 extern int verbose;
 extern int debug;
