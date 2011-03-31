@@ -6,9 +6,11 @@ AlignmentReader::AlignmentReader()
 {
 }
 
+
 AlignmentReader::~AlignmentReader()
 {
 }
+
 
 string AlignmentReader::adjustString(string s)
 {
@@ -25,6 +27,7 @@ string AlignmentReader::adjustString(string s)
 
 	return(r);
 }
+
 
 vector<Sequence> AlignmentReader::getSequences()
 {

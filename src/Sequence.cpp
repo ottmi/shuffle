@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <ctype.h>
 #include "Sequence.h"
 
 Sequence::Sequence(string name, string seq)
@@ -8,20 +6,24 @@ Sequence::Sequence(string name, string seq)
 	_sequence = seq;
 }
 
+
 Sequence::~Sequence()
 {
 	// TODO Auto-generated destructor stub
 }
+
 
 string Sequence::getName()
 {
 	return _name;
 }
 
+
 string Sequence::getSequence()
 {
 	return _sequence;
 }
+
 
 string Sequence::getColumns(vector<int> cols)
 {
@@ -32,6 +34,7 @@ string Sequence::getColumns(vector<int> cols)
 
 	return s;
 }
+
 
 size_t Sequence::getLength()
 {

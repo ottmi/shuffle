@@ -3,6 +3,7 @@
 
 string whiteSpace = " \n\t";
 
+
 PhylipReader::PhylipReader(string fileName)
 {
 	cout << "PhylipReader(" << fileName << ")" << endl;
@@ -23,6 +24,7 @@ PhylipReader::PhylipReader(string fileName)
 	_cols = atoi(cols.c_str());
 	_rows = atoi(rows.c_str());
 }
+
 
 vector<Sequence> PhylipReader::getSequences()
 {

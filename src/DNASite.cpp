@@ -26,6 +26,7 @@ DNASite::DNASite(vector<int> site)
 	_site = site;
 }
 
+
 DNASite::~DNASite()
 {
 }

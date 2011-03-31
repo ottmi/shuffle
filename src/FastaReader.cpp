@@ -14,11 +14,13 @@ FastaReader::FastaReader(string fileName)
 		getline(_fileReader, _lastLine);
 }
 
+
 FastaReader::~FastaReader()
 {
 	if (!_fileReader.is_open())
 		_fileReader.close();
 }
+
 
 vector<Sequence> FastaReader::getSequences()
 {

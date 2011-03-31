@@ -16,6 +16,7 @@ Alignment::Alignment(int dataType)
 	_dataType = dataType;
 }
 
+
 Alignment::Alignment(Options *options)
 {
 	AlignmentReader *alignmentReader;
@@ -66,16 +67,19 @@ Alignment::Alignment(Options *options)
 	}
 }
 
+
 Alignment::~Alignment()
 {
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 		delete _informativeSites[i];
 }
 
+
 void Alignment::addSequence(Sequence s)
 {
 	_alignment.push_back(s);
 }
+
 
 void Alignment::computeCompatibilityScores(int randomizations)
 {
@@ -141,6 +145,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	cout << "\rFinished computing scores, taking " << t2 - t1 << "s." << endl;
 }
 
+
 Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy)
 {
 	Alignment a(_dataType);
@@ -174,6 +179,7 @@ Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSm
 	return a;
 }
 
+
 void Alignment::writeSummary(string fileName)
 {
 	ofstream file(fileName.c_str(), ifstream::trunc);
@@ -188,6 +194,7 @@ void Alignment::writeSummary(string fileName)
 		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC() << endl;
 	}
 }
+
 
 void Alignment::write(string fileName)
 {

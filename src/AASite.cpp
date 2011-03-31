@@ -16,6 +16,7 @@ AASite::AASite(vector<Sequence>* alignment, vector<int> grouping, int offset)
 	initialize(alignment);
 }
 
+
 AASite::AASite(vector<int> site)
 {
 	_unambiguousThreshold = 19;
@@ -24,9 +25,11 @@ AASite::AASite(vector<int> site)
 	_site = site;
 }
 
+
 AASite::~AASite()
 {
 }
+
 
 string AASite::mapNumToChar(int n)
 {
@@ -41,6 +44,7 @@ string AASite::mapNumToChar(int n)
 
 	return s;
 }
+
 
 int AASite::mapCharToNum(string s)
 {

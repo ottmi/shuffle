@@ -95,6 +95,7 @@ bool Site::checkCompatibility(Site* site)
 			pairs.push_back(p);
 		}
 	}
+
 /*
 	pairs.sort();
 	pairs.unique();
@@ -111,24 +112,17 @@ bool Site::checkCompatibility(Site* site)
 				it2++;
 		}
 	}
-/*
-	for (it1 = pairs.begin(); it1 != pairs.end(); it1++)
-		cerr << it1->first;
-	cerr << endl;
-	for (it1 = pairs.begin(); it1 != pairs.end(); it1++)
-		cerr << it1->second;
-	cerr << endl;
-*/
+
 	BaseOccurenceMap occ1;
 	BaseOccurenceMap occ2;
-	for (it1 = pairs.begin(); it1 != pairs.end(); it1++)
+	for (it1 = pairs.begin(); it1 != pairs.end(); it1++)  // count occurences
 	{
 		occ1[it1->first]++;
 		occ2[it1->second]++;
 	}
 
 	bool changed = true;
-	while (changed)
+	while (changed) // remove per-site unique characters
 	{
 		changed = false;
 		for (it1 = pairs.begin(); it1 != pairs.end(); it1++)
@@ -250,6 +244,7 @@ bool Site::charIsUnambiguous(int n)
 	return true;
 }
 
+
 string Site::toString()
 {
 	string s;
@@ -263,6 +258,7 @@ string Site::toString()
 
 	return s;
 }
+
 
 string Site::toNumString()
 {
