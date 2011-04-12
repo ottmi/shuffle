@@ -83,7 +83,9 @@ void Alignment::addSequence(Sequence s)
 
 void Alignment::computeCompatibilityScores(int randomizations)
 {
+	cout << endl;
 	cout << "Computing compatibility scores, doing " << randomizations << " randomizations..." << endl;
+	cout << "0%" << flush;
 
 	long t1 = time(NULL);
 	unsigned int total = _informativeSites.size() * randomizations;
@@ -132,7 +134,11 @@ void Alignment::computeCompatibilityScores(int randomizations)
 
 			count += randomizations;
 			if (myTid == 0)
-				cout << "\r" << count * 100 / total << "%" << flush;
+			{
+				long elapsed = time(NULL) - t1;
+				long eta = (elapsed * total) / count;
+				cout << "\r" << count * 100 / total << "% \tETA: " << eta << "s \tTime elapsed: " << elapsed << "s        " << flush;
+			}
 			_informativeSites[i]->setPOC((double) poc / randomizations);
 		}
 		else
