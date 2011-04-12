@@ -26,7 +26,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->help = 0;
 	options->grouping.push_back(0);
 
-	int minGroup = 255;
+	int minGroup = 0;
 	int maxGroup = 0;
 
 	while ( (c = getopt(argc, argv, "i:adg:r:s:o:c:p:m:e:vx:h")) != -1)
@@ -45,6 +45,7 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 'g':
 			{
 				options->grouping.clear();
+				minGroup = 255;
 				int i;
 				stringstream ss(optarg);
 				while (ss >> i)
