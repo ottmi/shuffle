@@ -9,6 +9,7 @@
 #include "PhylipReader.h"
 #include "AASite.h"
 #include "DNASite.h"
+#include "AlphanumericSite.h"
 #include "Alignment.h"
 
 Alignment::Alignment(int dataType)
@@ -43,10 +44,21 @@ Alignment::Alignment(Options *options)
 	unsigned int numOfSites = (getNumOfCols()-options->groupOffset) / options->groupLength;
 	for (unsigned int i = 0; i < numOfSites; i++)
 	{
-		if (_dataType == 0)
-			s = new DNASite(&_alignment, options->grouping, options->groupLength*i);
-		else
-			s = new AASite(&_alignment, options->grouping, options->groupLength*i);
+		switch (_dataType)
+		{
+			case _DNA_DATA:
+				s = new DNASite(&_alignment, options->grouping, options->groupLength*i);
+				break;
+			case _AA_DATA:
+				s = new AASite(&_alignment, options->grouping, options->groupLength*i);
+				break;
+			case _ALPHANUM_DATA:
+				s = new AlphanumericSite(&_alignment, options->grouping, options->groupLength*i);
+				break;
+			default:
+				cerr << "Unknown data type " << _dataType << " at Alignment::Alignment()" << endl;
+				break;
+		}
 
 		if (s->isInformative())
 			_informativeSites.push_back(s);

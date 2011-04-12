@@ -12,8 +12,9 @@ using namespace std;
 extern int verbose;
 extern int debug;
 
-#define _DNA_DATA	0
-#define	_AA_DATA	1
+#define _DNA_DATA				0
+#define	_AA_DATA				1
+#define	_ALPHANUM_DATA	2
 
 typedef struct opt_struct
 {

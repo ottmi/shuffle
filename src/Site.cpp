@@ -8,6 +8,7 @@
 #include "globals.h"
 #include "AASite.h"
 #include "DNASite.h"
+#include "AlphanumericSite.h"
 #include "Sequence.h"
 #include "Site.h"
 
@@ -223,6 +224,9 @@ Site* Site::randomize()
 			break;
 		case _AA_DATA:
 			randomizedSite = new AASite(r);
+			break;
+		case _ALPHANUM_DATA:
+			randomizedSite = new AlphanumericSite(r);
 			break;
 		default:
 			cerr << "Unknown data type " << _type << " at Site::randomize()" << endl;
