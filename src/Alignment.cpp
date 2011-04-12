@@ -149,7 +149,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 			{
 				long elapsed = time(NULL) - t1;
 				long eta = (elapsed * total) / count - elapsed;
-				cout << "\r" << count * 100 / total << "% \tETA: " << eta << "s \tTime elapsed: " << elapsed << "s        " << flush;
+				cout << "\r" << count * 100 / total << "%\tTime elapsed: " << elapsed << "s\tETA: " << eta << "s  " << flush;
 			}
 			_informativeSites[i]->setPOC((double) poc / randomizations);
 		}
@@ -160,7 +160,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 }
 #endif
 	long t2 = time(NULL);
-	cout << "\rFinished computing scores, taking " << t2 - t1 << "s." << endl;
+	cout << "\rFinished computing scores, taking " << t2 - t1 << "s.               " << endl;
 }
 
 
