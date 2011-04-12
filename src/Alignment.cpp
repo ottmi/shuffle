@@ -136,7 +136,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 			if (myTid == 0)
 			{
 				long elapsed = time(NULL) - t1;
-				long eta = (elapsed * total) / count;
+				long eta = (elapsed * total) / count - elapsed;
 				cout << "\r" << count * 100 / total << "% \tETA: " << eta << "s \tTime elapsed: " << elapsed << "s        " << flush;
 			}
 			_informativeSites[i]->setPOC((double) poc / randomizations);
