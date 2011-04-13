@@ -3,6 +3,7 @@
 #endif
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <stdlib.h>
 #include "FastaReader.h"
@@ -149,7 +150,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 			{
 				long elapsed = time(NULL) - t1;
 				long eta = (elapsed * total) / count - elapsed;
-				cout << "\r" << count * 100 / total << "%\tTime elapsed: " << elapsed << "s\tETA: " << eta << "s  " << flush;
+				cout << "\r" << count * 100 / total << "%\tTime elapsed: " << elapsed/60 << ":" << setfill('0') << setw(2) << elapsed%60 << "\tETA: " << eta/60 << ":" << setw(2) << eta%60 << "  " << flush;
 			}
 			_informativeSites[i]->setPOC((double) poc / randomizations);
 		}

@@ -1,3 +1,7 @@
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include <iostream>
 #include <algorithm>
 #include <stdlib.h>
@@ -146,6 +150,11 @@ int main(int argc, char** argv) {
 	Options options;
 
 	cout << PROGNAME << " " << VERSION << " [" << PROGDATE << "]" << endl << endl;
+
+#ifdef _OPENMP
+	cout << "This is the OpenMP version, running in parallel on " << omp_get_max_threads() << " Threads." << endl;
+	cout << endl;
+#endif
 
 	int ret = parseArguments(argc, argv, &options);
 	if (ret)
