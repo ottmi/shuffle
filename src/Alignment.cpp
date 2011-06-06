@@ -41,6 +41,39 @@ Alignment::Alignment(Options *options)
 	_dataType = options->dataType;
 	delete alignmentReader;
 
+	string dataTypeDesc[] = {"DNA", "AA", "alphanumeric"};
+	cout << "Alignment contains " << getNumOfRows() << " " << dataTypeDesc[_dataType] << " sequences." << endl;
+
+	if (options->removeDuplicates)
+	{
+		cout << "Removing duplicates...";
+		if (verbose)
+			cout << endl;
+		vector<Sequence>::iterator it1, it2;
+		int count = 0;
+		for (it1=_alignment.begin(); it1!=_alignment.end(); it1++)
+		{
+			it2 = it1+1;
+			while (it2 != _alignment.end())
+			{
+				if (it1->getSequence() == it2->getSequence())
+				{
+					if (verbose)
+						cout << "  " << it2->getName() << " is a duplicate of " << it1->getName() << endl;
+					_alignment.erase(it2);
+					count++;
+				}	else
+				{
+					it2++;
+				}
+			}
+		}
+		if (!verbose)
+			cout << "\b\b\b, done." << endl;
+
+		cout << "Removed " << count << " duplicates, " << getNumOfRows() << " sequences remain in the alignment." << endl;
+	}
+
 	Site *s;
 	unsigned int numOfSites = (getNumOfCols()-options->groupOffset) / options->groupLength;
 	for (unsigned int i = 0; i < numOfSites; i++)
@@ -67,29 +100,14 @@ Alignment::Alignment(Options *options)
 			delete s;
 	}
 
-	cout << "Alignment contains " << getNumOfRows();
-	switch (_dataType)
-	{
-		case _DNA_DATA:
-			cout << " DNA ";
-			break;
-		case _AA_DATA:
-			cout << " AA ";
-			break;
-		case _ALPHANUM_DATA:
-			cout << " alphanumeric ";
-			break;
-	}
-
 	if (options->groupLength > 1)
 	{
-		cout << "sequences with " << getNumOfCols() << " columns." << endl;
-		cout << "Columns are being grouped into groups of " << options->groupLength << " with an offset of " << options->groupOffset << "." << endl;
+		cout << "Grouping the " << getNumOfCols() << " columns of the alignment into groups of " << options->groupLength << " with an offset of " << options->groupOffset << "." << endl;
 		cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative." << endl;
 	}
 	else
 	{
-		cout << "sequences with " << getNumOfCols() << " sites, " << _informativeSites.size() << " of which are informative." << endl;
+		cout << "The alignment consists of " << getNumOfCols() << " sites, " << _informativeSites.size() << " of which are informative." << endl;
 	}
 }
 

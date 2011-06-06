@@ -22,6 +22,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	char c;
 
 	options->dataType = -1;
+	options->removeDuplicates = 0;
 	options->randomizations = 100;
 	options->minCo = 0;
 	options->minPOC = 0.0;
@@ -33,7 +34,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "i:t:g:r:s:o:c:p:m:e:vx:h")) != -1)
+	while ( (c = getopt(argc, argv, "i:t:g:dr:s:o:c:p:m:e:vx:h")) != -1)
 	{
 		switch (c)
 		{
@@ -82,6 +83,9 @@ int parseArguments(int argc, char** argv, Options *options)
 				}
 				break;
 			}
+			case 'd':
+				options->removeDuplicates = 1;
+				break;
 			case 'r':
 				options->randomizations = atoi(optarg);
 				break;
