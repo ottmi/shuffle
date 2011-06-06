@@ -188,17 +188,19 @@ int main(int argc, char** argv) {
 	if (options.reducedAlignment.length())
 		alignment.write(options.reducedAlignment);
 
-	alignment.collectInformativeSites(&options);
-
-	alignment.computeCompatibilityScores(options.randomizations);
-
-	if (options.summaryFile.length())
-		alignment.writeSummary(options.summaryFile);
-
-	if (options.outputAlignment.length())
+	if (options.summaryFile.length() || options.outputAlignment.length())
 	{
-		Alignment modifiedAlignment = alignment.getModifiedAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
-		modifiedAlignment.write(options.outputAlignment);
+		alignment.collectInformativeSites(&options);
+		alignment.computeCompatibilityScores(options.randomizations);
+
+		if (options.summaryFile.length())
+			alignment.writeSummary(options.summaryFile);
+
+		if (options.outputAlignment.length())
+		{
+			Alignment modifiedAlignment = alignment.getModifiedAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
+			modifiedAlignment.write(options.outputAlignment);
+		}
 	}
 
 	return 0;
