@@ -260,7 +260,7 @@ void Alignment::writeSummary(string fileName)
 void Alignment::write(string fileName)
 {
 	int type;
-	string ext = fileName.substr(fileName.find_first_of('.') + 1);
+	string ext = fileName.substr(fileName.find_last_of('.') + 1);
 	if (!ext.compare("phy") || !ext.compare("phylip"))
 		type = 0;
 	else if (!ext.compare("fsa") || !ext.compare("fasta"))
