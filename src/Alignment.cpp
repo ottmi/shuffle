@@ -101,8 +101,9 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	cout << "0%" << flush;
 
 	long t1 = time(NULL);
-	unsigned int total = _informativeSites.size() * randomizations;
-	unsigned int count = 0;
+	unsigned long n = _informativeSites.size();
+	unsigned long total = n*(n-1)/2 + n*n*randomizations;
+	unsigned long count = 0;
 	int myTid = 0;
 
 #ifdef _OPENMP
@@ -111,22 +112,31 @@ void Alignment::computeCompatibilityScores(int randomizations)
 		myTid = omp_get_thread_num();
 #pragma omp for
 #endif
-	for (unsigned int i = 0; i < _informativeSites.size(); i++)
+	for (unsigned int i = 0; i < n; i++)
 	{
-		for (unsigned int j = i + 1; j < _informativeSites.size(); j++)
+		int k = 0;
+		for (unsigned int j = i + 1; j < n; j++)
+		{
 			if (_informativeSites[i]->checkCompatibility(_informativeSites[j]))
 			{
 				_informativeSites[i]->incComp();
 				_informativeSites[j]->incComp();
 			}
+		}
+		count+= n-i-1;
+		if (myTid == 0)
+		{
+			long elapsed = time(NULL) - t1;
+			cout << "\r" << count * 100 / total << "%\tTime elapsed: " << elapsed/60 << ":" << setfill('0') << setw(2) << elapsed%60 << flush;
+		}
 	}
 
 #ifdef _OPENMP
 #pragma omp for
 #endif
-	for (unsigned int i = 0; i < _informativeSites.size(); i++)
+	for (unsigned int i = 0; i < n; i++)
 	{
-		_informativeSites[i]->computeScores(_informativeSites.size());
+		_informativeSites[i]->computeScores(n);
 
 		if (randomizations)
 		{
@@ -135,7 +145,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 			{
 				int comp = 0;
 				Site* randomSite = _informativeSites[i]->randomize();
-				for (unsigned int j = 0; j < _informativeSites.size(); j++)
+				for (unsigned int j = 0; j < n; j++)
 				{
 					if (i != j && randomSite->checkCompatibility(_informativeSites[j]))
 						comp++;
@@ -145,7 +155,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 					poc++;
 			}
 
-			count += randomizations;
+			count += randomizations*n;
 			if (myTid == 0)
 			{
 				long elapsed = time(NULL) - t1;
