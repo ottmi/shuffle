@@ -33,22 +33,33 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "i:adng:r:s:o:c:p:m:e:vx:h")) != -1)
+	while ( (c = getopt(argc, argv, "i:t:g:r:s:o:c:p:m:e:vx:h")) != -1)
 	{
 		switch (c)
 		{
 			case 'i':
 				options->inputAlignment = optarg;
 				break;
-			case 'a':
-				options->dataType = _AA_DATA;
+			case 't':
+			{
+				char type = optarg[0];
+				switch (type)
+				{
+					case 'a':
+						options->dataType = _AA_DATA;
+						break;
+					case 'd':
+						options->dataType = _DNA_DATA;
+						break;
+					case 'n':
+						options->dataType = _ALPHANUM_DATA;
+						break;
+					default:
+						cerr << "Unknown data type: " << optarg << endl;
+						break;
+				}
 				break;
-			case 'd':
-				options->dataType = _DNA_DATA;
-				break;
-			case 'n':
-				options->dataType = _ALPHANUM_DATA;
-				break;
+			}
 			case 'g':
 			{
 				options->grouping.clear();
@@ -117,15 +128,13 @@ int parseArguments(int argc, char** argv, Options *options)
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
-	cout << "  shuffle -i <FILE> <-a|-d|-n> [-g LIST] [-r NUM] [-o FILE [-c NUM] [-p NUM] [-m NUM] -[e NUM]] [-s FILE] [-v]" << endl;
+	cout << "  shuffle -i <FILE> -t <a|d|n> [-g LIST] [-r NUM] [-o FILE [-c NUM] [-p NUM] [-m NUM] -[e NUM]] [-s FILE] [-v]" << endl;
 	cout << "  shuffle -h" << endl;
 	cout << endl;
 
 	cout << "Options:" << endl;
 	cout << "  -i\tInput alignment" << endl;
-	cout << "  -a\tInput alignment is AA data" << endl;
-	cout << "  -d\tInput alignment is DNA data" << endl;
-	cout << "  -n\tInput alignment is Alphanumeric data" << endl;
+	cout << "  -t\tInput alignment data type a=AA, d=DNA, n=Alphanumeric" << endl;
 	cout << "  -g\tGrouping of columns into sites, e.g. 0,1 for duplets and 0,1,2 for codons" << endl;
 	cout << "  -r\tNumber of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -o\tOutput alignment" << endl;

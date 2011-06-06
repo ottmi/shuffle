@@ -67,16 +67,29 @@ Alignment::Alignment(Options *options)
 			delete s;
 	}
 
+	cout << "Alignment contains " << getNumOfRows();
+	switch (_dataType)
+	{
+		case _DNA_DATA:
+			cout << " DNA ";
+			break;
+		case _AA_DATA:
+			cout << " AA ";
+			break;
+		case _ALPHANUM_DATA:
+			cout << " alphanumeric ";
+			break;
+	}
+
 	if (options->groupLength > 1)
 	{
-		cout << "Alignment contains " << getNumOfRows() << " sequences with " << getNumOfCols() << " columns." << endl;
+		cout << "sequences with " << getNumOfCols() << " columns." << endl;
 		cout << "Columns are being grouped into groups of " << options->groupLength << " with an offset of " << options->groupOffset << "." << endl;
 		cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative." << endl;
 	}
 	else
 	{
-		cout << "Alignment contains " << getNumOfRows() << " sequences with " << getNumOfCols() << " sites, " << _informativeSites.size()
-				<< " of which are informative." << endl;
+		cout << "sequences with " << getNumOfCols() << " sites, " << _informativeSites.size() << " of which are informative." << endl;
 	}
 }
 
