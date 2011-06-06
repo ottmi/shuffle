@@ -94,7 +94,7 @@ void Alignment::removeDuplicates()
 void Alignment::collectInformativeSites(Options *options)
 {
 	cout << endl;
-	cout << "Collecting informative sites...";
+	cout << "Collecting informative sites..." << endl;
 	Site *s;
 	unsigned int numOfSites = (getNumOfCols()-options->groupOffset) / options->groupLength;
 	for (unsigned int i = 0; i < numOfSites; i++)
@@ -120,7 +120,6 @@ void Alignment::collectInformativeSites(Options *options)
 		else
 			delete s;
 	}
-	cout << "\b\b\b, done." << endl;
 	cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative." << endl;
 
 	if (options->groupLength > 1)

@@ -10,7 +10,6 @@ using namespace std;
 #define PROGDATE "2011-04-13"
 
 extern int verbose;
-extern int debug;
 
 #define _DNA_DATA				0
 #define	_AA_DATA				1

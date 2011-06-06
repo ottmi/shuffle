@@ -15,7 +15,6 @@
 using namespace std;
 
 int verbose = 0;
-int debug = 0;
 
 int parseArguments(int argc, char** argv, Options *options)
 {
@@ -34,7 +33,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "i:t:g:d::r:s:o:c:p:m:e:vx:h")) != -1)
+	while ( (c = getopt(argc, argv, "i:t:g:d::r:s:o:c:p:m:e:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -57,6 +56,7 @@ int parseArguments(int argc, char** argv, Options *options)
 						break;
 					default:
 						cerr << "Unknown data type: " << optarg << endl;
+						return 2;
 						break;
 				}
 				break;
@@ -110,17 +110,17 @@ int parseArguments(int argc, char** argv, Options *options)
 				options->maxEntropy = atof(optarg);
 				break;
 			case 'v':
-				verbose = 1;
-				break;
-			case 'x':
-				debug = atoi(optarg);
-				verbose = 1;
+				if (optarg)
+					verbose = atoi(optarg);
+				else
+					verbose = 1;
 				break;
 			case 'h':
 				options->help = 1;
 				break;
 			default:
-				cerr << "Unknown parameter: " << c << endl;
+				if (c != '?')
+					cerr << "Unknown parameter: " << c << endl;
 				return 1;
 		}
 	}
@@ -134,7 +134,7 @@ int parseArguments(int argc, char** argv, Options *options)
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
-	cout << "  shuffle -i<FILE> -t <a|d|n> [-d[FILE]] [-g<LIST>] [-r<NUM>] [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] -[e<NUM>]] [-s<FILE>] [-v]" << endl;
+	cout << "  shuffle -i<FILE> -t<a|d|n> [-d[FILE]] [-g<LIST>] [-r<NUM>] [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] -[e<NUM>]] [-s<FILE>] [-v[NUM]]" << endl;
 	cout << "  shuffle -h" << endl;
 	cout << endl;
 
@@ -150,7 +150,7 @@ void printSyntax()
 	cout << "  -m\tMaximum Smin [default: " << INT_MAX << "]" << endl;
 	cout << "  -e\tMaximum entropy [default: " << DBL_MAX << "]" << endl;
 	cout << "  -s\tOutput file for site summary" << endl;
-	cout << "  -v\tBe verbose " << endl;
+	cout << "  -v\tBe increasingly verbose" << endl;
 	cout << "  -h\tThis help page" << endl;
 	cout << endl;
 

@@ -60,20 +60,20 @@ void Site::initialize(vector<Sequence>* alignment)
 
 	if (informative >= 2)
 	{
-		if (debug >= 1)
+		if (verbose >= 2)
 			cout << "Site [" << colsToString() << "] is informative" << endl;
 		_isInformative = true;
 	}
 	else
 	{
-		if (debug >= 2)
+		if (verbose >= 3)
 			cout << "Site [" << colsToString() << "] is uninformative" << endl;
 		_isInformative = false;
 	}
 
-	if (debug >= 2)
+	if (verbose >= 3)
 		cout << "   " << toString() << endl;
-	if (debug >= 3)
+	if (verbose >= 4)
 		cout << "   " << toNumString() << endl;
 
 }
@@ -165,7 +165,7 @@ void Site::incComp()
 void Site::setPOC(double poc)
 {
 	_poc = poc;
-	if (debug >= 4)
+	if (verbose >= 5)
 		cout << "\rSite [" << colsToString() << "]: compSites=" << _compSites << " co=" << _coScore << " poc=" << _poc << " entropy=" << _entropy << " smin=" << _smin << endl;
 }
 
