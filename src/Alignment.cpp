@@ -290,7 +290,7 @@ void Alignment::write(string fileName)
 			cout << "Writing Fasta alignment to " << fileName << endl;
 			for (unsigned int i = 0; i < getNumOfRows(); i++)
 			{
-				file << "<" << _alignment[i].getName() << endl;
+				file << ">" << _alignment[i].getName() << endl;
 				file << _alignment[i].getSequence() << endl;
 			}
 			break;
