@@ -132,13 +132,14 @@ int parseArguments(int argc, char** argv, Options *options)
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
-	cout << "  shuffle -i <FILE> -t <a|d|n> [-g LIST] [-r NUM] [-o FILE [-c NUM] [-p NUM] [-m NUM] -[e NUM]] [-s FILE] [-v]" << endl;
+	cout << "  shuffle -i FILE -t <a|d|n> [-d] [-g LIST] [-r NUM] [-o FILE [-c NUM] [-p NUM] [-m NUM] -[e NUM]] [-s FILE] [-v]" << endl;
 	cout << "  shuffle -h" << endl;
 	cout << endl;
 
 	cout << "Options:" << endl;
 	cout << "  -i\tInput alignment" << endl;
 	cout << "  -t\tInput alignment data type a=AA, d=DNA, n=Alphanumeric" << endl;
+	cout << "  -d\tRemove duplicates" << endl;
 	cout << "  -g\tGrouping of columns into sites, e.g. 0,1 for duplets and 0,1,2 for codons" << endl;
 	cout << "  -r\tNumber of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -o\tOutput alignment" << endl;
