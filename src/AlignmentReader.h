@@ -12,7 +12,7 @@ public:
 	AlignmentReader();
 	virtual ~AlignmentReader();
 	virtual vector<Sequence> getSequences();
-	string adjustString(string s);
+	string adjustString(string s, bool upercase=false);
 };
 
 #endif /* ALIGNMENTREADER_H_ */

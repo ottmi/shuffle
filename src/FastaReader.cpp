@@ -38,10 +38,11 @@ vector<Sequence> FastaReader::getSequences()
 			if (_lastLine[0] != '>')
 				seq += _lastLine;
 		}
-		seq = adjustString(seq);
+		seq = adjustString(seq, true);
+		header = adjustString(header.substr(1), false);
 		if (header.length() > 1 && seq.length())
 		{
-			Sequence s(header.substr(1), seq);
+			Sequence s(header, seq);
 			sequences.push_back(s);
 		}
 	}

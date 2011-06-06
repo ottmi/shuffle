@@ -12,7 +12,7 @@ AlignmentReader::~AlignmentReader()
 }
 
 
-string AlignmentReader::adjustString(string s)
+string AlignmentReader::adjustString(string s, bool upercase)
 {
 	string r = "";
 
@@ -21,7 +21,10 @@ string AlignmentReader::adjustString(string s)
 		char c = s[i];
 		if (c != '\t' && c != '\n' && c != '\r' && c != ' ')
 	  {
-			r+= toupper(c);
+			if (upercase)
+				r+= toupper(c);
+			else
+				r+= c;
 	  }
 	}
 
