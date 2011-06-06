@@ -167,16 +167,17 @@ int main(int argc, char** argv) {
 
 	cout << PROGNAME << " " << VERSION << " [" << PROGDATE << "]" << endl << endl;
 
-#ifdef _OPENMP
-	cout << "This is the OpenMP version, running in parallel on " << omp_get_max_threads() << " Threads." << endl;
-	cout << endl;
-#endif
-
 	int ret = parseArguments(argc, argv, &options);
 	if (ret)
 		return ret;
 	if (!(options.inputAlignment.length() && options.dataType >= 0) || options.help)
 		printSyntax();
+
+
+	#ifdef _OPENMP
+	cout << "This is the OpenMP version, running in parallel on " << omp_get_max_threads() << " Threads." << endl;
+	cout << endl;
+#endif
 
 
 	Alignment alignment(&options);
