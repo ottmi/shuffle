@@ -13,13 +13,13 @@ Sequence::~Sequence()
 }
 
 
-string Sequence::getName()
+string& Sequence::getName()
 {
 	return _name;
 }
 
 
-string Sequence::getSequence()
+string& Sequence::getSequence()
 {
 	return _sequence;
 }

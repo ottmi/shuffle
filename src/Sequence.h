@@ -10,8 +10,8 @@ class Sequence {
 public:
 	Sequence(string name, string seq);
 	virtual ~Sequence();
-	string getName();
-	string getSequence();
+	string& getName();
+	string& getSequence();
 	string getColumns(vector<int> cols);
 	size_t getLength();
 
