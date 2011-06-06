@@ -1,5 +1,4 @@
-#include <iostream>
-
+#include "globals.h"
 #include "DNASite.h"
 
 DNASite::DNASite(vector<Sequence>* alignment, vector<int> grouping, int offset)
@@ -34,7 +33,7 @@ DNASite::~DNASite()
 
 string DNASite::mapNumToChar(int n)
 {
-	string map = "ACGTURYKMSWBDHVN?-";
+	string map = _DNA_MAP;
 	string s;
 	for (unsigned int i = 0; i < _cols.size(); i++)
 	{

@@ -27,8 +27,7 @@ AlphanumericSite::~AlphanumericSite()
 
 string AlphanumericSite::mapNumToChar(int n)
 {
-	//            01234567890123456789012345678901234567
-	string map = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?-";
+	string map = _ALPHANUM_MAP;
 	string s;
 	for (unsigned int i = 0; i < _cols.size(); i++)
 	{

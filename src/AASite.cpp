@@ -1,3 +1,4 @@
+#include "globals.h"
 #include "AASite.h"
 
 AASite::AASite(vector<Sequence>* alignment, vector<int> grouping, int offset)
@@ -33,7 +34,7 @@ AASite::~AASite()
 
 string AASite::mapNumToChar(int n)
 {
-	string map = "ACDEFGHIKLMNPQRSTVWYBJXZ?-";
+	string map = _AA_MAP;
 	string s;
 
 	for (unsigned int i = 0; i < _cols.size(); i++)

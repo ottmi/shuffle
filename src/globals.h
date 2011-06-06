@@ -15,6 +15,10 @@ extern int verbose;
 #define	_AA_DATA				1
 #define	_ALPHANUM_DATA	2
 
+#define _DNA_MAP      "ACGTURYKMSWBDHVN?-"
+#define _AA_MAP       "ACDEFGHIKLMNPQRSTVWYBJXZ?-"
+#define _ALPHANUM_MAP "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?-"
+
 typedef struct opt_struct
 {
 	string inputAlignment;

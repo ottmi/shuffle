@@ -134,13 +134,13 @@ int parseArguments(int argc, char** argv, Options *options)
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
-	cout << "  shuffle -i<FILE> -t<a|d|n> [-d[FILE]] [-g<LIST>] [-r<NUM>] [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] -[e<NUM>]] [-s<FILE>] [-v[NUM]]" << endl;
+	cout << "  shuffle -i<FILE> [-t<a|d|n>] [-d[FILE]] [-g<LIST>] [-r<NUM>] [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] -[e<NUM>]] [-s<FILE>] [-v[NUM]]" << endl;
 	cout << "  shuffle -h" << endl;
 	cout << endl;
 
 	cout << "Options:" << endl;
 	cout << "  -i\tInput alignment" << endl;
-	cout << "  -t\tInput alignment data type a=AA, d=DNA, n=Alphanumeric" << endl;
+	cout << "  -t\tInput alignment data type a=AA, d=DNA, n=Alphanumeric [default: auto-detect]" << endl;
 	cout << "  -d\tRemove duplicates and optionally dump reduced alignment to file" << endl;
 	cout << "  -g\tGrouping of columns into sites, e.g. 0,1 for duplets and 0,1,2 for codons" << endl;
 	cout << "  -r\tNumber of randomizations for POC computations [default: 100]" << endl;
@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
 	int ret = parseArguments(argc, argv, &options);
 	if (ret)
 		return ret;
-	if (!(options.inputAlignment.length() && options.dataType >= 0) || options.help)
+	if (!options.inputAlignment.length() || options.help)
 		printSyntax();
 
 
