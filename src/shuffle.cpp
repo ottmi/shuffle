@@ -34,7 +34,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "i:t:g:dr:s:o:c:p:m:e:vx:h")) != -1)
+	while ( (c = getopt(argc, argv, "i:t:g:d::r:s:o:c:p:m:e:vx:h")) != -1)
 	{
 		switch (c)
 		{
@@ -85,6 +85,8 @@ int parseArguments(int argc, char** argv, Options *options)
 			}
 			case 'd':
 				options->removeDuplicates = 1;
+				if (optarg)
+					options->reducedAlignment = optarg;
 				break;
 			case 'r':
 				options->randomizations = atoi(optarg);
@@ -132,14 +134,14 @@ int parseArguments(int argc, char** argv, Options *options)
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
-	cout << "  shuffle -i FILE -t <a|d|n> [-d] [-g LIST] [-r NUM] [-o FILE [-c NUM] [-p NUM] [-m NUM] -[e NUM]] [-s FILE] [-v]" << endl;
+	cout << "  shuffle -i<FILE> -t <a|d|n> [-d[FILE]] [-g<LIST>] [-r<NUM>] [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] -[e<NUM>]] [-s<FILE>] [-v]" << endl;
 	cout << "  shuffle -h" << endl;
 	cout << endl;
 
 	cout << "Options:" << endl;
 	cout << "  -i\tInput alignment" << endl;
 	cout << "  -t\tInput alignment data type a=AA, d=DNA, n=Alphanumeric" << endl;
-	cout << "  -d\tRemove duplicates" << endl;
+	cout << "  -d\tRemove duplicates and optionally dump reduced alignment to file" << endl;
 	cout << "  -g\tGrouping of columns into sites, e.g. 0,1 for duplets and 0,1,2 for codons" << endl;
 	cout << "  -r\tNumber of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -o\tOutput alignment" << endl;
@@ -181,6 +183,9 @@ int main(int argc, char** argv) {
 
 	if (options.removeDuplicates)
 		alignment.removeDuplicates();
+
+	if (options.reducedAlignment.length())
+		alignment.write(options.reducedAlignment);
 
 	alignment.collectInformativeSites(&options);
 

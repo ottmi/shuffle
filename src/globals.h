@@ -21,6 +21,7 @@ typedef struct opt_struct
 	string inputAlignment;
 	int dataType;
 	int removeDuplicates;
+	string reducedAlignment;
 	string outputAlignment;
 	int randomizations;
 	string summaryFile;
