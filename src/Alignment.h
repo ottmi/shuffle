@@ -16,6 +16,8 @@ public:
 	Alignment(Options *options);
 	virtual ~Alignment();
 	void addSequence(Sequence sequence);
+	void removeDuplicates();
+	void collectInformativeSites(Options *options);
 	void computeCompatibilityScores(int randomizations);
 	void writeSummary(string fileName);
 	Alignment getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);

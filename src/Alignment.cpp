@@ -43,37 +43,58 @@ Alignment::Alignment(Options *options)
 
 	string dataTypeDesc[] = {"DNA", "AA", "alphanumeric"};
 	cout << "Alignment contains " << getNumOfRows() << " " << dataTypeDesc[_dataType] << " sequences." << endl;
+}
 
-	if (options->removeDuplicates)
+
+Alignment::~Alignment()
+{
+	for (unsigned int i = 0; i < _informativeSites.size(); i++)
+		delete _informativeSites[i];
+}
+
+
+void Alignment::addSequence(Sequence s)
+{
+	_alignment.push_back(s);
+}
+
+
+void Alignment::removeDuplicates()
+{
+	cout << endl;
+	cout << "Removing duplicates...";
+	if (verbose)
+		cout << endl;
+	vector<Sequence>::iterator it1, it2;
+	int count = 0;
+	for (it1=_alignment.begin(); it1!=_alignment.end(); it1++)
 	{
-		cout << "Removing duplicates...";
-		if (verbose)
-			cout << endl;
-		vector<Sequence>::iterator it1, it2;
-		int count = 0;
-		for (it1=_alignment.begin(); it1!=_alignment.end(); it1++)
+		it2 = it1+1;
+		while (it2 != _alignment.end())
 		{
-			it2 = it1+1;
-			while (it2 != _alignment.end())
+			if (it1->getSequence() == it2->getSequence())
 			{
-				if (it1->getSequence() == it2->getSequence())
-				{
-					if (verbose)
-						cout << "  " << it2->getName() << " is a duplicate of " << it1->getName() << endl;
-					_alignment.erase(it2);
-					count++;
-				}	else
-				{
-					it2++;
-				}
+				if (verbose)
+					cout << "  " << it2->getName() << " is a duplicate of " << it1->getName() << endl;
+				_alignment.erase(it2);
+				count++;
+			}	else
+			{
+				it2++;
 			}
 		}
-		if (!verbose)
-			cout << "\b\b\b, done." << endl;
-
-		cout << "Removed " << count << " duplicates, " << getNumOfRows() << " sequences remain in the alignment." << endl;
 	}
+	if (!verbose)
+		cout << "\b\b\b, done." << endl;
 
+	cout << "Removed " << count << " duplicates, " << getNumOfRows() << " sequences remain in the alignment." << endl;
+}
+
+
+void Alignment::collectInformativeSites(Options *options)
+{
+	cout << endl;
+	cout << "Collecting informative sites...";
 	Site *s;
 	unsigned int numOfSites = (getNumOfCols()-options->groupOffset) / options->groupLength;
 	for (unsigned int i = 0; i < numOfSites; i++)
@@ -99,31 +120,12 @@ Alignment::Alignment(Options *options)
 		else
 			delete s;
 	}
+	cout << "\b\b\b, done." << endl;
+	cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative." << endl;
 
 	if (options->groupLength > 1)
-	{
-		cout << "Grouping the " << getNumOfCols() << " columns of the alignment into groups of " << options->groupLength << " with an offset of " << options->groupOffset << "." << endl;
-		cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative." << endl;
-	}
-	else
-	{
-		cout << "The alignment consists of " << getNumOfCols() << " sites, " << _informativeSites.size() << " of which are informative." << endl;
-	}
+		cout << "Each site consists of " << options->groupLength << " out of " << getNumOfCols() << " columns, starting with an offset of " << options->groupOffset << "." << endl;
 }
-
-
-Alignment::~Alignment()
-{
-	for (unsigned int i = 0; i < _informativeSites.size(); i++)
-		delete _informativeSites[i];
-}
-
-
-void Alignment::addSequence(Sequence s)
-{
-	_alignment.push_back(s);
-}
-
 
 void Alignment::computeCompatibilityScores(int randomizations)
 {

@@ -175,10 +175,19 @@ int main(int argc, char** argv) {
 	if (!(options.inputAlignment.length() && options.dataType >= 0) || options.help)
 		printSyntax();
 
+
 	Alignment alignment(&options);
+
+	if (options.removeDuplicates)
+		alignment.removeDuplicates();
+
+	alignment.collectInformativeSites(&options);
+
 	alignment.computeCompatibilityScores(options.randomizations);
+
 	if (options.summaryFile.length())
 		alignment.writeSummary(options.summaryFile);
+
 	if (options.outputAlignment.length())
 	{
 		Alignment modifiedAlignment = alignment.getModifiedAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
