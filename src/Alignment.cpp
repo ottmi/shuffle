@@ -39,7 +39,6 @@ Alignment::Alignment(Options *options)
 	}
 	_alignment = alignmentReader->getSequences();
 	delete alignmentReader;
-	cout << "The alignment contains " << getNumOfRows() << " sequences ";
 
 	string dataTypeDesc[] = {"DNA", "AA", "alphanumeric"};
 	if (options->dataType < 0)
@@ -62,20 +61,20 @@ Alignment::Alignment(Options *options)
 				counts[i]+= baseOccurences[map[j]];
 		}
 
+		if (verbose)
+			cout << counts[0] << " DNA characters, " << counts[1] << " AA characters, " << counts[2] << " Alphanum characters." << endl;
 		int dataTypeGuess = _ALPHANUM_DATA;
-		if (counts[2] == counts[1])
-		{
-			if (counts[1] <= counts[0]) // RNA can also contain U which is undefined for AA
-				dataTypeGuess = _DNA_DATA;
-			else
-				dataTypeGuess = _AA_DATA;
-		}
+		if (counts[2] == counts[0])
+			dataTypeGuess = _DNA_DATA;
+		else if (counts[2] == counts[1])
+			dataTypeGuess = _AA_DATA;
 		_dataType = dataTypeGuess;
-		cout << "which appear to be " << dataTypeDesc[_dataType] << "." << endl;
+
+		cout << "The alignment contains " << getNumOfRows() << " sequences " << "which appear to be " << dataTypeDesc[_dataType] << "." << endl;
 	} else
 	{
 		_dataType = options->dataType;
-		cout << "which have been defined to be " << dataTypeDesc[_dataType] << "." << endl;
+		cout << "The alignment contains " << getNumOfRows() << " sequences which have been defined to be " << dataTypeDesc[_dataType] << "." << endl;
 	}
 }
 
