@@ -128,10 +128,16 @@ void Alignment::collectInformativeSites(Options *options)
 {
 	cout << endl;
 	cout << "Collecting informative sites..." << endl;
-	Site *s;
+	long t1 = time(NULL);
 	unsigned int numOfSites = (getNumOfCols()-options->groupOffset) / options->groupLength;
+
+#ifdef _OPENMP
+	_informativeSites.resize(numOfSites, NULL);
+	#pragma omp parallel for
+#endif
 	for (unsigned int i = 0; i < numOfSites; i++)
 	{
+		Site *s;
 		switch (_dataType)
 		{
 			case _DNA_DATA:
@@ -149,11 +155,28 @@ void Alignment::collectInformativeSites(Options *options)
 		}
 
 		if (s->isInformative())
+		#ifdef _OPENMP
+			_informativeSites[i] = s;
+		#else
 			_informativeSites.push_back(s);
+		#endif
 		else
 			delete s;
 	}
-	cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative." << endl;
+
+#ifdef _OPENMP
+	vector<Site*>::iterator it=_informativeSites.begin();
+	while (it != _informativeSites.end())
+	{
+		if (*it == NULL)
+			_informativeSites.erase(it);
+		else
+			it++;
+	}
+#endif
+	long t2 = time(NULL);
+
+	cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative, taking " << t2-t1 << "s" << endl;
 
 	if (options->groupLength > 1)
 		cout << "Each site consists of " << options->groupLength << " out of " << getNumOfCols() << " columns, starting with an offset of " << options->groupOffset << "." << endl;
