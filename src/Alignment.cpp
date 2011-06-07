@@ -45,16 +45,16 @@ Alignment::Alignment(Options *options)
 	if (options->dataType < 0)
 	{
 		map<char,unsigned long> baseOccurences;
-		for (unsigned int i; i<_alignment.size(); i++)
+		for (unsigned int i=0; i<_alignment.size(); i++)
 		{
 			string s = _alignment[i].getSequence();
-			for (unsigned int j; j<s.length(); j++)
+			for (unsigned int j=0; j<s.length(); j++)
 				baseOccurences[s[j]]++;
 		}
 
 		string maps[] = {_DNA_MAP, _AA_MAP, _ALPHANUM_MAP};
 		unsigned long counts[3];
-		for (unsigned int i; i<3; i++)
+		for (unsigned int i=0; i<3; i++)
 		{
 			counts[i] = 0;
 			string map = maps[i];
