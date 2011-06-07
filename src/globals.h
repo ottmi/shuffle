@@ -32,6 +32,7 @@ typedef struct opt_struct
 	double minPOC;
 	int maxSmin;
 	double maxEntropy;
+	bool hasMinMax;
 	int help;
 	vector<int> grouping;
 	int groupOffset;

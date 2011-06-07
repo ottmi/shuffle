@@ -27,6 +27,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->minPOC = 0.0;
 	options->maxSmin = INT_MAX;
 	options->maxEntropy = DBL_MAX;
+	options->hasMinMax = false;
 	options->help = 0;
 	options->grouping.push_back(0);
 
@@ -99,15 +100,19 @@ int parseArguments(int argc, char** argv, Options *options)
 				break;
 			case 'c':
 				options->minCo = atof(optarg);
+				options->hasMinMax = true;
 				break;
 			case 'p':
 				options->minPOC = atof(optarg);
+				options->hasMinMax = true;
 				break;
 			case 'm':
 				options->maxSmin = atoi(optarg);
+				options->hasMinMax = true;
 				break;
 			case 'e':
 				options->maxEntropy = atof(optarg);
+				options->hasMinMax = true;
 				break;
 			case 'v':
 				if (optarg)
@@ -191,7 +196,8 @@ int main(int argc, char** argv) {
 	if (options.summaryFile.length() || options.outputAlignment.length())
 	{
 		alignment.collectInformativeSites(&options);
-		alignment.computeCompatibilityScores(options.randomizations);
+		if (options.summaryFile.length() || options.hasMinMax)
+			alignment.computeCompatibilityScores(options.randomizations);
 
 		if (options.summaryFile.length())
 			alignment.writeSummary(options.summaryFile);
