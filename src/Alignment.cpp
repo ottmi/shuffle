@@ -137,7 +137,7 @@ void Alignment::collectInformativeSites(Options *options)
 #endif
 	for (unsigned int i = 0; i < numOfSites; i++)
 	{
-		Site *s;
+		Site *s = NULL;
 		switch (_dataType)
 		{
 			case _DNA_DATA:
@@ -154,14 +154,20 @@ void Alignment::collectInformativeSites(Options *options)
 				break;
 		}
 
-		if (s->isInformative())
-		#ifdef _OPENMP
-			_informativeSites[i] = s;
-		#else
-			_informativeSites.push_back(s);
-		#endif
-		else
-			delete s;
+		if (s)
+		{
+			if (s->isInformative())
+			{
+				#ifdef _OPENMP
+					_informativeSites[i] = s;
+				#else
+					_informativeSites.push_back(s);
+				#endif
+			}	else
+			{
+					delete s;
+			}
+		}
 	}
 
 #ifdef _OPENMP
@@ -202,7 +208,6 @@ void Alignment::computeCompatibilityScores(int randomizations)
 #endif
 	for (unsigned int i = 0; i < n; i++)
 	{
-		int k = 0;
 		for (unsigned int j = i + 1; j < n; j++)
 		{
 			if (_informativeSites[i]->checkCompatibility(_informativeSites[j]))

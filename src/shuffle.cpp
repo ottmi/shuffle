@@ -146,9 +146,9 @@ void printSyntax()
 	cout << "Syntax:" << endl;
 	cout << "  shuffle -i<FILE> [-t<a|d|n>] [-d[FILE]] [-g<LIST>] [-r<NUM>] [-s<FILE>]" << endl;
 #ifdef _OPENMP
-	cout << "          [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] -[e<NUM>]] [-n<NUM>] [-v[NUM]]" << endl;
+	cout << "          [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] [-e<NUM>]] [-n<NUM>] [-v[NUM]]" << endl;
 #else
-	cout << "          [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] -[e<NUM>]] [-v[NUM]]" << endl;
+	cout << "          [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] [-e<NUM>]] [-v[NUM]]" << endl;
 #endif
 	cout << "  shuffle -h" << endl;
 	cout << endl;
@@ -183,7 +183,12 @@ void printSyntax()
 int main(int argc, char** argv) {
 	Options options;
 
-	cout << PROGNAME << " " << VERSION << " (" << PROGDATE << ")" << endl << endl;
+	cout << PROGNAME << " " << VERSION << "|";
+#ifdef _OPENMP
+	cout << "OpenMP|";
+#endif
+	cout << PROGDATE << endl << endl;;
+
 
 	int ret = parseArguments(argc, argv, &options);
 	if (ret)
@@ -191,9 +196,8 @@ int main(int argc, char** argv) {
 	if (!options.inputAlignment.length() || options.help)
 		printSyntax();
 
-	#ifdef _OPENMP
-	cout << "Parallel execution with " << omp_get_max_threads() << " Threads." << endl;
-	cout << endl;
+#ifdef _OPENMP
+	cout << "Parallel execution with " << omp_get_max_threads() << " threads." << endl << endl;
 #endif
 
 	Alignment alignment(&options);

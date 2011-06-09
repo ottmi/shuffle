@@ -5,14 +5,9 @@
 #include <vector>
 using namespace std;
 
-#ifdef _OPENMP
-#define PROGNAME "shuffle++ [OpenMP]"
-#else
 #define PROGNAME "shuffle++"
-#endif
-#define VERSION "0.4.9"
+#define VERSION "0.5.0"
 #define PROGDATE "2011-06-09"
-
 extern int verbose;
 
 #define _DNA_DATA				0
