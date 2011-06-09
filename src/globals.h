@@ -10,8 +10,8 @@ using namespace std;
 #else
 #define PROGNAME "shuffle++"
 #endif
-#define VERSION  "0.40"
-#define PROGDATE "2011-06-06"
+#define VERSION "0.4.9"
+#define PROGDATE "2011-06-09"
 
 extern int verbose;
 
