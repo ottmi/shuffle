@@ -34,7 +34,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "i:t:g:d::r:s:o:c:p:m:e:v::h")) != -1)
+	while ( (c = getopt(argc, argv, "i:t:g:d::r:s:o:c:p:m:e:n:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -114,6 +114,11 @@ int parseArguments(int argc, char** argv, Options *options)
 				options->maxEntropy = atof(optarg);
 				options->hasMinMax = true;
 				break;
+#ifdef _OPENMP
+			case 'n':
+				omp_set_num_threads(atoi(optarg));
+				break;
+#endif
 			case 'v':
 				if (optarg)
 					verbose = atoi(optarg);
@@ -139,22 +144,30 @@ int parseArguments(int argc, char** argv, Options *options)
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
-	cout << "  shuffle -i<FILE> [-t<a|d|n>] [-d[FILE]] [-g<LIST>] [-r<NUM>] [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] -[e<NUM>]] [-s<FILE>] [-v[NUM]]" << endl;
+	cout << "  shuffle -i<FILE> [-t<a|d|n>] [-d[FILE]] [-g<LIST>] [-r<NUM>] [-s<FILE>]" << endl;
+#ifdef _OPENMP
+	cout << "          [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] -[e<NUM>]] [-n<NUM>] [-v[NUM]]" << endl;
+#else
+	cout << "          [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] -[e<NUM>]] [-v[NUM]]" << endl;
+#endif
 	cout << "  shuffle -h" << endl;
 	cout << endl;
 
 	cout << "Options:" << endl;
 	cout << "  -i\tInput alignment" << endl;
-	cout << "  -t\tInput alignment data type a=AA, d=DNA, n=Alphanumeric [default: auto-detect]" << endl;
+	cout << "  -t\tData type a=AA, d=DNA, n=Alphanumeric [default: auto-detect]" << endl;
 	cout << "  -d\tRemove duplicates and optionally dump reduced alignment to file" << endl;
-	cout << "  -g\tGrouping of columns into sites, e.g. 0,1 for duplets and 0,1,2 for codons" << endl;
+	cout << "  -g\tGrouping of sites, e.g. 0,1 for duplets and 0,1,2 for codons" << endl;
 	cout << "  -r\tNumber of randomizations for POC computations [default: 100]" << endl;
+	cout << "  -s\tOutput file for site summary" << endl;
 	cout << "  -o\tOutput alignment" << endl;
 	cout << "  -c\tMinimum Co score [default: 0]" << endl;
 	cout << "  -p\tMinimum POC score [default: 0.0]" << endl;
 	cout << "  -m\tMaximum Smin [default: " << INT_MAX << "]" << endl;
 	cout << "  -e\tMaximum entropy [default: " << DBL_MAX << "]" << endl;
-	cout << "  -s\tOutput file for site summary" << endl;
+#ifdef _OPENMP
+	cout << "  -n\tNumber of threads [default: " << omp_get_max_threads() << "]" << endl;
+#endif
 	cout << "  -v\tBe increasingly verbose" << endl;
 	cout << "  -h\tThis help page" << endl;
 	cout << endl;
@@ -170,7 +183,7 @@ void printSyntax()
 int main(int argc, char** argv) {
 	Options options;
 
-	cout << PROGNAME << " " << VERSION << " [" << PROGDATE << "]" << endl << endl;
+	cout << PROGNAME << " " << VERSION << " (" << PROGDATE << ")" << endl << endl;
 
 	int ret = parseArguments(argc, argv, &options);
 	if (ret)
@@ -178,12 +191,10 @@ int main(int argc, char** argv) {
 	if (!options.inputAlignment.length() || options.help)
 		printSyntax();
 
-
 	#ifdef _OPENMP
-	cout << "This is the OpenMP version, running in parallel on " << omp_get_max_threads() << " Threads." << endl;
+	cout << "Parallel execution with " << omp_get_max_threads() << " Threads." << endl;
 	cout << endl;
 #endif
-
 
 	Alignment alignment(&options);
 

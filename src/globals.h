@@ -5,7 +5,11 @@
 #include <vector>
 using namespace std;
 
+#ifdef _OPENMP
+#define PROGNAME "shuffle++ [OpenMP]"
+#else
 #define PROGNAME "shuffle++"
+#endif
 #define VERSION  "0.40"
 #define PROGDATE "2011-06-06"
 
