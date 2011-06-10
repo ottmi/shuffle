@@ -12,6 +12,7 @@ public:
 	AlignmentReader();
 	virtual ~AlignmentReader();
 	virtual vector<Sequence> getSequences();
+	istream& safeGetline(istream& is, string& t);
 	string adjustString(string s, bool upercase=false);
 };
 

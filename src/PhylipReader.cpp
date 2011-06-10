@@ -12,7 +12,7 @@ PhylipReader::PhylipReader(string fileName)
 		throw("\n\nError, cannot open file " + fileName );
 
 	string str;
-	getline(_fileReader, str);
+	safeGetline(_fileReader, str);
 
 	str = str.substr(str.find_first_not_of(whiteSpace));
 	string rows = str.substr(0, str.find_first_of(whiteSpace));
@@ -33,7 +33,7 @@ vector<Sequence> PhylipReader::getSequences()
 
 	while (! _fileReader.eof())
     {
-   		getline(_fileReader, str);
+   		safeGetline(_fileReader, str);
    		if (str.length())
    		{
    			str = str.substr(str.find_first_not_of(whiteSpace));

@@ -9,9 +9,9 @@ FastaReader::FastaReader(string fileName)
 	if (!_fileReader.is_open())
 		throw("\n\nError, cannot open file " + fileName);
 
-	getline(_fileReader, _lastLine);
+	safeGetline(_fileReader, _lastLine);
 	while ((!_fileReader.eof()) && _lastLine[0] != '>')
-		getline(_fileReader, _lastLine);
+		safeGetline(_fileReader, _lastLine);
 }
 
 
@@ -34,7 +34,7 @@ vector<Sequence> FastaReader::getSequences()
 		_lastLine = "";
 		while (!_fileReader.eof() && _lastLine[0] != '>')
 		{
-			getline(_fileReader, _lastLine);
+			safeGetline(_fileReader, _lastLine);
 			if (_lastLine[0] != '>')
 				seq += _lastLine;
 		}
