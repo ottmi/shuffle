@@ -109,7 +109,7 @@ void Alignment::removeDuplicates()
 			{
 				if (verbose)
 					cout << "  " << it2->getName() << " is a duplicate of " << it1->getName() << endl;
-				_alignment.erase(it2);
+				it2 = _alignment.erase(it2);
 				count++;
 			}	else
 			{
