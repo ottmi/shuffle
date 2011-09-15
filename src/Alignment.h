@@ -17,7 +17,9 @@ public:
 	virtual ~Alignment();
 	void addSequence(Sequence sequence);
 	void removeDuplicates();
+	void collectSites(Options *options);
 	void collectInformativeSites(Options *options);
+	void computeBowkers(string& fileName, int windowSize, int windowStep);
 	void computeCompatibilityScores(int randomizations);
 	void writeSummary(string fileName);
 	Alignment getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
@@ -31,6 +33,7 @@ public:
 private:
 	int _dataType;
 	vector<Sequence> _alignment;
+	vector<Site*> _sites;
 	vector<Site*> _informativeSites;
 };
 

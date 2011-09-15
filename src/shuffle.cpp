@@ -30,11 +30,13 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->hasMinMax = false;
 	options->help = 0;
 	options->grouping.push_back(0);
+	options->windowSize = -1;
+	options->windowStep = -1;
 
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "i:t:g:d::r:s:o:c:p:m:e:n:v::h")) != -1)
+	while ( (c = getopt(argc, argv, "i:t:g:d::b:w:r:s:o:c:p:m:e:n:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -89,6 +91,23 @@ int parseArguments(int argc, char** argv, Options *options)
 				if (optarg)
 					options->reducedAlignment = optarg;
 				break;
+			case 'b':
+				options->bowkersTest = optarg;
+				break;
+			case 'w':
+			{
+				int i;
+				stringstream ss(optarg);
+				while (ss >> i)
+				{
+					if (options->windowSize < 0)
+						options->windowSize = i;
+					options->windowStep = i;
+					if (ss.peek() == ',')
+						ss.ignore();
+				}
+				break;
+			}
 			case 'r':
 				options->randomizations = atoi(optarg);
 				break;
@@ -144,7 +163,7 @@ int parseArguments(int argc, char** argv, Options *options)
 void printSyntax()
 {
 	cout << "Syntax:" << endl;
-	cout << "  shuffle -i<FILE> [-t<a|d|n>] [-d[FILE]] [-g<LIST>] [-r<NUM>] [-s<FILE>]" << endl;
+	cout << "  shuffle -i<FILE> [-t<a|d|n>] [-d[FILE]] [-g<LIST>] [-b<FILE> [-w<NUM>[,NUM]]] [-r<NUM>] [-s<FILE>]" << endl;
 #ifdef _OPENMP
 	cout << "          [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] [-e<NUM>]] [-n<NUM>] [-v[NUM]]" << endl;
 #else
@@ -158,6 +177,8 @@ void printSyntax()
 	cout << "  -t\tData type a=AA, d=DNA, n=Alphanumeric [default: auto-detect]" << endl;
 	cout << "  -d\tRemove duplicates and optionally dump reduced alignment to file" << endl;
 	cout << "  -g\tGrouping of sites, e.g. 0,1 for duplets and 0,1,2 for codons" << endl;
+	cout << "  -b\tPerform Bowker's test for symmetry and write results to file" << endl;
+	cout << "  -w\tWindow size and step width for Bowker's test [default: sequence length]" << endl;
 	cout << "  -r\tNumber of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -s\tOutput file for site summary" << endl;
 	cout << "  -o\tOutput alignment" << endl;
@@ -208,9 +229,16 @@ int main(int argc, char** argv) {
 	if (options.reducedAlignment.length())
 		alignment.write(options.reducedAlignment);
 
-	if (options.summaryFile.length() || options.outputAlignment.length())
+	if (options.summaryFile.length() || options.outputAlignment.length() || options.bowkersTest.length())
 	{
-		alignment.collectInformativeSites(&options);
+		alignment.collectSites(&options);
+
+		if (options.bowkersTest.length())
+			alignment.computeBowkers(options.bowkersTest, options.windowSize, options.windowStep);
+
+		if (options.summaryFile.length() || options.outputAlignment.length())
+			alignment.collectInformativeSites(&options);
+
 		if (options.summaryFile.length() || options.hasMinMax)
 			alignment.computeCompatibilityScores(options.randomizations);
 

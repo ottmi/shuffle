@@ -38,20 +38,30 @@ void Site::initialize(vector<Sequence>* alignment)
 
 	_compSites = 0;
 	_coScore = .0;
-
 	_unambiguousCount = 0;
+
 	for (unsigned int i = 0; i < alignment->size(); i++)
 	{
 		Sequence sequence = alignment->at(i);
 		int c = this->mapCharToNum(sequence.getColumns(_cols));
+		_site.push_back(c);
+	}
+}
+
+
+bool Site::isInformative()
+{
+	for (unsigned int i = 0; i < _site.size(); i++)
+	{
+		int c = _site[i];
 
 		if (charIsUnambiguous(c))
 		{
 			_r[c]++;
 			_unambiguousCount++;
 		}
-		_site.push_back(c);
 	}
+	_ambiguousCount = _site.size()-_unambiguousCount;
 
 	int informative = 0;
 	for (BaseOccurenceMapIterator it=_r.begin(); it!=_r.end(); it++)
@@ -76,8 +86,8 @@ void Site::initialize(vector<Sequence>* alignment)
 	if (verbose >= 4)
 		cout << "   " << toNumString() << endl;
 
+	return _isInformative;
 }
-
 
 bool Site::checkCompatibility(Site* site)
 {
