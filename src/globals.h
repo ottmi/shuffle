@@ -6,8 +6,8 @@
 using namespace std;
 
 #define PROGNAME "shuffle++"
-#define VERSION "0.5.2"
-#define PROGDATE "2011-09-08"
+#define VERSION "0.5.3"
+#define PROGDATE "2011-09-15"
 extern int verbose;
 
 #define _DNA_DATA				0
@@ -25,6 +25,7 @@ typedef struct opt_struct
 	int removeDuplicates;
 	string reducedAlignment;
 	string outputAlignment;
+	string bowkersTest;
 	int randomizations;
 	string summaryFile;
 	double minCo;
@@ -36,6 +37,8 @@ typedef struct opt_struct
 	vector<int> grouping;
 	int groupOffset;
 	int groupLength;
+	int windowSize;
+	int windowStep;
 } Options;
 
 #endif /* GLOBALS_H_ */
