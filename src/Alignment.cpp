@@ -221,13 +221,10 @@ void Alignment::computeBowkers(string& fileName, int windowSize, int windowStep)
 	else
 		dim = 36;
 
+	file << "Seq1\tSeq2\tChi-square\tdf\tp-value\tSites\tStart\tEnd" << endl;
 	for (unsigned int windowStart = 0; windowStart + windowSize <= cols; windowStart += windowStep)
 	{
-		vector<double> log_Q;
-		if (windowStart > 0)
-			file << endl;
-		file << "Columns " << windowStart << "-" << windowStart + windowSize - 1 << endl;
-		file << "Seq. 1\tSeq. 2\tChi-square\tdf  \tp-value  \tSites" << endl;
+		vector<double> q(n*n, .0);
 		for (unsigned int k = 0; k < n; k++) // 1st sequence
 		{
 			for (unsigned int l = k + 1; l < n; l++) // 2nd sequence
@@ -263,31 +260,34 @@ void Alignment::computeBowkers(string& fileName, int windowSize, int windowStep)
 				double Q = 1.0;
 				if (df > 0)
 					Q = gammq((df / 2.0), (bowker / 2.0));
+				/*
 				if (df > 0 && bowker > 0)
 					log_Q.push_back(-log10(Q));
 				else
 					log_Q.push_back(-log10(1.0));
+				*/
+				q[k*n + l] = Q;
+				q[l*n + k] = Q;
 
-				file << _alignment[k].getName() << "\t" << _alignment[l].getName() << "\t" << scientific << bowker << "\t" << df << "\t" << Q << "\t" << sum << endl;
+				file << _alignment[k].getName() << "\t" << _alignment[l].getName() << "\t" << scientific << bowker << "\t"
+					 << df << "\t" << Q << "\t" << sum << "\t" << windowStart << "\t" << windowStart + windowSize - 1 << endl;
 			}
 
 		}
 
 		if (verbose)
 		{
-			cout << endl << "Pairwise -log(p) distances, columns " << windowStart << "-" << windowStart + windowSize - 1 << ":" << endl;
-			unsigned k=0;
+			cout << endl << "Pairwise distances, columns " << windowStart << "-" << windowStart + windowSize - 1 << ":" << endl;
+
+			for (unsigned int j = 0; j < n; j++)
+				cout << "\t" << setw(12) << _alignment[j].getName();
+			cout << endl;
+			cout.flags(ios::left);
 			for (unsigned int i = 0; i < n; i++)
 			{
+				cout << setw(12) << _alignment[i].getName();
 				for (unsigned int j = 0; j < n; j++)
-				{
-					if (i == j)
-						cout << setw(9) << _alignment[i].getName() << " ";
-					else if (i > j)
-						cout << "          ";
-					else
-						cout << setw(9) << fixed << log_Q[k++] << " ";
-				}
+					cout << "\t" << scientific << q[i*n+j];
 				cout << endl;
 			}
 		}
