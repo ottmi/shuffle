@@ -6,7 +6,7 @@
 using namespace std;
 
 #define PROGNAME "shuffle++"
-#define VERSION "0.6.0"
+#define VERSION "0.6.3"
 #define PROGDATE "2011-09-28"
 extern int verbose;
 
