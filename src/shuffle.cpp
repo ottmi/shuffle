@@ -9,6 +9,7 @@
 #include <limits.h>
 #include <float.h>
 #include <sstream>
+#include <cstdio>
 #include "globals.h"
 #include "Alignment.h"
 
@@ -20,29 +21,35 @@ int parseArguments(int argc, char** argv, Options *options)
 {
 	char c;
 
+	if (argc < 2)
+		return 0;
+
+	options->inputAlignment = string(argv[--argc]);
+
 	options->dataType = -1;
-	options->removeDuplicates = 0;
+	options->removeDuplicates = false;
+	options->symmetryTest = false;
+	options->writeExtendedTestResults = false;
 	options->randomizations = 100;
+	options->writeSiteSummary = false;
+	options->filterAlignment = false;
 	options->minCo = 0;
 	options->minPOC = 0.0;
 	options->maxSmin = INT_MAX;
 	options->maxEntropy = DBL_MAX;
-	options->hasMinMax = false;
 	options->help = 0;
 	options->grouping.push_back(0);
 	options->windowSize = -1;
 	options->windowStep = -1;
+	options->writeExtendedTestResults = false;
 
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "i:t:g:d::b:w:r:s:o:c:p:m:e:n:v::h")) != -1)
+	while ( (c = getopt(argc, argv, "t:g:dyw:r:sf:n:v::h")) != -1)
 	{
 		switch (c)
 		{
-			case 'i':
-				options->inputAlignment = optarg;
-				break;
 			case 't':
 			{
 				char type = optarg[0];
@@ -67,6 +74,9 @@ int parseArguments(int argc, char** argv, Options *options)
 				}
 				break;
 			}
+			case 'p':
+				options->prefix = optarg;
+				break;
 			case 'g':
 			{
 				options->grouping.clear();
@@ -90,12 +100,10 @@ int parseArguments(int argc, char** argv, Options *options)
 				break;
 			}
 			case 'd':
-				options->removeDuplicates = 1;
-				if (optarg)
-					options->reducedAlignment = optarg;
+				options->removeDuplicates = true;
 				break;
-			case 'b':
-				options->bowkersTest = optarg;
+			case 'y':
+				options->symmetryTest = true;
 				break;
 			case 'w':
 			{
@@ -115,27 +123,46 @@ int parseArguments(int argc, char** argv, Options *options)
 				options->randomizations = atoi(optarg);
 				break;
 			case 's':
-				options->summaryFile = optarg;
+				options->writeSiteSummary = true;
 				break;
-			case 'o':
-				options->outputAlignment = optarg;
+			case 'f':
+			{
+				options->filterAlignment = true;
+				stringstream ss(optarg);
+
+				while (!ss.eof())
+				{
+					char d = ss.get();
+					switch(d)
+					{
+						case 'c':
+							ss >> options->minCo;
+							cout << "minCo=" << options->minCo << endl;
+							break;
+						case 'p':
+							ss >> options->minPOC;
+							cout << "minPOC=" << options->minPOC << endl;
+							break;
+						case 's':
+							ss >> options->maxSmin;
+							cout << "maxSmin=" << options->maxSmin << endl;
+							break;
+						case 'e':
+							ss >> options->maxEntropy;
+							cout << "maxEntropy=" << options->maxEntropy << endl;
+							break;
+						case ',':
+							break;
+						default:
+							string param;
+							while (ss.peek() != ',' && ss.peek() != EOF)
+								param+= ss.get();
+							cerr << "Unknown alignment filter " << d << param << "." << endl;
+							break;
+					}
+				}
 				break;
-			case 'c':
-				options->minCo = atof(optarg);
-				options->hasMinMax = true;
-				break;
-			case 'p':
-				options->minPOC = atof(optarg);
-				options->hasMinMax = true;
-				break;
-			case 'm':
-				options->maxSmin = atoi(optarg);
-				options->hasMinMax = true;
-				break;
-			case 'e':
-				options->maxEntropy = atof(optarg);
-				options->hasMinMax = true;
-				break;
+			}
 #ifdef _OPENMP
 			case 'n':
 				omp_set_num_threads(atoi(optarg));
@@ -160,42 +187,48 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->groupOffset = minGroup;
 	options->groupLength = maxGroup - minGroup + 1;
 
+	if (options->prefix.length() == 0)
+	{
+		int m = options->inputAlignment.find_last_of('/') + 1;
+		int n = options->inputAlignment.find_last_of('.');
+		if (n > -1)
+			n = n-m;
+		options->prefix = options->inputAlignment.substr(m, n);
+	}
+
 	return 0;
 }
 
 void printSyntax()
 {
-	cout << "Syntax:" << endl;
-	cout << "  shuffle -i<FILE> [-t<a|d|n>] [-g<LIST>] [-b<FILE> [-w<NUM>[,NUM]]] [-r<NUM>]" << endl;
-	cout << "          [-o<FILE> [-c<NUM>] [-p<NUM>] [-m<NUM>] [-e<NUM>]]" << endl;
-    cout << "          [-s<FILE>] [-d[FILE]] ";
-#ifdef _OPENMP
-	cout << "[-n<NUM>] ";
-#endif
-	cout << "[-v[NUM]]" << endl;
-
+	cout << "Usage:" << endl;
+	cout << "  shuffle [options] <alignment>" << endl;
 	cout << "  shuffle -h" << endl;
 	cout << endl;
 
 	cout << "Options:" << endl;
-	cout << "  -i\tInput alignment" << endl;
-	cout << "  -t\tData type a=AA, d=DNA, n=Alphanumeric [default: auto-detect]" << endl;
-	cout << "  -g\tGrouping of sites, e.g. 0,1,-2 for duplets and 0,1,2 for codons" << endl;
-	cout << "  -b\tPerform Bowker's test for symmetry and write results to file" << endl;
-	cout << "  -w\tWindow size and step width for Bowker's test [default: sequence length]" << endl;
-	cout << "  -r\tNumber of randomizations for POC computations [default: 100]" << endl;
-	cout << "  -o\tOutput alignment" << endl;
-	cout << "  -c\tMinimum Co score [default: 0]" << endl;
-	cout << "  -p\tMinimum POC score [default: 0.0]" << endl;
-	cout << "  -m\tMaximum Smin [default: " << INT_MAX << "]" << endl;
-	cout << "  -e\tMaximum entropy [default: " << DBL_MAX << "]" << endl;
-	cout << "  -s\tOutput file for site summary" << endl;
-	cout << "  -d\tIdentify duplicates and optionally dump reduced alignment to file" << endl;
+	cout << "  -t<a|d|n>      Data type a=AA, d=DNA, n=Alphanumeric [default: auto-detect]" << endl;
+	cout << "  -p<STRING>     Prefix for output files [default: alignment without extension]" << endl;
+	cout << "  -g<LIST>       Grouping of sites, e.g. 0,1,-2 for duplets, 0,1,2 for codons" << endl;
+	cout << endl;
+	cout << "  -d             Remove duplicates and write reduced alignment file" << endl;
+	cout << endl;
+	cout << "  -y             Perform tests of pairwise symmetry" << endl;
+	cout << "  -w<NUM>,[NUM]  Window size and step width for symmetry test" << endl;
+	cout << endl;
+	cout << "  -r<NUM>        Number of randomizations for POC computations [default: 100]" << endl;
+	cout << "  -s             Write a site summary" << endl;
+	cout << "  -f<LIST>       Write a new alignment file, filtered by (comma-separated):" << endl;
+	cout << "                   c<NUM>  Minimum Co score [default: 0]" << endl;
+	cout << "                   p<NUM>  Minimum POC score [default: 0.0]" << endl;
+	cout << "                   s<NUM>  Maximum Smin [default: " << INT_MAX << "]" << endl;
+	cout << "                   e<NUM>  Maximum entropy [default: " << DBL_MAX << "]" << endl;
+	cout << endl;
 #ifdef _OPENMP
-	cout << "  -n\tNumber of threads [default: " << omp_get_max_threads() << "]" << endl;
+	cout << "  -n<NUM>        Number of threads [default: " << omp_get_max_threads() << "]" << endl;
 #endif
-	cout << "  -v\tBe increasingly verbose" << endl;
-	cout << "  -h\tThis help page" << endl;
+	cout << "  -v[NUM]        Be increasingly verbose" << endl;
+	cout << "  -h             This help page" << endl;
 	cout << endl;
 
 	cout << "Note:" << endl;
@@ -229,31 +262,31 @@ int main(int argc, char** argv) {
 	Alignment alignment(&options);
 
 	if (options.removeDuplicates)
+	{
 		alignment.removeDuplicates();
+		alignment.write(options.prefix+".noDupes.phy");
+	}
 
-	if (options.reducedAlignment.length())
-		alignment.write(options.reducedAlignment);
-
-	if (options.summaryFile.length() || options.outputAlignment.length() || options.bowkersTest.length())
+	if (options.writeSiteSummary || options.filterAlignment || options.symmetryTest)
 	{
 		alignment.collectSites(&options);
 
-		if (options.bowkersTest.length())
-			alignment.computeBowkers(options.bowkersTest, options.windowSize, options.windowStep);
+		if (options.symmetryTest)
+			alignment.testSymmetry(options.prefix+".symmetry.csv", options.windowSize, options.windowStep);
 
-		if (options.summaryFile.length() || options.outputAlignment.length())
+		if (options.writeSiteSummary || options.filterAlignment)
 			alignment.collectInformativeSites(&options);
 
-		if (options.summaryFile.length() || options.hasMinMax)
+		if (options.filterAlignment)
 			alignment.computeCompatibilityScores(options.randomizations);
 
-		if (options.summaryFile.length())
-			alignment.writeSummary(options.summaryFile);
+		if (options.writeSiteSummary)
+			alignment.writeSummary(options.prefix);
 
-		if (options.outputAlignment.length())
+		if (options.filterAlignment)
 		{
 			Alignment modifiedAlignment = alignment.getModifiedAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
-			modifiedAlignment.write(options.outputAlignment);
+			modifiedAlignment.write(options.prefix+".filtered.phy");
 		}
 	}
 

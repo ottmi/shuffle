@@ -19,7 +19,7 @@ public:
 	void removeDuplicates();
 	void collectSites(Options *options);
 	void collectInformativeSites(Options *options);
-	void computeBowkers(string& fileName, int windowSize, int windowStep);
+	void testSymmetry(string fileName, int windowSize, int windowStep);
 	void computeCompatibilityScores(int randomizations);
 	void writeSummary(string fileName);
 	Alignment getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);

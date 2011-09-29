@@ -6,7 +6,7 @@
 using namespace std;
 
 #define PROGNAME "shuffle++"
-#define VERSION "0.6.4"
+#define VERSION "0.6.5"
 #define PROGDATE "2011-09-29"
 extern int verbose;
 
@@ -22,23 +22,23 @@ typedef struct opt_struct
 {
 	string inputAlignment;
 	int dataType;
-	int removeDuplicates;
-	string reducedAlignment;
-	string outputAlignment;
-	string bowkersTest;
+	string prefix;
+	vector<int> grouping;
+	int groupOffset;
+	int groupLength;
+	bool removeDuplicates;
+	bool symmetryTest;
+	bool writeExtendedTestResults;
+	int windowSize;
+	int windowStep;
 	int randomizations;
-	string summaryFile;
+	bool writeSiteSummary;
+	bool filterAlignment;
 	double minCo;
 	double minPOC;
 	int maxSmin;
 	double maxEntropy;
-	bool hasMinMax;
 	int help;
-	vector<int> grouping;
-	int groupOffset;
-	int groupLength;
-	int windowSize;
-	int windowStep;
 } Options;
 
 #endif /* GLOBALS_H_ */

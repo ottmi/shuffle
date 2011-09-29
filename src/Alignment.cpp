@@ -195,7 +195,7 @@ void Alignment::collectInformativeSites(Options *options)
 	cout << "Found " << _informativeSites.size() << " informative sites, taking " << t2 - t1 << "s." << endl;
 }
 
-void Alignment::computeBowkers(string& fileName, int windowSize, int windowStep)
+void Alignment::testSymmetry(string fileName, int windowSize, int windowStep)
 {
 	cout << endl << "Performing Bowker's test of symmetry, writing results to " << fileName << endl;
 
