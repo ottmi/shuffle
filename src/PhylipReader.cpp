@@ -36,13 +36,22 @@ vector<Sequence> PhylipReader::getSequences()
    		safeGetline(_fileReader, str);
    		if (str.length())
    		{
-   			str = str.substr(str.find_first_not_of(whiteSpace));
-   			string name = str.substr(0, str.find_first_of(whiteSpace));
-   			str = str.substr(str.find_first_of(whiteSpace));
-   			string seq = str.substr(str.find_first_not_of(whiteSpace));
+   			int n = str.find_first_of(whiteSpace);
+   			string name, seq;
+   			if (n == -1) // there's no whitespace, so the sequence starts at pos 11
+   			{
+   	   			name = str.substr(0, 10);
+   	   			seq = str.substr(10);
+   			}
+   			else
+   			{
+   				name = str.substr(0, n);
+   				n = str.find_first_not_of(whiteSpace, n);
+   	   			seq = str.substr(n);
+   			}
 
-   			if ((int) seq.length() < _cols)
-   				cerr << "Sequence #" << sequences.size() + 1 << " (" << name << ") has only " << seq.length() << " characters." << endl;
+   			if ((int) seq.length() != _cols)
+   				cerr << "Sequence #" << sequences.size() + 1 << " (" << name << ") consists of " << seq.length() << " characters when it should be " << _cols << "." << endl;
    			seq = adjustString(seq);
    			if (name.length() && seq.length())
    			{

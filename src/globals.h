@@ -6,8 +6,8 @@
 using namespace std;
 
 #define PROGNAME "shuffle++"
-#define VERSION "0.6.3"
-#define PROGDATE "2011-09-28"
+#define VERSION "0.6.4"
+#define PROGDATE "2011-09-29"
 extern int verbose;
 
 #define _DNA_DATA				0
