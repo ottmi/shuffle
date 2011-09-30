@@ -195,13 +195,41 @@ void Alignment::collectInformativeSites(Options *options)
 	cout << "Found " << _informativeSites.size() << " informative sites, taking " << t2 - t1 << "s." << endl;
 }
 
-void Alignment::testSymmetry(string fileName, int windowSize, int windowStep)
+void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int windowStep)
 {
-	cout << endl << "Performing Bowker's test of symmetry, writing results to " << fileName << endl;
+	string resultsFileName = prefix + ".symmetry.csv";
+	string bowkerFileName = prefix + ".bowker.csv";
+	string delta_sFileName = prefix + ".delta_s.csv";
+	string delta_msFileName = prefix + ".delta_ms.csv";
+	ofstream resultsFile, bowkerFile, delta_sFile, delta_msFile;
+	cout << endl << "Performing tests of pairwise symmetry, writing results to: ";
+	if (extended)
+	{
+		cout << endl;
+		cout << "  comprehensive spreadsheet: " << resultsFileName << endl;
+		cout << "  Bowker matrix:             " << bowkerFileName << endl;
+		cout << "  delta_s distance matrix:   " << delta_sFileName << endl;
+		cout << "  delta_ms distance matrix:  " << delta_msFileName << endl;
 
-	ofstream file(fileName.c_str(), ifstream::trunc);
-	if (!file.is_open())
-		throw("\n\nError, cannot open file " + fileName);
+		bowkerFile.open(bowkerFileName.c_str(), ifstream::trunc);
+		if (!bowkerFile.is_open())
+			throw("\n\nError, cannot open file " + bowkerFileName);
+
+		delta_sFile.open(delta_sFileName.c_str(), ifstream::trunc);
+		if (!delta_sFile.is_open())
+			throw("\n\nError, cannot open file " + delta_sFileName);
+
+		delta_msFile.open(delta_msFileName.c_str(), ifstream::trunc);
+		if (!delta_msFile.is_open())
+			throw("\n\nError, cannot open file " + delta_msFileName);
+	} else
+	{
+		cout <<  resultsFileName << endl;
+	}
+
+	resultsFile.open(resultsFileName.c_str(), ifstream::trunc);
+	if (!resultsFile.is_open())
+		throw("\n\nError, cannot open file " + resultsFileName);
 
 	unsigned int n = _alignment.size();
 	unsigned int cols = _sites.size();
@@ -221,16 +249,18 @@ void Alignment::testSymmetry(string fileName, int windowSize, int windowStep)
 	else
 		dim = 36;
 
-	file << "Seq1\tSeq2\tChi-square\tdf\tp-value\tSites\tStart\tEnd" << endl;
+	resultsFile << "Seq1\tSeq2\tChi-square\tdf\tp-value\tDelta_s\tDelta_ms\tSites\tStart\tEnd" << endl;
 	for (unsigned int windowStart = 0; windowStart + windowSize <= cols; windowStart += windowStep)
 	{
-		vector<double> q(n*n, .0);
+		vector<double> bowker_mat(n*n, 0);
+		vector<double> ds_mat(n*n, 0);
+		vector<double> dms_mat(n*n, 0);
 		for (unsigned int k = 0; k < n; k++) // 1st sequence
 		{
 			for (unsigned int l = k + 1; l < n; l++) // 2nd sequence
 			{
 				unsigned int sum = 0;
-				vector<unsigned int> dm(dim * dim, 0);
+				vector<int> dm(dim * dim, 0);
 				for (unsigned int m = windowStart; m < windowStart + windowSize; m++)
 				{
 					Site *s = _sites[m];
@@ -242,6 +272,7 @@ void Alignment::testSymmetry(string fileName, int windowSize, int windowStep)
 						sum++;
 					}
 				}
+
 
 				unsigned int df = 0;
 				double bowker = .0;
@@ -260,39 +291,86 @@ void Alignment::testSymmetry(string fileName, int windowSize, int windowStep)
 				double Q = 1.0;
 				if (df > 0)
 					Q = gammq((df / 2.0), (bowker / 2.0));
-				/*
-				if (df > 0 && bowker > 0)
-					log_Q.push_back(-log10(Q));
-				else
-					log_Q.push_back(-log10(1.0));
-				*/
-				q[k*n + l] = Q;
-				q[l*n + k] = Q;
+				bowker_mat[k*n+l] = Q;
+				bowker_mat[l*n+k] = Q;
 
-				file << _alignment[k].getName() << "\t" << _alignment[l].getName() << "\t" << scientific << bowker << "\t"
-					 << df << "\t" << Q << "\t" << sum << "\t" << windowStart << "\t" << windowStart + windowSize - 1 << endl;
+
+				double delta_s = 0.0;
+				for(int i = 0; i < dim; i++)
+					for(int j = i + 1; j < dim; j++)
+					{
+						double x = dm[j*dim + i] - dm[i*dim + j];
+						delta_s+= (x/sum) * (x/sum);
+					}
+				delta_s = sqrt(delta_s);
+				ds_mat[k*n+l] = delta_s;
+				ds_mat[l*n+k] = delta_s;
+
+
+				double delta_ms = 0.0;
+				for(int i = 0; i < dim; i++){
+					double row = 0.0;
+					double col = 0.0;
+					for(int j = 0; j < dim; j++){
+						row+= dm[i*dim + j];
+						col+= dm[j*dim + i];
+					}
+					delta_ms+= ((row-col)/sum) * ((row-col)/sum);
+				}
+				delta_ms = sqrt(delta_ms)/sqrt(2.0);
+				dms_mat[k*n+l] = delta_ms;
+				dms_mat[l*n+k] = delta_ms;
+
+
+				resultsFile << _alignment[k].getName() << "\t" << _alignment[l].getName() << "\t" << scientific << bowker << "\t" << df << "\t" << Q
+					 << "\t" << delta_s << "\t" << delta_ms << "\t" << sum << "\t" << windowStart << "\t" << windowStart + windowSize - 1 << endl;
 			}
 
 		}
 
-		if (verbose)
+		if (extended)
 		{
-			cout << endl << "Pairwise distances, columns " << windowStart << "-" << windowStart + windowSize - 1 << ":" << endl;
+			bowkerFile.flags(ios::left);
+			delta_sFile.flags(ios::left);
+			delta_msFile.flags(ios::left);
+			bowkerFile << windowStart << "-" << windowStart + windowSize - 1;
+			delta_sFile << windowStart << "-" << windowStart + windowSize - 1;
+			delta_msFile << windowStart << "-" << windowStart + windowSize - 1;
 
-			for (unsigned int j = 0; j < n; j++)
-				cout << "\t" << setw(12) << _alignment[j].getName();
-			cout << endl;
-			cout.flags(ios::left);
-			for (unsigned int i = 0; i < n; i++)
+			for (unsigned int l = 0; l < n; l++)
 			{
-				cout << setw(12) << _alignment[i].getName();
-				for (unsigned int j = 0; j < n; j++)
-					cout << "\t" << scientific << q[i*n+j];
-				cout << endl;
+				bowkerFile << "\t" << setw(12) << _alignment[l].getName();
+				delta_sFile << "\t" << setw(12) << _alignment[l].getName();
+				delta_msFile << "\t" << setw(12) << _alignment[l].getName();
+			}
+			bowkerFile << endl;
+			delta_sFile << endl;
+			delta_msFile << endl;
+
+			for (unsigned int k = 0; k < n; k++)
+			{
+				bowkerFile << setw(12) << _alignment[k].getName();
+				delta_sFile << setw(12) << _alignment[k].getName();
+				delta_msFile << setw(12) << _alignment[k].getName();
+				for (unsigned int l = 0; l < n; l++)
+				{
+					bowkerFile << "\t" << scientific << bowker_mat[k*n+l];
+					delta_sFile << "\t" << scientific << ds_mat[k*n+l];
+					delta_msFile << "\t" << scientific << dms_mat[k*n+l];
+				}
+				bowkerFile << endl;
+				delta_sFile << endl;
+				delta_msFile << endl;
 			}
 		}
 	}
-	file.close();
+	resultsFile.close();
+	if (extended)
+	{
+		bowkerFile.close();
+		delta_sFile.close();
+		delta_msFile.close();
+	}
 }
 
 void Alignment::computeCompatibilityScores(int randomizations)

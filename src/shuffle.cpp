@@ -46,7 +46,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "t:g:dyw:r:sf:n:v::h")) != -1)
+	while ( (c = getopt(argc, argv, "t:g:dyxw:r:sf:n:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -104,6 +104,9 @@ int parseArguments(int argc, char** argv, Options *options)
 				break;
 			case 'y':
 				options->symmetryTest = true;
+				break;
+			case 'x':
+				options->writeExtendedTestResults = true;
 				break;
 			case 'w':
 			{
@@ -214,6 +217,7 @@ void printSyntax()
 	cout << "  -d             Remove duplicates and write reduced alignment file" << endl;
 	cout << endl;
 	cout << "  -y             Perform tests of pairwise symmetry" << endl;
+	cout << "  -x             Write extended output files with test results" << endl;
 	cout << "  -w<NUM>,[NUM]  Window size and step width for symmetry test" << endl;
 	cout << endl;
 	cout << "  -r<NUM>        Number of randomizations for POC computations [default: 100]" << endl;
@@ -272,7 +276,7 @@ int main(int argc, char** argv) {
 		alignment.collectSites(&options);
 
 		if (options.symmetryTest)
-			alignment.testSymmetry(options.prefix+".symmetry.csv", options.windowSize, options.windowStep);
+			alignment.testSymmetry(options.prefix, options.writeExtendedTestResults, options.windowSize, options.windowStep);
 
 		if (options.writeSiteSummary || options.filterAlignment)
 			alignment.collectInformativeSites(&options);
