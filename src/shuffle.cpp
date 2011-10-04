@@ -281,7 +281,7 @@ int main(int argc, char** argv) {
 		if (options.writeSiteSummary || options.filterAlignment)
 			alignment.collectInformativeSites(&options);
 
-		if (options.filterAlignment)
+		if (options.writeSiteSummary || options.filterAlignment)
 			alignment.computeCompatibilityScores(options.randomizations);
 
 		if (options.writeSiteSummary)
