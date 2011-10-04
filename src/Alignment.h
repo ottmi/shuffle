@@ -21,7 +21,7 @@ public:
 	void collectInformativeSites(Options *options);
 	void testSymmetry(string prefix, bool extended, int windowSize, int windowStep);
 	void computeCompatibilityScores(int randomizations);
-	void writeSummary(string fileName);
+	void writeSummary(string prefix);
 	Alignment getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
 	void write(string fileName);
 

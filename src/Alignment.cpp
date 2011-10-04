@@ -485,8 +485,9 @@ Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSm
 	return a;
 }
 
-void Alignment::writeSummary(string fileName)
+void Alignment::writeSummary(string prefix)
 {
+	string fileName = prefix+".sites.csv";
 	ofstream file(fileName.c_str(), ifstream::trunc);
 	if (!file.is_open())
 		throw("\n\nError, cannot open file " + fileName);
