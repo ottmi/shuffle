@@ -19,6 +19,7 @@ public:
 	virtual ~Site();
 	void initialize(vector<Sequence>* alignment, Options *options);
 	BaseOccurenceMap getBaseOccurences();
+	bool checkInformative();
 	bool checkCompatibility(Site* site);
 	void incComp();
 	void computeScores(unsigned int cols);
@@ -27,7 +28,7 @@ public:
 	vector<int> getSite() { return _site; };
 	vector<int> getCols() { return _cols; };
 	int getPos(unsigned int pos) { return _site[pos]; };
-	bool isInformative();
+	bool isInformative() { return _isInformative; };
 	int getComp() { return _compSites; };
 	double getCo() { return _coScore; };
 	double getPOC() { return _poc; };

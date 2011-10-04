@@ -126,7 +126,12 @@ void Alignment::collectSites(Options *options)
 	cout << "Collecting sites..." << endl;
 	long t1 = time(NULL);
 	unsigned int numOfSites = (getNumOfCols() - options->groupOffset) / options->groupLength;
+	bool requireInformative = options->writeSiteSummary || options->filterAlignment;
+	_sites.resize(numOfSites, NULL);
 
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
 	for (unsigned int i = 0; i < numOfSites; i++)
 	{
 		Site *s = NULL;
@@ -146,54 +151,34 @@ void Alignment::collectSites(Options *options)
 				break;
 		}
 		if (s)
-			_sites.push_back(s);
+		{
+			_sites[i] = s;
+			if (requireInformative)
+				s->checkInformative();
+		}
 	}
+
+	if (requireInformative)
+	{
+		for (unsigned int i = 0; i < _sites.size(); i++)
+		{
+			Site *s = _sites[i];
+			if (s->isInformative())
+				_informativeSites.push_back(s);
+		}
+	}
+
 	long t2 = time(NULL);
 
-	cout << "Found " << numOfSites << " sites, taking " << t2 - t1 << "s." << endl;
+	if (requireInformative)
+		cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative, taking " << t2 - t1 << "s." << endl;
+	else
+		cout << "Found " << numOfSites << " sites, taking " << t2 - t1 << "s." << endl;
 
 	if (options->groupLength > 1)
 		cout << "Each site consists of " << options->groupLength << " out of " << getNumOfCols() << " columns, starting with an offset of " << options->groupOffset << "." << endl;
 }
 
-void Alignment::collectInformativeSites(Options *options)
-{
-	cout << "Identifying informative sites..." << endl;
-	long t1 = time(NULL);
-#ifdef _OPENMP
-	_informativeSites.resize(_sites.size(), NULL);
-#pragma omp parallel for
-#endif
-	for (unsigned int i = 0; i < _sites.size(); i++)
-	{
-		Site *s = _sites[i];
-		if (s)
-		{
-			if (s->isInformative())
-			{
-#ifdef _OPENMP
-				_informativeSites[i] = s;
-#else
-				_informativeSites.push_back(s);
-#endif
-			}
-		}
-	}
-
-#ifdef _OPENMP
-	vector<Site*>::iterator it=_informativeSites.begin();
-	while (it != _informativeSites.end())
-	{
-		if (*it == NULL)
-		_informativeSites.erase(it);
-		else
-		it++;
-	}
-#endif
-	long t2 = time(NULL);
-
-	cout << "Found " << _informativeSites.size() << " informative sites, taking " << t2 - t1 << "s." << endl;
-}
 
 void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int windowStep)
 {

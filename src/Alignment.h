@@ -18,7 +18,6 @@ public:
 	void addSequence(Sequence sequence);
 	void removeDuplicates();
 	void collectSites(Options *options);
-	void collectInformativeSites(Options *options);
 	void testSymmetry(string prefix, bool extended, int windowSize, int windowStep);
 	void computeCompatibilityScores(int randomizations);
 	void writeSummary(string prefix);

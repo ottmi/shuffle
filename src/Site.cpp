@@ -49,7 +49,7 @@ void Site::initialize(vector<Sequence>* alignment, Options *options)
 }
 
 
-bool Site::isInformative()
+bool Site::checkInformative()
 {
 	for (unsigned int i = 0; i < _site.size(); i++)
 	{

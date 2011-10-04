@@ -279,9 +279,6 @@ int main(int argc, char** argv) {
 			alignment.testSymmetry(options.prefix, options.writeExtendedTestResults, options.windowSize, options.windowStep);
 
 		if (options.writeSiteSummary || options.filterAlignment)
-			alignment.collectInformativeSites(&options);
-
-		if (options.writeSiteSummary || options.filterAlignment)
 			alignment.computeCompatibilityScores(options.randomizations);
 
 		if (options.writeSiteSummary)
