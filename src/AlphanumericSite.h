@@ -6,7 +6,7 @@
 class AlphanumericSite: public Site
 {
 public:
-	AlphanumericSite(vector<Sequence>* alignment, vector<int> grouping, int offset);
+	AlphanumericSite(vector<Sequence>* alignment, int offset, Options *options);
 	AlphanumericSite(vector<int> site);
 	virtual ~AlphanumericSite();
 

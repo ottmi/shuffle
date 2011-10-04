@@ -1,13 +1,12 @@
-#include "globals.h"
 #include "AlphanumericSite.h"
 
-AlphanumericSite::AlphanumericSite(vector<Sequence>* alignment, vector<int> grouping, int offset)
+AlphanumericSite::AlphanumericSite(vector<Sequence>* alignment, int offset, Options *options)
 {
 	_unambiguousThreshold = 35;
 	_type = _ALPHANUM_DATA;
-	for (unsigned int i = 0; i < grouping.size(); i++)
-		_cols.push_back(grouping[i] + offset);
-	initialize(alignment);
+	for (unsigned int i = 0; i < options->grouping.size(); i++)
+		_cols.push_back(options->grouping[i] + options->groupLength * offset);
+	initialize(alignment, options);
 }
 
 

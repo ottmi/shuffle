@@ -32,7 +32,7 @@ double factorial(int n)
 }
 
 
-void Site::initialize(vector<Sequence>* alignment)
+void Site::initialize(vector<Sequence>* alignment, Options *options)
 {
 	srand ( time(NULL) );
 

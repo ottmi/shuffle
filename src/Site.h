@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include "globals.h"
 #include "Sequence.h"
 
 using namespace std;
@@ -16,7 +17,7 @@ class Site
 public:
 	Site();
 	virtual ~Site();
-	void initialize(vector<Sequence>* alignment);
+	void initialize(vector<Sequence>* alignment, Options *options);
 	BaseOccurenceMap getBaseOccurences();
 	bool checkCompatibility(Site* site);
 	void incComp();

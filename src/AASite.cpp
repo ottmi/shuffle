@@ -1,7 +1,6 @@
-#include "globals.h"
 #include "AASite.h"
 
-AASite::AASite(vector<Sequence>* alignment, vector<int> grouping, int offset)
+AASite::AASite(vector<Sequence>* alignment, int offset, Options *options)
 {
 	/*
 	 _unambiguousCharacters = "ACDEFGHIKLMNPQRSTVWY";
@@ -11,10 +10,10 @@ AASite::AASite(vector<Sequence>* alignment, vector<int> grouping, int offset)
 	 */
 	_unambiguousThreshold = 19;
 	_type = 1;
-	for (unsigned int i = 0; i < grouping.size(); i++)
-		_cols.push_back(grouping[i] + offset);
+	for (unsigned int i = 0; i < options->grouping.size(); i++)
+		_cols.push_back(options->grouping[i] + options->groupLength * offset);
 
-	initialize(alignment);
+	initialize(alignment, options);
 }
 
 

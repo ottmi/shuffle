@@ -133,13 +133,13 @@ void Alignment::collectSites(Options *options)
 		switch (_dataType)
 		{
 			case _DNA_DATA:
-				s = new DNASite(&_alignment, options->grouping, options->groupLength * i);
+				s = new DNASite(&_alignment, i, options);
 				break;
 			case _AA_DATA:
-				s = new AASite(&_alignment, options->grouping, options->groupLength * i);
+				s = new AASite(&_alignment, i, options);
 				break;
 			case _ALPHANUM_DATA:
-				s = new AlphanumericSite(&_alignment, options->grouping, options->groupLength * i);
+				s = new AlphanumericSite(&_alignment, i, options);
 				break;
 			default:
 				cerr << "Unknown data type " << _dataType << " at Alignment::Alignment()" << endl;
