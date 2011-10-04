@@ -125,18 +125,24 @@ void Alignment::collectSites(Options *options)
 	cout << endl;
 	cout << "Collecting sites..." << endl;
 	long t1 = time(NULL);
+	long lastTime = t1;
 	unsigned int numOfSites = (getNumOfCols() - options->groupOffset) / options->groupLength;
+	unsigned int count = 0;
 	bool requireInformative = options->writeSiteSummary || options->filterAlignment;
+	int myTid = 0;
 	_sites.resize(numOfSites, NULL);
 
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel shared (count) private(myTid)
+	{
+		myTid = omp_get_thread_num();
+
+#pragma omp for
 #endif
 	for (unsigned int i = 0; i < numOfSites; i++)
 	{
 		Site *s = NULL;
-		switch (_dataType)
-		{
+		switch (_dataType) {
 			case _DNA_DATA:
 				s = new DNASite(&_alignment, i, options);
 				break;
@@ -156,7 +162,25 @@ void Alignment::collectSites(Options *options)
 			if (requireInformative)
 				s->checkInformative();
 		}
+		count++;
+		if (myTid == 0)
+		{
+			long t2 = time(NULL);
+			if (t2 > lastTime)
+			{
+				long elapsed = t2 - t1;
+				long eta = (elapsed * numOfSites) / count - elapsed;
+				lastTime = t2;
+				cout << "\r" << count * 100 / numOfSites << "%\tTime elapsed: " << elapsed / 60 << ":" << setfill('0') << setw(2) << elapsed % 60 << "\tETA: " << eta / 60 << ":" << setw(2) << eta % 60 << "  " << flush;
+			}
+		}
 	}
+#ifdef _OPENMP
+}
+#endif
+
+	long t2 = time(NULL);
+	cout << "\rDone, taking " << t2 - t1 << "s.                                        " << endl;
 
 	if (requireInformative)
 	{
@@ -168,17 +192,14 @@ void Alignment::collectSites(Options *options)
 		}
 	}
 
-	long t2 = time(NULL);
-
 	if (requireInformative)
-		cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative, taking " << t2 - t1 << "s." << endl;
+		cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative." << endl;
 	else
-		cout << "Found " << numOfSites << " sites, taking " << t2 - t1 << "s." << endl;
+		cout << "Found " << numOfSites << " sites." << endl;
 
 	if (options->groupLength > 1)
 		cout << "Each site consists of " << options->groupLength << " out of " << getNumOfCols() << " columns, starting with an offset of " << options->groupOffset << "." << endl;
 }
-
 
 void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int windowStep)
 {
@@ -209,7 +230,7 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 			throw("\n\nError, cannot open file " + delta_msFileName);
 	} else
 	{
-		cout <<  resultsFileName << endl;
+		cout << resultsFileName << endl;
 	}
 
 	resultsFile.open(resultsFileName.c_str(), ifstream::trunc);
@@ -237,9 +258,9 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 	resultsFile << "Seq1\tSeq2\tChi-square\tdf\tp-value\tDelta_s\tDelta_ms\tSites\tStart\tEnd" << endl;
 	for (unsigned int windowStart = 0; windowStart + windowSize <= cols; windowStart += windowStep)
 	{
-		vector<double> bowker_mat(n*n, 0);
-		vector<double> ds_mat(n*n, 0);
-		vector<double> dms_mat(n*n, 0);
+		vector<double> bowker_mat(n * n, 0);
+		vector<double> ds_mat(n * n, 0);
+		vector<double> dms_mat(n * n, 0);
 		for (unsigned int k = 0; k < n; k++) // 1st sequence
 		{
 			for (unsigned int l = k + 1; l < n; l++) // 2nd sequence
@@ -258,7 +279,6 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 					}
 				}
 
-
 				unsigned int df = 0;
 				double bowker = .0;
 				for (int i = 0; i < dim; i++)
@@ -276,39 +296,38 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 				double Q = 1.0;
 				if (df > 0)
 					Q = gammq((df / 2.0), (bowker / 2.0));
-				bowker_mat[k*n+l] = Q;
-				bowker_mat[l*n+k] = Q;
-
+				bowker_mat[k * n + l] = Q;
+				bowker_mat[l * n + k] = Q;
 
 				double delta_s = 0.0;
-				for(int i = 0; i < dim; i++)
-					for(int j = i + 1; j < dim; j++)
+				for (int i = 0; i < dim; i++)
+					for (int j = i + 1; j < dim; j++)
 					{
-						double x = dm[j*dim + i] - dm[i*dim + j];
-						delta_s+= (x/sum) * (x/sum);
+						double x = dm[j * dim + i] - dm[i * dim + j];
+						delta_s += (x / sum) * (x / sum);
 					}
 				delta_s = sqrt(delta_s);
-				ds_mat[k*n+l] = delta_s;
-				ds_mat[l*n+k] = delta_s;
-
+				ds_mat[k * n + l] = delta_s;
+				ds_mat[l * n + k] = delta_s;
 
 				double delta_ms = 0.0;
-				for(int i = 0; i < dim; i++){
+				for (int i = 0; i < dim; i++)
+				{
 					double row = 0.0;
 					double col = 0.0;
-					for(int j = 0; j < dim; j++){
-						row+= dm[i*dim + j];
-						col+= dm[j*dim + i];
+					for (int j = 0; j < dim; j++)
+					{
+						row += dm[i * dim + j];
+						col += dm[j * dim + i];
 					}
-					delta_ms+= ((row-col)/sum) * ((row-col)/sum);
+					delta_ms += ((row - col) / sum) * ((row - col) / sum);
 				}
-				delta_ms = sqrt(delta_ms)/sqrt(2.0);
-				dms_mat[k*n+l] = delta_ms;
-				dms_mat[l*n+k] = delta_ms;
+				delta_ms = sqrt(delta_ms) / sqrt(2.0);
+				dms_mat[k * n + l] = delta_ms;
+				dms_mat[l * n + k] = delta_ms;
 
-
-				resultsFile << _alignment[k].getName() << "\t" << _alignment[l].getName() << "\t" << scientific << bowker << "\t" << df << "\t" << Q
-					 << "\t" << delta_s << "\t" << delta_ms << "\t" << sum << "\t" << windowStart << "\t" << windowStart + windowSize - 1 << endl;
+				resultsFile << _alignment[k].getName() << "\t" << _alignment[l].getName() << "\t" << scientific << bowker << "\t" << df << "\t" << Q << "\t" << delta_s << "\t" << delta_ms << "\t" << sum << "\t" << windowStart << "\t" << windowStart
+						+ windowSize - 1 << endl;
 			}
 
 		}
@@ -339,9 +358,9 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 				delta_msFile << setw(12) << _alignment[k].getName();
 				for (unsigned int l = 0; l < n; l++)
 				{
-					bowkerFile << "\t" << scientific << bowker_mat[k*n+l];
-					delta_sFile << "\t" << scientific << ds_mat[k*n+l];
-					delta_msFile << "\t" << scientific << dms_mat[k*n+l];
+					bowkerFile << "\t" << scientific << bowker_mat[k * n + l];
+					delta_sFile << "\t" << scientific << ds_mat[k * n + l];
+					delta_msFile << "\t" << scientific << dms_mat[k * n + l];
 				}
 				bowkerFile << endl;
 				delta_sFile << endl;
@@ -365,6 +384,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	cout << "0%" << flush;
 
 	long t1 = time(NULL);
+	long lastTime = t1;
 	unsigned long n = _informativeSites.size();
 	unsigned long total = n * (n - 1) / 2 + n * n * randomizations;
 	unsigned long count = 0;
@@ -389,8 +409,12 @@ void Alignment::computeCompatibilityScores(int randomizations)
 		count += n - i - 1;
 		if (myTid == 0)
 		{
-			long elapsed = time(NULL) - t1;
-			cout << "\r" << count * 100 / total << "%\tTime elapsed: " << elapsed / 60 << ":" << setfill('0') << setw(2) << elapsed % 60 << flush;
+			long t2 = time(NULL);
+			if (t2 > lastTime)
+			{
+				long elapsed = t2 - t1;
+				cout << "\r" << count * 100 / total << "%\tTime elapsed: " << elapsed / 60 << ":" << setfill('0') << setw(2) << elapsed % 60 << flush;
+			}
 		}
 	}
 
@@ -421,10 +445,13 @@ void Alignment::computeCompatibilityScores(int randomizations)
 			count += randomizations * n;
 			if (myTid == 0)
 			{
-				long elapsed = time(NULL) - t1;
-				long eta = (elapsed * total) / count - elapsed;
-				cout << "\r" << count * 100 / total << "%\tTime elapsed: " << elapsed / 60 << ":" << setfill('0') << setw(2) << elapsed % 60 << "\tETA: " << eta / 60 << ":" << setw(2) << eta % 60
-						<< "  " << flush;
+				long t2 = time(NULL);
+				if (t2 > lastTime)
+				{
+					long elapsed = t2 - t1;
+					long eta = (elapsed * total) / count - elapsed;
+					cout << "\r" << count * 100 / total << "%\tTime elapsed: " << elapsed / 60 << ":" << setfill('0') << setw(2) << elapsed % 60 << "\tETA: " << eta / 60 << ":" << setw(2) << eta % 60 << "  " << flush;
+				}
 			}
 			_informativeSites[i]->setPOC((double) poc / randomizations);
 		} else
@@ -472,7 +499,7 @@ Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSm
 
 void Alignment::writeSummary(string prefix)
 {
-	string fileName = prefix+".sites.csv";
+	string fileName = prefix + ".sites.csv";
 	ofstream file(fileName.c_str(), ifstream::trunc);
 	if (!file.is_open())
 		throw("\n\nError, cannot open file " + fileName);
@@ -506,8 +533,7 @@ void Alignment::write(string fileName)
 	if (!file.is_open())
 		throw("\n\nError, cannot open file " + fileName);
 
-	switch (type)
-	{
+	switch (type) {
 		case 0:
 			cout << "Writing Phylip alignment to " << fileName << endl;
 			file << getNumOfRows() << " " << getNumOfCols() << endl;
