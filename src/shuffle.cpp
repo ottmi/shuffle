@@ -46,7 +46,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "t:g:dyxw:r:sf:n:v::h")) != -1)
+	while ( (c = getopt(argc, argv, "t:p:g:dyxw:r:sf:n:v::h")) != -1)
 	{
 		switch (c)
 		{
