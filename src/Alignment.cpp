@@ -509,7 +509,7 @@ void Alignment::writeSummary(string prefix)
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
 		Site* s = _informativeSites[i];
-		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC() << endl;
+		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << scientific << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC() << endl;
 	}
 }
 
