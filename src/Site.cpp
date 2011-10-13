@@ -27,9 +27,14 @@ void Site::initialize(vector<Sequence>* alignment, Options *options)
 {
 	srand ( time(NULL) );
 
+	_unambiguousCount = 0;
+	_ambiguousCount = 0;
 	_compSites = 0;
 	_coScore = .0;
-	_unambiguousCount = 0;
+	_poc = .0;
+	_entropy = .0;
+	_smin = 0;
+	_ov = .0;
 
 	for (unsigned int i = 0; i < alignment->size(); i++)
 	{
