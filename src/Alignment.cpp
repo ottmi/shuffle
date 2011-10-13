@@ -5,9 +5,12 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <functional>
+#include <algorithm>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <limits.h>
 #include "FastaReader.h"
 #include "PhylipReader.h"
 #include "AASite.h"
@@ -119,6 +122,60 @@ void Alignment::removeDuplicates()
 
 	cout << "Removed " << count << " duplicates, " << getNumOfRows() << " sequences remain in the alignment." << endl;
 }
+
+
+void Alignment::removeInformativeSitesDuplicates()
+{
+	cout << endl;
+	cout << "Removing duplicates based only on informative sites...";
+	if (verbose)
+		cout << endl;
+
+	vector<Sequence> a = getModifiedAlignment(0, 0, INT_MAX, DBL_MAX).getAlignment();
+	vector<Sequence>::iterator it1, it2;
+
+	vector<unsigned int> eraseList;
+	unsigned int count = 0;
+	unsigned int i = 0;
+	for (it1 = a.begin(); it1 != a.end(); it1++)
+	{
+		it2 = it1 + 1;
+		unsigned j = i + 1;
+		unsigned offset = 0;
+		while (it2 != a.end())
+		{
+			if (it1->getSequence() == it2->getSequence())
+			{
+				if (verbose)
+					cout << "  " << it2->getName() << " is a duplicate of " << it1->getName() << endl;
+				count++;
+				a.erase(it2);
+				eraseList.push_back(j-offset);
+				//offset++;
+			} else
+			{
+				it2++;
+			}
+			j++;
+		}
+
+		if (eraseList.size() > 0)
+		{
+			sort(eraseList.begin(), eraseList.end(), greater<unsigned int>());
+			vector<unsigned int>::iterator it;
+			for (it = eraseList.begin(); it != eraseList.end(); it++)
+				_alignment.erase(_alignment.begin()+*it);
+			eraseList.clear();
+		}
+		i++;
+	}
+
+	if (!verbose)
+		cout << "\b\b\b, done." << endl;
+
+	cout << "Removed " << count << " duplicates, " << getNumOfRows() << " sequences remain in the alignment." << endl;
+}
+
 
 void Alignment::collectSites(Options *options)
 {
@@ -487,7 +544,6 @@ void Alignment::computeCompatibilityScores(int randomizations)
 Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy)
 {
 	Alignment a(_dataType);
-	cout << "Creating new alignment with minCo=" << minCo << " minPOC=" << minPOC << " maxSmin=" << maxSmin << " maxEntropy=" << maxEntropy << endl;
 	vector<int> sites;
 
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
@@ -512,7 +568,6 @@ Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSm
 			a.addSequence(s);
 		}
 	}
-	cout << "New alignment contains " << a.getNumOfRows() << " sequences with " << a.getNumOfCols() << " columns." << endl;
 
 	return a;
 }

@@ -17,6 +17,7 @@ public:
 	virtual ~Alignment();
 	void addSequence(Sequence sequence);
 	void removeDuplicates();
+	void removeInformativeSitesDuplicates();
 	void collectSites(Options *options);
 	void testSymmetry(string prefix, bool extended, int windowSize, int windowStep);
 	void computeBasicScores();
@@ -25,7 +26,7 @@ public:
 	Alignment getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
 	void write(string fileName);
 
-	vector<Sequence>* getAlignment() { return &_alignment; };
+	vector<Sequence>& getAlignment() { return _alignment; };
 	Sequence getSequence(int col) { return _alignment[col]; };
 	unsigned int getNumOfRows() { return _alignment.size(); };
 	unsigned int getNumOfCols() { return _alignment[0].getLength(); };

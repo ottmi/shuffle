@@ -28,6 +28,7 @@ int parseArguments(int argc, char** argv, Options *options)
 
 	options->dataType = -1;
 	options->removeDuplicates = false;
+	options->removeInformativeSitesDuplicates = false;
 	options->symmetryTest = false;
 	options->writeExtendedTestResults = false;
 	options->randomizations = 100;
@@ -46,7 +47,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "t:p:g:dyxw:r:sf:n:v::h")) != -1)
+	while ( (c = getopt(argc, argv, "t:p:g:diyxw:r:sf:n:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -101,6 +102,9 @@ int parseArguments(int argc, char** argv, Options *options)
 			}
 			case 'd':
 				options->removeDuplicates = true;
+				break;
+			case 'i':
+				options->removeInformativeSitesDuplicates = true;
 				break;
 			case 'y':
 				options->symmetryTest = true;
@@ -211,10 +215,11 @@ void printSyntax()
 
 	cout << "Options:" << endl;
 	cout << "  -t<a|d|n>      Data type a=AA, d=DNA, n=Alphanumeric [default: auto-detect]" << endl;
-	cout << "  -p<STRING>     Prefix for output files [default: alignment without extension]" << endl;
+	cout << "  -p<STRING>     Prefix for output files [default: name of alignment w/o .ext]" << endl;
 	cout << "  -g<LIST>       Grouping of sites, e.g. 0,1,-2 for duplets, 0,1,2 for codons" << endl;
 	cout << endl;
 	cout << "  -d             Remove duplicates and write reduced alignment file" << endl;
+	cout << "  -i             Remove informative sites duplicates, write reduced alignment" << endl;
 	cout << endl;
 	cout << "  -y             Perform tests of pairwise symmetry" << endl;
 	cout << "  -x             Write extended output files with test results" << endl;
@@ -275,6 +280,12 @@ int main(int argc, char** argv) {
 	{
 		alignment.collectSites(&options);
 
+		if (options.removeInformativeSitesDuplicates)
+		{
+			alignment.removeInformativeSitesDuplicates();
+			alignment.write(options.prefix+".noDupes2.phy");
+		}
+
 		if (options.symmetryTest)
 			alignment.testSymmetry(options.prefix, options.writeExtendedTestResults, options.windowSize, options.windowStep);
 
@@ -289,7 +300,9 @@ int main(int argc, char** argv) {
 
 		if (options.filterAlignment)
 		{
+			cout << "Creating new alignment with minCo=" << options.minCo << " minPOC=" << options.minPOC << " maxSmin=" << options.maxSmin << " maxEntropy=" << options.maxEntropy << endl;
 			Alignment modifiedAlignment = alignment.getModifiedAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
+			cout << "New alignment contains " << modifiedAlignment.getNumOfRows() << " sequences with " << modifiedAlignment.getNumOfCols() << " columns." << endl;
 			modifiedAlignment.write(options.prefix+".filtered.phy");
 		}
 	}

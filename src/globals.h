@@ -27,6 +27,7 @@ typedef struct opt_struct
 	int groupOffset;
 	int groupLength;
 	bool removeDuplicates;
+	bool removeInformativeSitesDuplicates;
 	bool symmetryTest;
 	bool writeExtendedTestResults;
 	int windowSize;
