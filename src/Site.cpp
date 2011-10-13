@@ -191,7 +191,8 @@ void Site::computeScores(unsigned int cols)
 	{
 		prod_t *= factorial(t_it->second);
 	}
-	bignum div = factorial(_unambiguousCount) / (prod_r * prod_t);
+	bignum unamb = factorial(_unambiguousCount);
+	bignum div =  (unamb / prod_r) / prod_t;
 	_entropy = bignum_log(div);
 
 	unsigned int d = 0;

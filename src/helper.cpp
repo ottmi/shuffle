@@ -1,6 +1,9 @@
 #include "helper.h"
 #include <iostream>
 #include <math.h>
+#ifdef _GMP
+#include <mpfr.h>
+#endif
 using namespace std;
 
 
@@ -17,7 +20,12 @@ bignum factorial(int n)
 double bignum_log(bignum x)
 {
 #ifdef _GMP
-	return log(mpz_get_d(x.get_mpz_t()));
+	mpfr_t y, z;
+	mpfr_init2(y, 512);
+	mpfr_init2(z, 512);
+	mpfr_set_z(y, x.get_mpz_t(), GMP_RNDN);
+	mpfr_log(z, y, GMP_RNDN);
+	return mpfr_get_d(z, GMP_RNDN);
 #else
 	return log(x);
 #endif
