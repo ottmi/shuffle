@@ -279,7 +279,10 @@ int main(int argc, char** argv) {
 			alignment.testSymmetry(options.prefix, options.writeExtendedTestResults, options.windowSize, options.windowStep);
 
 		if (options.writeSiteSummary || options.filterAlignment)
+		{
+			alignment.computeBasicScores();
 			alignment.computeCompatibilityScores(options.randomizations);
+		}
 
 		if (options.writeSiteSummary)
 			alignment.writeSummary(options.prefix);

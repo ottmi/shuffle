@@ -377,6 +377,28 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 	}
 }
 
+
+void Alignment::computeBasicScores()
+{
+	cout << endl;
+	cout << "Computing basic scores..." << endl;
+
+	unsigned long n = _informativeSites.size();
+	int myTid = 0;
+	long t1 = time(NULL);
+
+
+#ifdef _OPENMP
+	#pragma omp parallel for
+#endif
+	for (unsigned int i = 0; i < n; i++)
+		_informativeSites[i]->computeScores(n);
+
+	long t2 = time(NULL);
+	cout << "\rDone, taking " << t2 - t1 << "s.               " << endl;
+}
+
+
 void Alignment::computeCompatibilityScores(int randomizations)
 {
 	cout << endl;
@@ -423,8 +445,6 @@ void Alignment::computeCompatibilityScores(int randomizations)
 #endif
 	for (unsigned int i = 0; i < n; i++)
 	{
-		_informativeSites[i]->computeScores(n);
-
 		if (randomizations)
 		{
 			int poc = 0;

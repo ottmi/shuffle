@@ -19,6 +19,7 @@ public:
 	void removeDuplicates();
 	void collectSites(Options *options);
 	void testSymmetry(string prefix, bool extended, int windowSize, int windowStep);
+	void computeBasicScores();
 	void computeCompatibilityScores(int randomizations);
 	void writeSummary(string prefix);
 	Alignment getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
