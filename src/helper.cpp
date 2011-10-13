@@ -1,6 +1,28 @@
+#include "helper.h"
 #include <iostream>
 #include <math.h>
 using namespace std;
+
+
+bignum factorial(int n)
+{
+	bignum m = n;
+	for (int i = n - 1; i > 1; i--)
+		m *= i;
+
+	return m;
+}
+
+
+double bignum_log(bignum x)
+{
+#ifdef _GMP
+	return log(mpz_get_d(x.get_mpz_t()));
+#else
+	return log(x);
+#endif
+}
+
 /*
 From Numerical Recipes
 */

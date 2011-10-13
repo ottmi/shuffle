@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "globals.h"
+#include "helper.h"
 #include "AASite.h"
 #include "DNASite.h"
 #include "AlphanumericSite.h"
@@ -19,16 +20,6 @@ Site::Site()
 
 Site::~Site()
 {
-}
-
-
-double factorial(int n)
-{
-	double m = (double) n;
-	for (int i = n - 1; i > 1; i--)
-		m *= i;
-
-	return m;
 }
 
 
@@ -187,7 +178,7 @@ void Site::computeScores(unsigned int cols)
 	map<int, int>::const_iterator t_it;
 
 	unsigned int n = 0;
-	double prod_r = 1.0;
+	bignum prod_r = 1;
 	for (BaseOccurenceMapIterator it = _r.begin(); it != _r.end(); it++)
 	{
 		n+= it->second;
@@ -195,12 +186,13 @@ void Site::computeScores(unsigned int cols)
 		prod_r *= factorial(it->second);
 	}
 
-	double prod_t = 1.0;
+	bignum prod_t = 1.0;
 	for (t_it = t.begin(); t_it != t.end(); t_it++)
 	{
 		prod_t *= factorial(t_it->second);
 	}
-	_entropy = log(factorial(_unambiguousCount) / (prod_r * prod_t));
+	bignum div = factorial(_unambiguousCount) / (prod_r * prod_t);
+	_entropy = bignum_log(div);
 
 	unsigned int d = 0;
 	for (BaseOccurenceMapIterator it=_r.begin(); it!=_r.end(); it++)
