@@ -1,7 +1,3 @@
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include <iostream>
 #include <algorithm>
 #include <stdlib.h>
@@ -12,6 +8,7 @@
 #include <cstdio>
 #include "globals.h"
 #include "Alignment.h"
+#include "helper.h"
 
 using namespace std;
 

@@ -1,7 +1,3 @@
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -186,15 +182,10 @@ void Alignment::collectSites(Options *options)
 	unsigned int numOfSites = (getNumOfCols() - options->groupOffset) / options->groupLength;
 	unsigned int count = 0;
 	bool requireInformative = options->writeSiteSummary || options->filterAlignment;
-	int myTid = 0;
 	_sites.resize(numOfSites, NULL);
 
 #ifdef _OPENMP
-#pragma omp parallel shared (count) private(myTid)
-	{
-		myTid = omp_get_thread_num();
-
-#pragma omp for
+#pragma omp parallel for shared (count)
 #endif
 	for (unsigned int i = 0; i < numOfSites; i++)
 	{
@@ -220,7 +211,7 @@ void Alignment::collectSites(Options *options)
 				s->checkInformative();
 		}
 		count++;
-		if (myTid == 0)
+		if (omp_get_thread_num() == 0)
 		{
 			long t2 = time(NULL);
 			if (t2 > lastTime)
@@ -228,16 +219,13 @@ void Alignment::collectSites(Options *options)
 				long elapsed = t2 - t1;
 				long eta = (elapsed * numOfSites) / count - elapsed;
 				lastTime = t2;
-				cout << "\r" << count * 100 / numOfSites << "%\tTime elapsed: " << elapsed / 60 << ":" << setfill('0') << setw(2) << elapsed % 60 << "\tETA: " << eta / 60 << ":" << setw(2) << eta % 60 << "  " << flush;
+				cout << "\r" << count * 100 / numOfSites << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
 			}
 		}
 	}
-#ifdef _OPENMP
-}
-#endif
 
 	long t2 = time(NULL);
-	cout << "\rDone, taking " << t2 - t1 << "s.                                        " << endl;
+	cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
 
 	if (requireInformative)
 	{
@@ -441,7 +429,6 @@ void Alignment::computeBasicScores()
 	cout << "Computing basic scores..." << endl;
 
 	unsigned long n = _informativeSites.size();
-	int myTid = 0;
 	long t1 = time(NULL);
 
 
@@ -452,7 +439,7 @@ void Alignment::computeBasicScores()
 		_informativeSites[i]->computeScores(n);
 
 	long t2 = time(NULL);
-	cout << "\rDone, taking " << t2 - t1 << "s.               " << endl;
+	cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
 }
 
 
@@ -467,13 +454,9 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	unsigned long n = _informativeSites.size();
 	unsigned long total = n * (n - 1) / 2 + n * n * randomizations;
 	unsigned long count = 0;
-	int myTid = 0;
 
 #ifdef _OPENMP
-#pragma omp parallel shared(count) private(myTid)
-	{
-		myTid = omp_get_thread_num();
-#pragma omp for
+#pragma omp parallel for shared(count)
 #endif
 	for (unsigned int i = 0; i < n; i++)
 	{
@@ -486,19 +469,21 @@ void Alignment::computeCompatibilityScores(int randomizations)
 			}
 		}
 		count += n - i - 1;
-		if (myTid == 0)
+		if (omp_get_thread_num() == 0)
 		{
 			long t2 = time(NULL);
 			if (t2 > lastTime)
 			{
 				long elapsed = t2 - t1;
-				cout << "\r" << count * 100 / total << "%\tTime elapsed: " << elapsed / 60 << ":" << setfill('0') << setw(2) << elapsed % 60 << flush;
+				long eta = (elapsed * total) / count - elapsed;
+				cout << "\r" << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+
 			}
 		}
 	}
 
 #ifdef _OPENMP
-#pragma omp for
+#pragma omp parallel for shared(count)
 #endif
 	for (unsigned int i = 0; i < n; i++)
 	{
@@ -520,25 +505,23 @@ void Alignment::computeCompatibilityScores(int randomizations)
 			}
 
 			count += randomizations * n;
-			if (myTid == 0)
+			if (omp_get_thread_num() == 0)
 			{
 				long t2 = time(NULL);
 				if (t2 > lastTime)
 				{
 					long elapsed = t2 - t1;
 					long eta = (elapsed * total) / count - elapsed;
-					cout << "\r" << count * 100 / total << "%\tTime elapsed: " << elapsed / 60 << ":" << setfill('0') << setw(2) << elapsed % 60 << "\tETA: " << eta / 60 << ":" << setw(2) << eta % 60 << "  " << flush;
+					cout << "\r" << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
 				}
 			}
 			_informativeSites[i]->setPOC((double) poc / randomizations);
 		} else
 			_informativeSites[i]->setPOC(.0);
 	}
-#ifdef _OPENMP
-}
-#endif
+
 	long t2 = time(NULL);
-	cout << "\rFinished computing scores, taking " << t2 - t1 << "s.               " << endl;
+	cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
 }
 
 Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy)

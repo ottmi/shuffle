@@ -1,5 +1,7 @@
 #include "helper.h"
 #include <iostream>
+#include <iomanip>
+#include <sstream>
 #include <math.h>
 #ifdef _GMP
 #include <mpfr.h>
@@ -30,6 +32,21 @@ double bignum_log(bignum x)
 	return log(x);
 #endif
 }
+
+
+string printTime(long t)
+{
+	stringstream s;
+	if (t > 3600)
+	{
+		s << t / 3600 << ":" << setfill('0') << setw(2);
+		t = t % 3600;
+	}
+	s << t / 60 << ":" << setfill('0') << setw(2) << t % 60;
+
+	return s.str();
+}
+
 
 /*
 From Numerical Recipes

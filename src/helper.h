@@ -1,10 +1,3 @@
-/*
- * helper.h
- *
- *  Created on: 15/09/2011
- *      Author: ott029
- */
-
 #ifndef HELPER_H_
 #define HELPER_H_
 
@@ -16,8 +9,20 @@
 #define bignum double
 #endif
 
+#ifdef _OPENMP
+#include <omp.h>
+#else
+#define omp_get_max_threads() 1
+#define omp_get_num_threads() 1
+#define omp_get_thread_num() 0
+#endif
+
+#include <string>
+using namespace std;
+
 bignum factorial(int n);
 double bignum_log(bignum);
+string printTime(long t);
 void gcf(double *gammcf, double a, double x, double *gln);
 void gser(double *gamser, double a, double x, double *gln);
 double gammln(double xx);
