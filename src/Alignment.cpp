@@ -480,6 +480,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 
 			}
 		}
+		_informativeSites[i]->computeCo(n);
 	}
 
 #ifdef _OPENMP
@@ -515,9 +516,8 @@ void Alignment::computeCompatibilityScores(int randomizations)
 					cout << "\r" << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
 				}
 			}
-			_informativeSites[i]->setPOC((double) poc / randomizations);
-		} else
-			_informativeSites[i]->setPOC(.0);
+			_informativeSites[i]->computePOC(poc, randomizations);
+		}
 	}
 
 	long t2 = time(NULL);

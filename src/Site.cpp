@@ -168,14 +168,6 @@ void Site::incComp()
 }
 
 
-void Site::setPOC(double poc)
-{
-	_poc = poc;
-	if (verbose >= 5)
-		cout << "\rSite [" << colsToString() << "]: compSites=" << _compSites << " co=" << _coScore << " poc=" << _poc << " entropy=" << _entropy << " smin=" << _smin << endl;
-}
-
-
 void Site::computeScores(unsigned int cols)
 {
 	_smin = _r.size() - 1;
@@ -207,8 +199,20 @@ void Site::computeScores(unsigned int cols)
 
 	double k = n*(n-1);
 	_ov = (double) d/k;
+}
 
+
+void Site::computeCo(unsigned int cols)
+{
 	_coScore = ((double) _compSites) / (cols-1);
+}
+
+
+void Site::computePOC(int poc, int randomizations)
+{
+	_poc = ((double) poc) / randomizations;
+	if (verbose >= 5)
+		cout << "\rSite [" << colsToString() << "]: compSites=" << _compSites << " co=" << _coScore << " poc=" << _poc << " entropy=" << _entropy << " smin=" << _smin << endl;
 }
 
 
