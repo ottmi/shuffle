@@ -480,7 +480,6 @@ void Alignment::computeCompatibilityScores(int randomizations)
 
 			}
 		}
-		_informativeSites[i]->computeCo(n);
 	}
 
 #ifdef _OPENMP
@@ -488,6 +487,8 @@ void Alignment::computeCompatibilityScores(int randomizations)
 #endif
 	for (unsigned int i = 0; i < n; i++)
 	{
+		_informativeSites[i]->computeCo(n);
+
 		if (randomizations)
 		{
 			int poc = 0;
