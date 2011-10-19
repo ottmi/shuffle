@@ -25,8 +25,6 @@ Site::~Site()
 
 void Site::initialize(vector<Sequence>* alignment, Options *options)
 {
-	srand ( time(NULL) );
-
 	_unambiguousCount = 0;
 	_ambiguousCount = 0;
 	_compSites = 0;

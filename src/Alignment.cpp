@@ -455,6 +455,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	unsigned long total = n * (n - 1) / 2 + n * n * randomizations;
 	unsigned long count = 0;
 
+	srand( t1 );
 #ifdef _OPENMP
 #pragma omp parallel for shared(count)
 #endif
@@ -491,6 +492,9 @@ void Alignment::computeCompatibilityScores(int randomizations)
 
 		if (randomizations)
 		{
+#ifdef _DEBUG
+			srand( i+42 );
+#endif
 			int poc = 0;
 			for (int r = 0; r < randomizations; r++)
 			{
