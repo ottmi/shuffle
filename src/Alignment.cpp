@@ -1,3 +1,7 @@
+#ifdef _MPI
+#include <mpi.h>
+#endif
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -15,10 +19,18 @@
 #include "Alignment.h"
 #include "helper.h"
 
+
+
+Alignment::Alignment()
+{
+}
+
+
 Alignment::Alignment(int dataType)
 {
 	_dataType = dataType;
 }
+
 
 Alignment::Alignment(Options *options)
 {
@@ -442,7 +454,107 @@ void Alignment::computeBasicScores()
 	cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
 }
 
+#ifdef _MPI
+void Alignment::computeCompatibilityScores(int randomizations)
+{
+	if (myId == 0)
+	{
+		cout << endl;
+		cout << "Computing compatibility scores, doing " << randomizations << " randomizations..." << endl;
+		cout << "0%" << flush;
+	}
 
+	unsigned long n = _informativeSites.size();
+	unsigned int share = (n + numProcs - 1)/ numProcs;
+	unsigned int start = myId * share;
+	unsigned int end = (myId + 1) * share - 1;
+	if (end >= _informativeSites.size())
+		end = _informativeSites.size() - 1;
+	unsigned long total = share * (randomizations+1) * (n-1);
+	unsigned long count = 0;
+	long t1 = time(NULL);
+	long lastTime = t1;
+
+	double *sendBuf = (double *) malloc(sizeof(double) * share * 2);
+	int k = 0;
+	Site *site;
+	srand ( time(NULL) );
+	for (unsigned int i = start; i <= end; i++)
+	{
+		site = _informativeSites[i];
+		for (unsigned int j = 0; j < n; j++)
+		{
+			if (i != j && site->checkCompatibility(_informativeSites[j]))
+				site->incComp();
+		}
+		count+= n-1;
+
+		site->computeCo(n);
+
+		if (randomizations)
+		{
+#ifdef _DEBUG
+			srand ( i+42 );
+#endif
+			int poc = 0;
+			for (int r = 0; r < randomizations; r++)
+			{
+				int comp = 0;
+				Site* randomSite = site->randomize();
+				for (unsigned int j = 0; j < n; j++)
+				{
+					if (i != j && randomSite->checkCompatibility(_informativeSites[j]))
+						comp++;
+				}
+				delete randomSite;
+				if (site->getComp() <= comp)
+					poc++;
+			}
+			count+= randomizations*(n-1);
+			site->computePOC(poc, randomizations);
+		}
+		sendBuf[k*2] = site->getCo();
+		sendBuf[k*2 + 1] = site->getPOC();
+		k++;
+
+		if (myId == 0)
+		{
+			long t2 = time(NULL);
+			if (t2 > lastTime)
+			{
+				long elapsed = t2 - t1;
+				long eta = (elapsed * total) / count - elapsed;
+				cout << "\r" << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+
+			}
+		}
+	}
+
+
+	double *recvBuf;
+	if (myId == 0)
+		recvBuf = (double *) malloc(sizeof(double) * share * 2 * numProcs);
+	MPI_Gather(sendBuf, share*2, MPI_DOUBLE, recvBuf, share*2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+	if (myId == 0)
+	{
+		for (unsigned int i = 0; i < n; i++)
+		{
+			_informativeSites[i]->setCo(recvBuf[i*2]);
+			_informativeSites[i]->setPOC(recvBuf[i*2 + 1]);
+		}
+		free(recvBuf);
+	}
+
+	free(sendBuf);
+
+	if (myId == 0)
+	{
+		long t2 = time(NULL);
+		cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
+	}
+}
+#else
 void Alignment::computeCompatibilityScores(int randomizations)
 {
 	cout << endl;
@@ -524,6 +636,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	long t2 = time(NULL);
 	cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
 }
+#endif
 
 Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy)
 {
@@ -610,4 +723,65 @@ void Alignment::write(string fileName)
 			break;
 	}
 	file.close();
+}
+
+
+void Alignment::send()
+{
+	unsigned int m = _informativeSites.size();
+	unsigned int n = getNumOfRows();
+	int buf[3];
+	buf[0] = _dataType;
+	buf[1] = (int) m;
+	buf[2] = (int) n;
+
+	int *buf2 = (int *) malloc(sizeof(int) * m * n);
+	for (unsigned int i = 0; i < m; i++)
+	{
+		Site *site = _informativeSites[i];
+		vector<int> v = site->getSite();
+		copy(v.begin(), v.end(), buf2+i*n);
+	}
+
+	MPI_Bcast(buf, 3, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(buf2, m*n, MPI_INT, 0, MPI_COMM_WORLD);
+
+	free(buf2);
+}
+
+void Alignment::recv()
+{
+	int buf[3];
+	unsigned int m, n;
+
+	MPI_Bcast(buf, 3, MPI_INT, 0, MPI_COMM_WORLD);
+	_dataType = buf[0];
+	m = buf[1];
+	n = buf[2];
+
+	int *buf2 = (int *) malloc(sizeof(int) * m * n);
+	MPI_Bcast(buf2, m*n, MPI_INT, 0, MPI_COMM_WORLD);
+
+	vector<int> v;
+	v.resize(n);
+	for (unsigned int i = 0; i < m; i++)
+	{
+		copy(buf2+i*n, buf2+(i+1)*n, v.begin());
+		Site *site;
+		switch (_dataType)
+		{
+			case _DNA_DATA:
+				site = new DNASite(v);
+				break;
+			case _AA_DATA:
+				site = new AASite(v);
+				break;
+			case _ALPHANUM_DATA:
+				site = new AlphanumericSite(v);
+				break;
+		}
+		_informativeSites.push_back(site);
+	}
+
+	free(buf2);
 }

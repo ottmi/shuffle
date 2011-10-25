@@ -1,3 +1,7 @@
+#ifdef _MPI
+#include <mpi.h>
+#endif
+
 #include <iostream>
 #include <algorithm>
 #include <stdlib.h>
@@ -13,6 +17,9 @@
 using namespace std;
 
 int verbose = 0;
+int numProcs = 1;
+int myId = 0;
+
 
 int parseArguments(int argc, char** argv, Options *options)
 {
@@ -245,24 +252,31 @@ void printSyntax()
 	exit(254);
 }
 
-int main(int argc, char** argv) {
+
+int master(int argc, char** argv)
+{
 	Options options;
 
 	cout << PROGNAME << " " << VERSION << "|";
 #ifdef _OPENMP
 	cout << "OpenMP|";
+#elif _MPI
+	cout << "MPI|";
 #endif
+
 	cout << PROGDATE << endl << endl;;
 
+   	cout << "Parallel execution with " << numProcs << " processes." << endl << endl;
 
 	int ret = parseArguments(argc, argv, &options);
 	if (ret)
 		return ret;
+
 	if (!options.inputAlignment.length() || options.help)
 		printSyntax();
 
-#ifdef _OPENMP
-	cout << "Parallel execution with " << omp_get_max_threads() << " threads." << endl << endl;
+#ifdef _MPI
+	MPI_Bcast(&(options.randomizations), 1, MPI_INT, 0, MPI_COMM_WORLD);
 #endif
 
 	Alignment alignment(&options);
@@ -289,6 +303,7 @@ int main(int argc, char** argv) {
 		if (options.writeSiteSummary || options.filterAlignment)
 		{
 			alignment.computeBasicScores();
+			alignment.send();
 			alignment.computeCompatibilityScores(options.randomizations);
 		}
 
@@ -303,6 +318,49 @@ int main(int argc, char** argv) {
 			modifiedAlignment.write(options.prefix+".filtered.phy");
 		}
 	}
+
+	return 0;
+}
+
+
+int worker()
+{
+	int randomizations;
+
+	MPI_Bcast(&randomizations, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+	Alignment alignment;
+	alignment.recv();
+	alignment.computeCompatibilityScores(randomizations);
+
+	return 0;
+}
+
+
+int main(int argc, char** argv)
+{
+#ifdef _MPI
+    if (MPI_Init(&argc,&argv)!=MPI_SUCCESS)
+    {
+    	cerr << "MPI_Init failed." << endl;
+    	return -1;
+    }
+    MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &myId);
+#elif _OPENMP
+    numProcs = omp_get_max_threads();
+#endif
+
+
+    if (myId == 0)
+    	master(argc, argv);
+    else
+    	worker();
+
+
+#ifdef _MPI
+	MPI_Finalize();
+#endif
 
 	return 0;
 }

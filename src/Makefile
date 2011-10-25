@@ -1,5 +1,5 @@
-CXX = g++
-CXXFLAGS  = -Wall -g -O3 -fopenmp -D_GMP
+CXX = mpic++
+CXXFLAGS  = -Wall -g -O3 -D_GMP -D_MPI -D_DEBUG
 LDFLAGS = -lm -lgmpxx -lgmp -lmpfr
 
 OBJ = AASite.o Alignment.o AlignmentReader.o AlphanumericSite.o DNASite.o FastaReader.o PhylipReader.o Sequence.o Site.o helper.o shuffle.o

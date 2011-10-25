@@ -23,10 +23,21 @@ Site::~Site()
 }
 
 
-void Site::initialize(vector<Sequence>* alignment, Options *options)
+void Site::initialize()
 {
-	srand ( time(NULL) );
+	_unambiguousCount = 0;
+	_ambiguousCount = 0;
+	_compSites = 0;
+	_coScore = .0;
+	_poc = .0;
+	_entropy = .0;
+	_smin = 0;
+	_ov = .0;
+}
 
+
+void Site::initialize(vector<Sequence>* alignment)
+{
 	_unambiguousCount = 0;
 	_ambiguousCount = 0;
 	_compSites = 0;

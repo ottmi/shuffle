@@ -6,7 +6,7 @@ AlphanumericSite::AlphanumericSite(vector<Sequence>* alignment, int offset, Opti
 	_type = _ALPHANUM_DATA;
 	for (unsigned int i = 0; i < options->grouping.size(); i++)
 		_cols.push_back(options->grouping[i] + options->groupLength * offset);
-	initialize(alignment, options);
+	initialize(alignment);
 }
 
 
@@ -16,6 +16,7 @@ AlphanumericSite::AlphanumericSite(vector<int> site)
 	_type = _ALPHANUM_DATA;
 	_cols = vector<int> (1, -1);
 	_site = site;
+	initialize();
 }
 
 

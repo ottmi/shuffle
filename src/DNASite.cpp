@@ -12,7 +12,7 @@ DNASite::DNASite(vector<Sequence>* alignment, int offset, Options *options)
 	_type = 0;
 	for (unsigned int i = 0; i < options->grouping.size(); i++)
 		_cols.push_back(options->grouping[i] + options->groupLength * offset);
-	initialize(alignment, options);
+	initialize(alignment);
 }
 
 
@@ -22,6 +22,7 @@ DNASite::DNASite(vector<int> site)
 	_type = 0;
 	_cols = vector<int> (1, -1);
 	_site = site;
+	initialize();
 }
 
 

@@ -17,7 +17,8 @@ class Site
 public:
 	Site();
 	virtual ~Site();
-	void initialize(vector<Sequence>* alignment, Options *options);
+	void initialize();
+	void initialize(vector<Sequence>* alignment);
 	BaseOccurenceMap getBaseOccurences();
 	bool checkInformative();
 	bool checkCompatibility(Site* site);
@@ -26,9 +27,10 @@ public:
 	void computeCo(unsigned int cols);
 	void computePOC(int poc, int randomizations);
 	Site* randomize();
-	void setPOC(double poc);
-	vector<int> getSite() { return _site; };
-	vector<int> getCols() { return _cols; };
+	void setCo(double coScore) { _coScore = coScore; };
+	void setPOC(double poc) { _poc = poc; };
+	vector<int>& getSite() { return _site; };
+	vector<int>& getCols() { return _cols; };
 	int getPos(unsigned int pos) { return _site[pos]; };
 	bool isInformative() { return _isInformative; };
 	int getComp() { return _compSites; };
