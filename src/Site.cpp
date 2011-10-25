@@ -1,6 +1,6 @@
 #include <iostream>
 #include <iomanip>
-#include <list>
+#include <set>
 #include <sstream>
 #include <math.h>
 #include <stdlib.h>
@@ -83,38 +83,33 @@ bool Site::checkInformative()
 	return _isInformative;
 }
 
+
+int getFirst(unsigned long x)
+{
+	return x >> 32;
+}
+
+int getSecond(unsigned long x)
+{
+	return x & 0xffffffff;
+}
+
 bool Site::checkCompatibility(Site* site)
 {
 	vector<int> s1 = _site;
 	vector<int> s2 = site->getSite();
 
-	list<pair<int, int> > pairs;
-	list<pair<int, int> >::iterator it1;
-	list<pair<int, int> >::iterator it2;
+	set<unsigned long> pairs;
+	set<unsigned long>::iterator it1;
+	set<unsigned long>::iterator it2;
 
 	for (unsigned int i = 0; i < s1.size(); i++)
 	{
 		if (charIsUnambiguous(s1[i]) && charIsUnambiguous(s2[i])) // contains no unknown, missing, or ambiguous characters
 		{
-			pair<int, int> p(s1[i], s2[i]);
-			pairs.push_back(p);
-		}
-	}
-
-/*
-	pairs.sort();
-	pairs.unique();
-*/
-	for (it1 = pairs.begin(); it1 != pairs.end(); it1++) // remove duplicates
-	{
-		it2 = it1;
-		it2++;
-		while (it2 != pairs.end())
-		{
-			if (it1->first == it2->first && it1->second == it2->second)
-				it2 = pairs.erase(it2);
-			else
-				it2++;
+			unsigned long p = s1[i];
+			p = (p << 32) | s2[i];
+			pairs.insert(p);
 		}
 	}
 
@@ -122,8 +117,8 @@ bool Site::checkCompatibility(Site* site)
 	BaseOccurenceMap occ2;
 	for (it1 = pairs.begin(); it1 != pairs.end(); it1++)  // count occurences
 	{
-		occ1[it1->first]++;
-		occ2[it1->second]++;
+		occ1[getFirst(*it1)]++;
+		occ2[getSecond(*it1)]++;
 	}
 
 	bool changed = true;
@@ -132,22 +127,26 @@ bool Site::checkCompatibility(Site* site)
 		changed = false;
 		for (it1 = pairs.begin(); it1 != pairs.end(); it1++)
 		{
-			if (occ1[it1->first] == 1)
+			int first = getFirst(*it1);
+			if (occ1[first] == 1)
 			{
-				occ1[it1->first]--;
-				occ2[it1->second]--;
-				it1 = pairs.erase(it1);
+				int second = getSecond(*it1);
+				occ1[first]--;
+				occ2[second]--;
+				pairs.erase(it1);
 				changed = true;
 			}
 		}
 
 		for (it2 = pairs.begin(); it2 != pairs.end(); it2++)
 		{
-			if (occ2[it2->second] == 1)
+			int second = getSecond(*it2);
+			if (occ2[second] == 1)
 			{
-				occ1[it2->first]--;
-				occ2[it2->second]--;
-				it2 = pairs.erase(it2);
+				int first = getFirst(*it2);
+				occ1[first]--;
+				occ2[second]--;
+				pairs.erase(it2);
 				changed = true;
 			}
 		}
