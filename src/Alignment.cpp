@@ -423,6 +423,30 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 }
 
 
+void Alignment::checkIdenticalSites()
+{
+	cout << endl;
+	cout << "Checking for identical sites..." << endl;
+
+	unsigned int n = _informativeSites.size();
+	unsigned int count = 0;
+	vector<bool> duplicates (n, false);
+#ifdef _OPENMP
+#pragma omp parallel for shared(count) schedule(guided)
+#endif
+	for (unsigned int i = 0; i < n; i++)
+		for (unsigned int j = i + 1; j < n; j++)
+			if (!duplicates[j] && _informativeSites[i]->compare(_informativeSites[j]))
+			{
+				cout << "  " << _informativeSites[i]->colsToString() << " and " << _informativeSites[j]->colsToString() << " are identical" << endl;
+				duplicates[j] = true;
+				count++;
+			}
+
+	cout << "Done, found " << count << " identical sites." << endl;
+}
+
+
 void Alignment::computeBasicScores()
 {
 	cout << endl;

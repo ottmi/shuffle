@@ -25,6 +25,7 @@ public:
 	void computeScores(unsigned int cols);
 	void computeCo(unsigned int cols);
 	void computePOC(int poc, int randomizations);
+	bool compare(Site* s);
 	Site* randomize();
 	void setPOC(double poc);
 	vector<int> getSite() { return _site; };

@@ -246,6 +246,24 @@ Site* Site::randomize()
 }
 
 
+bool Site::compare(Site* s)
+{
+	vector<int> s1 = s->getSite();
+	vector<int> s2 = getSite();
+
+	if (s1.size() != s2.size())
+		return false;
+
+	for (unsigned int i = 0; i < s1.size(); i++)
+	{
+		if (s1[i] != s2[i])
+			return false;
+	}
+
+	return true;
+}
+
+
 bool Site::charIsUnambiguous(int n)
 {
 	for (unsigned int i = 0; i < _cols.size(); i++)
