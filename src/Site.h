@@ -18,7 +18,7 @@ public:
 	Site();
 	virtual ~Site();
 	void initialize(vector<Sequence>* alignment, Options *options);
-	BaseOccurenceMap getBaseOccurences();
+	void remove(unsigned int i);
 	bool checkInformative();
 	bool checkCompatibility(Site* site);
 	void incComp();

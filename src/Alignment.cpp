@@ -128,49 +128,63 @@ void Alignment::removeInformativeSitesDuplicates()
 	if (verbose)
 		cout << endl;
 
-	vector<Sequence> a = getModifiedAlignment(0, 0, INT_MAX, DBL_MAX).getAlignment();
-	vector<Sequence>::iterator it1, it2;
-
 	vector<unsigned int> eraseList;
+	unsigned int total = 0;
 	unsigned int count = 0;
-	unsigned int i = 0;
-	for (it1 = a.begin(); it1 != a.end(); it1++)
+	do
 	{
-		it2 = it1 + 1;
-		unsigned j = i + 1;
-		unsigned offset = 0;
-		while (it2 != a.end())
+		vector<Sequence> a = getModifiedAlignment(0, 0, INT_MAX, DBL_MAX).getAlignment();
+		vector<Sequence>::iterator it1, it2;
+		unsigned int i = 0;
+		count = 0;
+
+		for (it1 = a.begin(); it1 != a.end(); it1++)
 		{
-			if (it1->getSequence() == it2->getSequence())
+			it2 = it1 + 1;
+			unsigned j = i + 1;
+			while (it2 != a.end())
 			{
-				if (verbose)
-					cout << "  " << it2->getName() << " is a duplicate of " << it1->getName() << endl;
-				count++;
-				a.erase(it2);
-				eraseList.push_back(j-offset);
-				//offset++;
-			} else
-			{
-				it2++;
+				if (it1->getSequence() == it2->getSequence())
+				{
+					if (verbose)
+						cout << "  " << it2->getName() << " is a duplicate of " << it1->getName() << endl;
+					count++;
+					eraseList.push_back(j);
+					it2 = a.erase(it2);
+				} else
+				{
+					it2++;
+				}
+				j++;
 			}
-			j++;
+
+			if (eraseList.size() > 0)
+			{
+				for (unsigned int k = eraseList.size(); k--; )
+				{
+					unsigned int l = eraseList[k];
+					for (unsigned int m = 0; m < _sites.size(); m++)
+						_sites[m]->remove(l);
+					_alignment.erase(_alignment.begin()+l);
+				}
+				eraseList.clear();
+			}
+			i++;
 		}
 
-		if (eraseList.size() > 0)
+		_informativeSites.clear();
+		for (unsigned int m = 0; m < _sites.size(); m++)
 		{
-			sort(eraseList.begin(), eraseList.end(), greater<unsigned int>());
-			vector<unsigned int>::iterator it;
-			for (it = eraseList.begin(); it != eraseList.end(); it++)
-				_alignment.erase(_alignment.begin()+*it);
-			eraseList.clear();
+			if (_sites[m]->checkInformative())
+				_informativeSites.push_back(_sites[m]);
 		}
-		i++;
-	}
+		total+= count;
+	} while (count);
 
 	if (!verbose)
 		cout << "\b\b\b, done." << endl;
 
-	cout << "Removed " << count << " duplicates, " << getNumOfRows() << " sequences remain in the alignment." << endl;
+	cout << "Removed " << total << " duplicates, " << getNumOfRows() << " sequences with " << _informativeSites.size() << " informative sites remain in the alignment." << endl;
 }
 
 

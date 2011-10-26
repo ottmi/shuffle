@@ -42,9 +42,16 @@ void Site::initialize(vector<Sequence>* alignment, Options *options)
 	}
 }
 
+void Site::remove(unsigned int i)
+{
+	_site.erase(_site.begin() + i);
+}
+
 
 bool Site::checkInformative()
 {
+	_unambiguousCount = 0;
+	_r.clear();
 	for (unsigned int i = 0; i < _site.size(); i++)
 	{
 		int c = _site[i];
