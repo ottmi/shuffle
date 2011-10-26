@@ -40,6 +40,7 @@ public:
 	double getOV() { return _ov; };
 	int getUnambiguousCount() { return _unambiguousCount; };
 	int getAmbiguousCount() { return _ambiguousCount; };
+	BaseOccurenceMap& getFrequencies() { return _r; };
 	bool charIsUnambiguous(int n);
 	virtual string mapNumToChar(int n) =0;
 	virtual int mapCharToNum(string s) =0;

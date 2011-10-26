@@ -3,6 +3,7 @@
 #include <fstream>
 #include <functional>
 #include <algorithm>
+#include <set>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -592,11 +593,37 @@ void Alignment::writeSummary(string prefix)
 		throw("\n\nError, cannot open file " + fileName);
 	cout << "Writing site summary to " << fileName << endl;
 
-	file << "Site No.,Smin,Entropy,OV,Co,Poc" << endl;
+	unsigned int maxCount = 0;
+	BaseOccurenceMap maxFrequencies;
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
 		Site* s = _informativeSites[i];
-		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << scientific << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC() << endl;
+		BaseOccurenceMap f = s->getFrequencies();
+		if (f.size() > maxCount)
+		{
+			maxCount = f.size();
+			maxFrequencies = f;
+		}
+	}
+
+	set<int> bases;
+	for (BaseOccurenceMapIterator it = maxFrequencies.begin(); it != maxFrequencies.end(); it++)
+		bases.insert(it->first);
+
+	file << "Site No.,Smin,Entropy,OV,Co,Poc";
+	Site* s = _informativeSites[0];
+	for (set<int>::iterator it = bases.begin(); it != bases.end(); it++)
+		file << ",f(" << s->mapNumToChar(*it) << ")";
+	file << ",f(?)" << endl;
+
+	for (unsigned int i = 0; i < _informativeSites.size(); i++)
+	{
+		Site* s = _informativeSites[i];
+		BaseOccurenceMap f = s->getFrequencies();
+		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << fixed << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC();
+		for (set<int>::iterator it = bases.begin(); it != bases.end(); it++)
+			file << "," << (((double) f[*it]) / getNumOfRows());
+		file << "," << ((double) s->getAmbiguousCount()) / getNumOfRows() << endl;
 	}
 }
 
