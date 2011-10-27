@@ -120,9 +120,6 @@ bool Site::checkCompatibility(Site* site)
 	vector<int> s2 = site->getSite();
 
 	set<unsigned long> pairs;
-	set<unsigned long>::iterator it1;
-	set<unsigned long>::iterator it2;
-
 	for (unsigned int i = 0; i < s1.size(); i++)
 	{
 		if (charIsUnambiguous(s1[i]) && charIsUnambiguous(s2[i])) // contains no unknown, missing, or ambiguous characters
@@ -135,39 +132,47 @@ bool Site::checkCompatibility(Site* site)
 
 	BaseOccurenceMap occ1;
 	BaseOccurenceMap occ2;
-	for (it1 = pairs.begin(); it1 != pairs.end(); it1++)  // count occurences
+	for (set<unsigned long>::iterator it = pairs.begin(); it != pairs.end(); it++)  // count occurences
 	{
-		occ1[getFirst(*it1)]++;
-		occ2[getSecond(*it1)]++;
+		occ1[getFirst(*it)]++;
+		occ2[getSecond(*it)]++;
 	}
 
 	bool changed = true;
 	while (changed) // remove per-site unique characters
 	{
 		changed = false;
-		for (it1 = pairs.begin(); it1 != pairs.end(); it1++)
+		set<unsigned long>::iterator it = pairs.begin();
+		while (it != pairs.end())
 		{
-			int first = getFirst(*it1);
+			int first = getFirst(*it);
 			if (occ1[first] == 1)
 			{
-				int second = getSecond(*it1);
+				int second = getSecond(*it);
 				occ1[first]--;
 				occ2[second]--;
-				pairs.erase(it1);
+				pairs.erase(it++);
 				changed = true;
+			} else
+			{
+				it++;
 			}
 		}
 
-		for (it2 = pairs.begin(); it2 != pairs.end(); it2++)
+		it = pairs.begin();
+		while (it != pairs.end())
 		{
-			int second = getSecond(*it2);
+			int second = getSecond(*it);
 			if (occ2[second] == 1)
 			{
-				int first = getFirst(*it2);
+				int first = getFirst(*it);
 				occ1[first]--;
 				occ2[second]--;
-				pairs.erase(it2);
+				pairs.erase(it++);
 				changed = true;
+			} else
+			{
+				it++;
 			}
 		}
 	}
