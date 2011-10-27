@@ -7,6 +7,7 @@
 #include <fstream>
 #include <functional>
 #include <algorithm>
+#include <set>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -139,49 +140,63 @@ void Alignment::removeInformativeSitesDuplicates()
 	if (verbose)
 		cout << endl;
 
-	vector<Sequence> a = getModifiedAlignment(0, 0, INT_MAX, DBL_MAX).getAlignment();
-	vector<Sequence>::iterator it1, it2;
-
 	vector<unsigned int> eraseList;
+	unsigned int total = 0;
 	unsigned int count = 0;
-	unsigned int i = 0;
-	for (it1 = a.begin(); it1 != a.end(); it1++)
+	do
 	{
-		it2 = it1 + 1;
-		unsigned j = i + 1;
-		unsigned offset = 0;
-		while (it2 != a.end())
+		vector<Sequence> a = getModifiedAlignment(0, 0, INT_MAX, DBL_MAX).getAlignment();
+		vector<Sequence>::iterator it1, it2;
+		unsigned int i = 0;
+		count = 0;
+
+		for (it1 = a.begin(); it1 != a.end(); it1++)
 		{
-			if (it1->getSequence() == it2->getSequence())
+			it2 = it1 + 1;
+			unsigned j = i + 1;
+			while (it2 != a.end())
 			{
-				if (verbose)
-					cout << "  " << it2->getName() << " is a duplicate of " << it1->getName() << endl;
-				count++;
-				a.erase(it2);
-				eraseList.push_back(j-offset);
-				//offset++;
-			} else
-			{
-				it2++;
+				if (it1->getSequence() == it2->getSequence())
+				{
+					if (verbose)
+						cout << "  " << it2->getName() << " is a duplicate of " << it1->getName() << endl;
+					count++;
+					eraseList.push_back(j);
+					it2 = a.erase(it2);
+				} else
+				{
+					it2++;
+				}
+				j++;
 			}
-			j++;
+
+			if (eraseList.size() > 0)
+			{
+				for (unsigned int k = eraseList.size(); k--; )
+				{
+					unsigned int l = eraseList[k];
+					for (unsigned int m = 0; m < _sites.size(); m++)
+						_sites[m]->remove(l);
+					_alignment.erase(_alignment.begin()+l);
+				}
+				eraseList.clear();
+			}
+			i++;
 		}
 
-		if (eraseList.size() > 0)
+		_informativeSites.clear();
+		for (unsigned int m = 0; m < _sites.size(); m++)
 		{
-			sort(eraseList.begin(), eraseList.end(), greater<unsigned int>());
-			vector<unsigned int>::iterator it;
-			for (it = eraseList.begin(); it != eraseList.end(); it++)
-				_alignment.erase(_alignment.begin()+*it);
-			eraseList.clear();
+			if (_sites[m]->checkInformative())
+				_informativeSites.push_back(_sites[m]);
 		}
-		i++;
-	}
+		total+= count;
+	} while (count);
 
 	if (!verbose)
 		cout << "\b\b\b, done." << endl;
 
-	cout << "Removed " << count << " duplicates, " << getNumOfRows() << " sequences remain in the alignment." << endl;
+	cout << "Removed " << total << " duplicates, " << getNumOfRows() << " sequences with " << _informativeSites.size() << " informative sites remain in the alignment." << endl;
 }
 
 
@@ -435,6 +450,30 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 }
 
 
+void Alignment::checkIdenticalSites()
+{
+	cout << endl;
+	cout << "Checking for identical sites..." << endl;
+
+	unsigned int n = _informativeSites.size();
+	unsigned int count = 0;
+	vector<bool> duplicates (n, false);
+#ifdef _OPENMP
+#pragma omp parallel for shared(count) schedule(guided)
+#endif
+	for (unsigned int i = 0; i < n; i++)
+		for (unsigned int j = i + 1; j < n; j++)
+			if (!duplicates[j] && _informativeSites[i]->compare(_informativeSites[j]))
+			{
+				cout << "  " << _informativeSites[i]->colsToString() << " and " << _informativeSites[j]->colsToString() << " are identical" << endl;
+				duplicates[j] = true;
+				count++;
+			}
+
+	cout << "Done, found " << count << " identical sites." << endl;
+}
+
+
 void Alignment::computeBasicScores()
 {
 	cout << endl;
@@ -567,6 +606,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	unsigned long total = n * (n - 1) / 2 + n * n * randomizations;
 	unsigned long count = 0;
 
+	srand( t1 );
 #ifdef _OPENMP
 #pragma omp parallel for shared(count)
 #endif
@@ -603,6 +643,9 @@ void Alignment::computeCompatibilityScores(int randomizations)
 
 		if (randomizations)
 		{
+#ifdef _DEBUG
+			srand( i+42 );
+#endif
 			int poc = 0;
 			for (int r = 0; r < randomizations; r++)
 			{
@@ -677,11 +720,37 @@ void Alignment::writeSummary(string prefix)
 		throw("\n\nError, cannot open file " + fileName);
 	cout << "Writing site summary to " << fileName << endl;
 
-	file << "Site No.,Smin,Entropy,OV,Co,Poc" << endl;
+	unsigned int maxCount = 0;
+	BaseOccurenceMap maxFrequencies;
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
 		Site* s = _informativeSites[i];
-		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << scientific << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC() << endl;
+		BaseOccurenceMap f = s->getFrequencies();
+		if (f.size() > maxCount)
+		{
+			maxCount = f.size();
+			maxFrequencies = f;
+		}
+	}
+
+	set<int> bases;
+	for (BaseOccurenceMapIterator it = maxFrequencies.begin(); it != maxFrequencies.end(); it++)
+		bases.insert(it->first);
+
+	file << "Site No.,Smin,Entropy,OV,Co,Poc";
+	Site* s = _informativeSites[0];
+	for (set<int>::iterator it = bases.begin(); it != bases.end(); it++)
+		file << ",f(" << s->mapNumToChar(*it) << ")";
+	file << ",f(?)" << endl;
+
+	for (unsigned int i = 0; i < _informativeSites.size(); i++)
+	{
+		Site* s = _informativeSites[i];
+		BaseOccurenceMap f = s->getFrequencies();
+		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << fixed << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC();
+		for (set<int>::iterator it = bases.begin(); it != bases.end(); it++)
+			file << "," << (((double) f[*it]) / getNumOfRows());
+		file << "," << ((double) s->getAmbiguousCount()) / getNumOfRows() << endl;
 	}
 }
 

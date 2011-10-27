@@ -19,13 +19,14 @@ public:
 	virtual ~Site();
 	void initialize();
 	void initialize(vector<Sequence>* alignment);
-	BaseOccurenceMap getBaseOccurences();
+	void remove(unsigned int i);
 	bool checkInformative();
 	bool checkCompatibility(Site* site);
 	void incComp();
 	void computeScores(unsigned int cols);
 	void computeCo(unsigned int cols);
 	void computePOC(int poc, int randomizations);
+	bool compare(Site* s);
 	Site* randomize();
 	void setCo(double coScore) { _coScore = coScore; };
 	void setPOC(double poc) { _poc = poc; };
@@ -41,6 +42,7 @@ public:
 	double getOV() { return _ov; };
 	int getUnambiguousCount() { return _unambiguousCount; };
 	int getAmbiguousCount() { return _ambiguousCount; };
+	BaseOccurenceMap& getFrequencies() { return _r; };
 	bool charIsUnambiguous(int n);
 	virtual string mapNumToChar(int n) =0;
 	virtual int mapCharToNum(string s) =0;

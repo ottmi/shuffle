@@ -284,7 +284,7 @@ int master(int argc, char** argv)
 	if (options.removeDuplicates)
 	{
 		alignment.removeDuplicates();
-		alignment.write(options.prefix+".noDupes.phy");
+		alignment.write(options.prefix+".noDupes.fsa");
 	}
 
 	if (options.writeSiteSummary || options.filterAlignment || options.symmetryTest)
@@ -294,7 +294,7 @@ int master(int argc, char** argv)
 		if (options.removeInformativeSitesDuplicates)
 		{
 			alignment.removeInformativeSitesDuplicates();
-			alignment.write(options.prefix+".noDupes2.phy");
+			alignment.write(options.prefix+".noDupes2.fsa");
 		}
 
 		if (options.symmetryTest)
@@ -315,7 +315,7 @@ int master(int argc, char** argv)
 			cout << "Creating new alignment with minCo=" << options.minCo << " minPOC=" << options.minPOC << " maxSmin=" << options.maxSmin << " maxEntropy=" << options.maxEntropy << endl;
 			Alignment modifiedAlignment = alignment.getModifiedAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
 			cout << "New alignment contains " << modifiedAlignment.getNumOfRows() << " sequences with " << modifiedAlignment.getNumOfCols() << " columns." << endl;
-			modifiedAlignment.write(options.prefix+".filtered.phy");
+			modifiedAlignment.write(options.prefix+".filtered.fsa");
 		}
 	}
 
