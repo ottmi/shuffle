@@ -607,22 +607,14 @@ void Alignment::writeSummary(string prefix)
 		throw("\n\nError, cannot open file " + fileName);
 	cout << "Writing site summary to " << fileName << endl;
 
-	unsigned int maxCount = 0;
-	BaseOccurenceMap maxFrequencies;
+	set<int> bases;
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
 		Site* s = _informativeSites[i];
 		BaseOccurenceMap f = s->getFrequencies();
-		if (f.size() > maxCount)
-		{
-			maxCount = f.size();
-			maxFrequencies = f;
-		}
+		for (BaseOccurenceMapIterator it = f.begin(); it != f.end(); it++)
+			bases.insert(it->first);
 	}
-
-	set<int> bases;
-	for (BaseOccurenceMapIterator it = maxFrequencies.begin(); it != maxFrequencies.end(); it++)
-		bases.insert(it->first);
 
 	file << "Site No.,Smin,Entropy,OV,Co,Poc";
 	Site* s = _informativeSites[0];
