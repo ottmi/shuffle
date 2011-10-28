@@ -290,7 +290,7 @@ int main(int argc, char** argv) {
 		alignment.write(options.prefix+".noDupes", options.alignmentFormat);
 	}
 
-	if (options.writeSiteSummary || options.filterAlignment || options.symmetryTest)
+	if (options.removeInformativeSitesDuplicates || options.symmetryTest || options.writeSiteSummary || options.filterAlignment)
 	{
 		alignment.collectSites(&options);
 
