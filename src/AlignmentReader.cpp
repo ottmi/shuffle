@@ -19,7 +19,7 @@ AlignmentReader::AlignmentReader(string fileName)
 	if (_lastLine[0] == '>')
 	{
 		cout << "The file appears to be in Fasta format." << endl;
-		_format = 0;
+		_format = _FASTA_FORMAT;
 	} else
 	{
 		stringstream ss(_lastLine);
@@ -27,18 +27,18 @@ AlignmentReader::AlignmentReader(string fileName)
 		if (_rows && _cols)
 		{
 			cout << "The file appears to be in be in Phylip format (" << _rows << " rows, " << _cols << " columns)."<< endl;
-			_format = 1;
+			_format = _PHYLIP_FORMAT;
 		} else
 		{
 			string ext = fileName.substr(fileName.find_last_of('.') + 1);
 			if (!ext.compare("fsa") || !ext.compare("fst") || !ext.compare("fasta"))
 			{
 				cout << "According to its extension, this file should be in Fasta format." << endl;
-				_format = 0;
+				_format = _FASTA_FORMAT;
 			} else if (!ext.compare("phy") || !ext.compare("phylip"))
 			{
 				cout << "According to its extension, this file should be in Phylip format." << endl;
-				_format = 1;
+				_format = _PHYLIP_FORMAT;
 			} else
 			{
 				cout << "Unable to detect alignment format." << endl;
@@ -62,7 +62,7 @@ vector<Sequence> AlignmentReader::getSequences()
 	string whiteSpace = " \n\t";
 	vector<Sequence> sequences;
 
-	if (_format == 0)
+	if (_format == _FASTA_FORMAT)
 	{
 		while ((!_fileReader.eof()) && _lastLine[0] != '>')
 			safeGetline(_fileReader, _lastLine);
@@ -90,7 +90,7 @@ vector<Sequence> AlignmentReader::getSequences()
 					_cols = seq.length();
 			}
 		}
-	} else if (_format == 1)
+	} else if (_format == _PHYLIP_FORMAT)
 	{
 		while (! _fileReader.eof())
 	    {

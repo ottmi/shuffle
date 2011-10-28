@@ -14,6 +14,7 @@ public:
 	AlignmentReader(string fileName);
 	~AlignmentReader();
 	vector<Sequence> getSequences();
+	int getFormat() { return _format; };
 
 private:
 	ifstream _fileReader;

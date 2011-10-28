@@ -23,6 +23,7 @@ int parseArguments(int argc, char** argv, Options *options)
 
 	options->inputAlignment = string(argv[--argc]);
 
+	options->alignmentFormat = -1;
 	options->dataType = -1;
 	options->removeDuplicates = false;
 	options->removeInformativeSitesDuplicates = false;
@@ -44,7 +45,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "t:p:g:diyxw:r:sf:n:v::h")) != -1)
+	while ( (c = getopt(argc, argv, "t:p:g:diyxw:r:sf:a:n:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -167,6 +168,26 @@ int parseArguments(int argc, char** argv, Options *options)
 				}
 				break;
 			}
+			case 'a':
+			{
+				char type = optarg[0];
+				switch (type)
+				{
+					case 'f':
+					case 'F':
+						options->alignmentFormat = _FASTA_FORMAT;
+						break;
+					case 'p':
+					case 'P':
+						options->alignmentFormat = _PHYLIP_FORMAT;
+						break;
+					default:
+						cerr << "Unknown alignment format: " << optarg << endl;
+						return 3;
+						break;
+				}
+				break;
+			}
 #ifdef _OPENMP
 			case 'n':
 				omp_set_num_threads(atoi(optarg));
@@ -230,6 +251,7 @@ void printSyntax()
 	cout << "                   s<NUM>  Maximum Smin [default: " << INT_MAX << "]" << endl;
 	cout << "                   e<NUM>  Maximum entropy [default: " << DBL_MAX << "]" << endl;
 	cout << endl;
+	cout << "  -a<f|p>        Write [F]asta or [P]hylip alignments [default: same as input]" << endl;
 #ifdef _OPENMP
 	cout << "  -n<NUM>        Number of threads [default: " << omp_get_max_threads() << "]" << endl;
 #endif
@@ -265,7 +287,7 @@ int main(int argc, char** argv) {
 	if (options.removeDuplicates)
 	{
 		alignment.removeDuplicates();
-		alignment.write(options.prefix+".noDupes.fsa");
+		alignment.write(options.prefix+".noDupes", options.alignmentFormat);
 	}
 
 	if (options.writeSiteSummary || options.filterAlignment || options.symmetryTest)
@@ -275,7 +297,7 @@ int main(int argc, char** argv) {
 		if (options.removeInformativeSitesDuplicates)
 		{
 			alignment.removeInformativeSitesDuplicates();
-			alignment.write(options.prefix+".noDupes2.fsa");
+			alignment.write(options.prefix+".noDupes2", options.alignmentFormat);
 		}
 
 		if (options.symmetryTest)
@@ -295,7 +317,7 @@ int main(int argc, char** argv) {
 			cout << "Creating new alignment with minCo=" << options.minCo << " minPOC=" << options.minPOC << " maxSmin=" << options.maxSmin << " maxEntropy=" << options.maxEntropy << endl;
 			Alignment modifiedAlignment = alignment.getModifiedAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
 			cout << "New alignment contains " << modifiedAlignment.getNumOfRows() << " sequences with " << modifiedAlignment.getNumOfCols() << " columns." << endl;
-			modifiedAlignment.write(options.prefix+".filtered.fsa");
+			modifiedAlignment.write(options.prefix+".filtered", options.alignmentFormat);
 		}
 	}
 

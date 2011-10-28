@@ -11,7 +11,10 @@ using namespace std;
 
 #define _DNA_DATA				0
 #define	_AA_DATA				1
-#define	_ALPHANUM_DATA	2
+#define	_ALPHANUM_DATA			2
+
+#define	_FASTA_FORMAT			0
+#define	_PHYLIP_FORMAT			1
 
 #define _DNA_MAP      "ACGTURYKMSWBDHVN?-"
 #define _AA_MAP       "ACDEFGHIKLMNPQRSTVWYBJXZ?-"
@@ -22,6 +25,7 @@ extern int verbose;
 typedef struct opt_struct
 {
 	string inputAlignment;
+	int alignmentFormat;
 	int dataType;
 	string prefix;
 	vector<int> grouping;

@@ -25,7 +25,7 @@ public:
 	void computeCompatibilityScores(int randomizations);
 	void writeSummary(string prefix);
 	Alignment getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
-	void write(string fileName);
+	void write(string baseName, int format);
 
 	vector<Sequence>& getAlignment() { return _alignment; };
 	Sequence getSequence(int col) { return _alignment[col]; };
@@ -34,6 +34,7 @@ public:
 
 private:
 	int _dataType;
+	int _format;
 	vector<Sequence> _alignment;
 	vector<Site*> _sites;
 	vector<Site*> _informativeSites;

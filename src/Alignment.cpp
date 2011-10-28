@@ -24,6 +24,8 @@ Alignment::Alignment(Options *options)
 {
 	AlignmentReader alignmentReader(options->inputAlignment);
  	_alignment = alignmentReader.getSequences();
+ 	if (options->alignmentFormat == -1)
+ 		options->alignmentFormat = alignmentReader.getFormat();
 
 	string dataTypeDesc[] = { "DNA", "AA", "alphanumeric" };
 	if (options->dataType < 0)
@@ -618,39 +620,38 @@ void Alignment::writeSummary(string prefix)
 	}
 }
 
-void Alignment::write(string fileName)
+void Alignment::write(string baseName, int format)
 {
-	int type;
-	string ext = fileName.substr(fileName.find_last_of('.') + 1);
-	if (!ext.compare("phy") || !ext.compare("phylip"))
-		type = 0;
-	else if (!ext.compare("fsa") || !ext.compare("fasta"))
-		type = 1;
+	string fileName;
+	if (format == 0)
+		fileName = baseName + ".fsa";
 	else
-	{
-		cerr << "Couldn't recognize output format." << endl;
-		cerr << "Please use extension .phy or .phylip for Phylip format," << endl;
-		cerr << "and .fsa or .fasta for Fasta format." << endl;
-		return;
-	}
+		fileName = baseName + ".phy";
 
 	ofstream file(fileName.c_str(), ifstream::trunc);
 	if (!file.is_open())
 		throw("\n\nError, cannot open file " + fileName);
 
-	switch (type) {
-		case 0:
-			cout << "Writing Phylip alignment to " << fileName << endl;
-			file << getNumOfRows() << " " << getNumOfCols() << endl;
-			for (unsigned int i = 0; i < getNumOfRows(); i++)
-				file << setw(10) << left << _alignment[i].getName() << _alignment[i].getSequence() << endl;
-			break;
-
-		case 1:
+	switch (format) {
+		case _FASTA_FORMAT:
 			cout << "Writing Fasta alignment to " << fileName << endl;
 			for (unsigned int i = 0; i < getNumOfRows(); i++)
 			{
 				file << ">" << _alignment[i].getName() << endl;
+				file << _alignment[i].getSequence() << endl;
+			}
+			break;
+
+		case _PHYLIP_FORMAT:
+			cout << "Writing Phylip alignment to " << fileName << endl;
+			file << getNumOfRows() << " " << getNumOfCols() << endl;
+			for (unsigned int i = 0; i < getNumOfRows(); i++)
+			{
+				string name = _alignment[i].getName();
+				if (name.length() >= 10)
+					file << name << " ";
+				else
+					file << setw(10) << left << name;
 				file << _alignment[i].getSequence() << endl;
 			}
 			break;
