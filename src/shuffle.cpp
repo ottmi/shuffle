@@ -237,11 +237,6 @@ void printSyntax()
 	cout << "  -h             This help page" << endl;
 	cout << endl;
 
-	cout << "Note:" << endl;
-	cout << "  .phy or .phylip extensions indicate sequential Phylip file format" << endl;
-	cout << "  .fsa or .fasta extensions indicate Fasta file format" << endl;
-
-
 	exit(254);
 }
 

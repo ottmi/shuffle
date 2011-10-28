@@ -8,8 +8,7 @@
 #include <string.h>
 #include <math.h>
 #include <limits.h>
-#include "FastaReader.h"
-#include "PhylipReader.h"
+#include "AlignmentReader.h"
 #include "AASite.h"
 #include "DNASite.h"
 #include "AlphanumericSite.h"
@@ -23,22 +22,8 @@ Alignment::Alignment(int dataType)
 
 Alignment::Alignment(Options *options)
 {
-	AlignmentReader *alignmentReader;
-
-	string ext = options->inputAlignment.substr(options->inputAlignment.find_last_of('.') + 1);
-	if (!ext.compare("phy") || !ext.compare("phylip"))
-	{
-		alignmentReader = new PhylipReader(options->inputAlignment);
-	} else if (!ext.compare("fsa") || !ext.compare("fasta"))
-	{
-		alignmentReader = new FastaReader(options->inputAlignment);
-	} else
-	{
-		cerr << "Unknown input alignment format" << endl;
-		exit(255);
-	}
-	_alignment = alignmentReader->getSequences();
-	delete alignmentReader;
+	AlignmentReader alignmentReader(options->inputAlignment);
+ 	_alignment = alignmentReader.getSequences();
 
 	string dataTypeDesc[] = { "DNA", "AA", "alphanumeric" };
 	if (options->dataType < 0)
@@ -70,11 +55,11 @@ Alignment::Alignment(Options *options)
 			dataTypeGuess = _AA_DATA;
 		_dataType = dataTypeGuess;
 
-		cout << "The alignment contains " << getNumOfRows() << " sequences " << "which appear to be " << dataTypeDesc[_dataType] << "." << endl;
+		cout << "It contains " << getNumOfRows() << " sequences " << "which appear to be " << dataTypeDesc[_dataType] << "." << endl;
 	} else
 	{
 		_dataType = options->dataType;
-		cout << "The alignment contains " << getNumOfRows() << " sequences which have been defined to be " << dataTypeDesc[_dataType] << "." << endl;
+		cout << "It contains " << getNumOfRows() << " sequences which have been defined to be " << dataTypeDesc[_dataType] << "." << endl;
 	}
 }
 

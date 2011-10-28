@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS  = -Wall -g -O3 -fopenmp -D_GMP
 LDFLAGS = -lm -lgmpxx -lgmp -lmpfr
 
-OBJ = AASite.o Alignment.o AlignmentReader.o AlphanumericSite.o DNASite.o FastaReader.o PhylipReader.o Sequence.o Site.o helper.o shuffle.o
+OBJ = AASite.o Alignment.o AlignmentReader.o AlphanumericSite.o DNASite.o Sequence.o Site.o helper.o shuffle.o
 BIN = shuffle 
 
 all: $(BIN)

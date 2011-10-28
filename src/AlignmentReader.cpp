@@ -1,64 +1,129 @@
-#include <iostream>
-#include <fstream>
+#include <sstream>
+#include <stdlib.h>
+#include "globals.h"
+#include "helper.h"
 #include "AlignmentReader.h"
 
-AlignmentReader::AlignmentReader()
+AlignmentReader::AlignmentReader(string fileName)
 {
+	cout << "Opening alignment file: " << fileName << endl;
+	_fileReader.open(fileName.c_str());
+	if (! _fileReader.is_open())
+		throw("\n\nError, cannot open file " + fileName );
+
+	_rows = 0;
+	_cols = 0;
+
+	safeGetline(_fileReader, _lastLine);
+
+	if (_lastLine[0] == '>')
+	{
+		cout << "The file appears to be in Fasta format." << endl;
+		_format = 0;
+	} else
+	{
+		stringstream ss(_lastLine);
+		ss >> _rows >> _cols;
+		if (_rows && _cols)
+		{
+			cout << "The file appears to be in be in Phylip format (" << _rows << " rows, " << _cols << " columns)."<< endl;
+			_format = 1;
+		} else
+		{
+			string ext = fileName.substr(fileName.find_last_of('.') + 1);
+			if (!ext.compare("fsa") || !ext.compare("fst") || !ext.compare("fasta"))
+			{
+				cout << "According to its extension, this file should be in Fasta format." << endl;
+				_format = 0;
+			} else if (!ext.compare("phy") || !ext.compare("phylip"))
+			{
+				cout << "According to its extension, this file should be in Phylip format." << endl;
+				_format = 1;
+			} else
+			{
+				cout << "Unable to detect alignment format." << endl;
+				cout << PROGNAME << " only supports the Fasta and sequential Phylip formats."<< endl;
+				exit(255);
+			}
+		}
+	}
 }
 
 
 AlignmentReader::~AlignmentReader()
 {
-}
-
-
-istream& AlignmentReader::safeGetline(istream& is, string& t)
-{
-	/* Courtesy of http://stackoverflow.com/questions/6089231/getting-std-ifstream-to-handle-lf-cr-and-crlf */
-    t.clear();
-    istream::sentry se(is);
-    streambuf* sb = is.rdbuf();
-
-    for(;;) {
-        int c = sb->sbumpc();
-        switch (c) {
-        case '\r':
-            c = sb->sgetc();
-            if(c == '\n')
-                sb->sbumpc();
-            return is;
-        case '\n':
-        case EOF:
-            return is;
-        default:
-            t += (char)c;
-        }
-    }
-}
-
-
-string AlignmentReader::adjustString(string s, bool upercase)
-{
-	string r = "";
-
-	for (unsigned int i=0; i<s.length(); i++)
-	{
-		char c = s[i];
-		if (c != '\t' && c != '\n' && c != '\r' && c != ' ')
-	  {
-			if (upercase)
-				r+= toupper(c);
-			else
-				r+= c;
-	  }
-	}
-
-	return(r);
+	if (!_fileReader.is_open())
+		_fileReader.close();
 }
 
 
 vector<Sequence> AlignmentReader::getSequences()
 {
-	vector<Sequence> dummy;
-	return dummy;
+	string whiteSpace = " \n\t";
+	vector<Sequence> sequences;
+
+	if (_format == 0)
+	{
+		while ((!_fileReader.eof()) && _lastLine[0] != '>')
+			safeGetline(_fileReader, _lastLine);
+
+		while (!_fileReader.eof())
+		{
+			string header;
+			string seq;
+			header = _lastLine;
+			_lastLine = "";
+			while (!_fileReader.eof() && _lastLine[0] != '>')
+			{
+				safeGetline(_fileReader, _lastLine);
+				if (_lastLine[0] != '>')
+					seq += _lastLine;
+			}
+			seq = adjustString(seq, true);
+			header = adjustString(header.substr(1), false);
+			if (header.length() > 1 && seq.length())
+			{
+				Sequence s(header, seq);
+				sequences.push_back(s);
+				_rows++;
+				if (seq.length() > (unsigned int) _cols)
+					_cols = seq.length();
+			}
+		}
+	} else if (_format == 1)
+	{
+		while (! _fileReader.eof())
+	    {
+	   		safeGetline(_fileReader, _lastLine);
+	   		if (_lastLine.length())
+	   		{
+	   			int n = _lastLine.find_first_of(whiteSpace);
+	   			string name, seq;
+	   			if (n == -1) // there's no whitespace, so the sequence starts at pos 11
+	   			{
+	   	   			name = _lastLine.substr(0, 10);
+	   	   			seq = _lastLine.substr(10);
+	   			}
+	   			else
+	   			{
+	   				name = _lastLine.substr(0, n);
+	   				n = _lastLine.find_first_not_of(whiteSpace, n);
+	   	   			seq = _lastLine.substr(n);
+	   			}
+
+	   			if ((int) seq.length() != _cols)
+	   				cerr << "Sequence #" << sequences.size() + 1 << " (" << name << ") consists of " << seq.length() << " characters when it should be " << _cols << "." << endl;
+	   			seq = adjustString(seq);
+	   			if (name.length() && seq.length())
+	   			{
+	   				Sequence s(name, seq);
+	   				sequences.push_back(s);
+	   			}
+	   		}
+	    }
+		if ((int) sequences.size() < _rows)
+			cerr << "The alignment contains only " << sequences.size() << " rows, but it should be " << _rows << "."<< endl;
+	}
+
+    return sequences;
 }
