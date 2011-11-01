@@ -79,7 +79,7 @@ vector<Sequence> AlignmentReader::getSequences()
 				if (_lastLine[0] != '>')
 					seq += _lastLine;
 			}
-			seq = adjustString(seq, true);
+			seq = adjustString(seq, false);
 			header = adjustString(header.substr(1), false);
 			if (header.length() > 1 && seq.length())
 			{
@@ -113,7 +113,7 @@ vector<Sequence> AlignmentReader::getSequences()
 
 	   			if ((int) seq.length() != _cols)
 	   				cerr << "Sequence #" << sequences.size() + 1 << " (" << name << ") consists of " << seq.length() << " characters when it should be " << _cols << "." << endl;
-	   			seq = adjustString(seq);
+	   			seq = adjustString(seq, false);
 	   			if (name.length() && seq.length())
 	   			{
 	   				Sequence s(name, seq);
