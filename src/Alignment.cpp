@@ -187,7 +187,7 @@ void Alignment::collectSites(Options *options)
 	_sites.resize(numOfSites, NULL);
 
 #ifdef _OPENMP
-#pragma omp parallel for shared (count)
+#pragma omp parallel for shared (count) schedule(guided)
 #endif
 	for (unsigned int i = 0; i < numOfSites; i++)
 	{
@@ -483,7 +483,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 
 	srand( t1 );
 #ifdef _OPENMP
-#pragma omp parallel for shared(count)
+#pragma omp parallel for shared(count) schedule(guided)
 #endif
 	for (unsigned int i = 0; i < n; i++)
 	{
@@ -510,7 +510,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	}
 
 #ifdef _OPENMP
-#pragma omp parallel for shared(count)
+#pragma omp parallel for shared(count) schedule(guided)
 #endif
 	for (unsigned int i = 0; i < n; i++)
 	{
