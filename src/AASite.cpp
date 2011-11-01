@@ -17,7 +17,7 @@ AASite::AASite(vector<Sequence>* alignment, int offset, Options *options)
 }
 
 
-AASite::AASite(vector<int> site)
+AASite::AASite(vector<unsigned int> site)
 {
 	_unambiguousThreshold = 19;
 	_type = 1;
@@ -31,7 +31,7 @@ AASite::~AASite()
 }
 
 
-string AASite::mapNumToChar(int n)
+string AASite::mapNumToChar(unsigned int n)
 {
 	string map = _AA_MAP;
 	string s;
@@ -46,12 +46,12 @@ string AASite::mapNumToChar(int n)
 }
 
 
-int AASite::mapCharToNum(string s)
+unsigned int AASite::mapCharToNum(string s)
 {
-	int d = 0;
+	unsigned int d = 0;
 	for (unsigned int i = 0; i < s.size(); i++)
 	{
-		int c = s[i];
+		char c = s[i];
 		d = d << 8;
 		switch (c)
 		{

@@ -10,7 +10,7 @@ AlphanumericSite::AlphanumericSite(vector<Sequence>* alignment, int offset, Opti
 }
 
 
-AlphanumericSite::AlphanumericSite(vector<int> site)
+AlphanumericSite::AlphanumericSite(vector<unsigned int> site)
 {
 	_unambiguousThreshold = 35;
 	_type = _ALPHANUM_DATA;
@@ -24,7 +24,7 @@ AlphanumericSite::~AlphanumericSite()
 }
 
 
-string AlphanumericSite::mapNumToChar(int n)
+string AlphanumericSite::mapNumToChar(unsigned int n)
 {
 	string map = _ALPHANUM_MAP;
 	string s;
@@ -38,9 +38,9 @@ string AlphanumericSite::mapNumToChar(int n)
 }
 
 
-int AlphanumericSite::mapCharToNum(string s)
+unsigned int AlphanumericSite::mapCharToNum(string s)
 {
-	int d = 0;
+	unsigned int d = 0;
 	for (unsigned int i = 0; i < s.size(); i++)
 	{
 		char c = s[i];

@@ -37,7 +37,7 @@ void Site::initialize(vector<Sequence>* alignment, Options *options)
 	for (unsigned int i = 0; i < alignment->size(); i++)
 	{
 		Sequence sequence = alignment->at(i);
-		int c = this->mapCharToNum(sequence.getColumns(_cols));
+		unsigned int c = this->mapCharToNum(sequence.getColumns(_cols));
 		_site.push_back(c);
 	}
 }
@@ -54,7 +54,7 @@ bool Site::checkInformative()
 	_r.clear();
 	for (unsigned int i = 0; i < _site.size(); i++)
 	{
-		int c = _site[i];
+		unsigned int c = _site[i];
 
 		if (charIsUnambiguous(c))
 		{
@@ -91,20 +91,20 @@ bool Site::checkInformative()
 }
 
 
-int getFirst(unsigned long x)
+unsigned int getFirst(unsigned long x)
 {
 	return x >> 32;
 }
 
-int getSecond(unsigned long x)
+unsigned int getSecond(unsigned long x)
 {
 	return x & 0xffffffff;
 }
 
 bool Site::checkCompatibility(Site* site)
 {
-	vector<int> s1 = _site;
-	vector<int> s2 = site->getSite();
+	vector<unsigned int> s1 = _site;
+	vector<unsigned int> s2 = site->getSite();
 
 	set<unsigned long> pairs;
 	for (unsigned int i = 0; i < s1.size(); i++)
@@ -132,10 +132,10 @@ bool Site::checkCompatibility(Site* site)
 		set<unsigned long>::iterator it = pairs.begin();
 		while (it != pairs.end())
 		{
-			int first = getFirst(*it);
+			unsigned int first = getFirst(*it);
 			if (occ1[first] == 1)
 			{
-				int second = getSecond(*it);
+				unsigned int second = getSecond(*it);
 				occ1[first]--;
 				occ2[second]--;
 				pairs.erase(it++);
@@ -149,10 +149,10 @@ bool Site::checkCompatibility(Site* site)
 		it = pairs.begin();
 		while (it != pairs.end())
 		{
-			int second = getSecond(*it);
+			unsigned int second = getSecond(*it);
 			if (occ2[second] == 1)
 			{
-				int first = getFirst(*it);
+				unsigned int first = getFirst(*it);
 				occ1[first]--;
 				occ2[second]--;
 				pairs.erase(it++);
@@ -180,8 +180,8 @@ void Site::incComp()
 void Site::computeScores(unsigned int cols)
 {
 	_smin = _r.size() - 1;
-	map<int, int> t;
-	map<int, int>::const_iterator t_it;
+	map<unsigned int, int> t;
+	map<unsigned int, int>::const_iterator t_it;
 
 	unsigned int n = 0;
 	bignum prod_r = 1;
@@ -227,9 +227,9 @@ void Site::computePOC(int poc, int randomizations)
 
 Site* Site::randomize()
 {
-	vector<int> r;
+	vector<unsigned int> r;
 	Site* randomizedSite = NULL;
-	vector<int> positions = _site;
+	vector<unsigned int> positions = _site;
 
 	for (unsigned int i=0; i<_site.size(); i++)
 	{
@@ -260,8 +260,8 @@ Site* Site::randomize()
 
 bool Site::compare(Site* s)
 {
-	vector<int> s1 = s->getSite();
-	vector<int> s2 = getSite();
+	vector<unsigned int> s1 = s->getSite();
+	vector<unsigned int> s2 = getSite();
 
 	if (s1.size() != s2.size())
 		return false;
@@ -276,7 +276,7 @@ bool Site::compare(Site* s)
 }
 
 
-bool Site::charIsUnambiguous(int n)
+bool Site::charIsUnambiguous(unsigned int n)
 {
 	for (unsigned int i = 0; i < _cols.size(); i++)
 	{

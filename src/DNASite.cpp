@@ -16,7 +16,7 @@ DNASite::DNASite(vector<Sequence>* alignment, int offset, Options *options)
 }
 
 
-DNASite::DNASite(vector<int> site)
+DNASite::DNASite(vector<unsigned int> site)
 {
 	_unambiguousThreshold = 4;
 	_type = 0;
@@ -30,7 +30,7 @@ DNASite::~DNASite()
 }
 
 
-string DNASite::mapNumToChar(int n)
+string DNASite::mapNumToChar(unsigned int n)
 {
 	string map = _DNA_MAP;
 	string s;
@@ -44,12 +44,12 @@ string DNASite::mapNumToChar(int n)
 }
 
 
-int DNASite::mapCharToNum(string s)
+unsigned int DNASite::mapCharToNum(string s)
 {
-	int d = 0;
+	unsigned int d = 0;
 	for (unsigned int i = 0; i < s.size(); i++)
 	{
-		int c = s[i];
+		char c = s[i];
 		d = d << 8;
 		switch (c)
 		{

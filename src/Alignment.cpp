@@ -317,8 +317,8 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 				for (unsigned int m = windowStart; m < windowStart + windowSize; m++)
 				{
 					Site *s = _sites[m];
-					int c1 = s->getPos(k);
-					int c2 = s->getPos(l);
+					unsigned int c1 = s->getPos(k);
+					unsigned int c2 = s->getPos(l);
 					if (s->charIsUnambiguous(c1) && s->charIsUnambiguous(c2))
 					{
 						dm[c1 * dim + c2]++;

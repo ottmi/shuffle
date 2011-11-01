@@ -9,8 +9,8 @@
 
 using namespace std;
 
-typedef map<int,int> BaseOccurenceMap;
-typedef map<int,int>::iterator BaseOccurenceMapIterator;
+typedef map<unsigned int,int> BaseOccurenceMap;
+typedef map<unsigned int,int>::iterator BaseOccurenceMapIterator;
 
 class Site
 {
@@ -28,9 +28,9 @@ public:
 	bool compare(Site* s);
 	Site* randomize();
 	void setPOC(double poc);
-	vector<int> getSite() { return _site; };
+	vector<unsigned int> getSite() { return _site; };
 	vector<int> getCols() { return _cols; };
-	int getPos(unsigned int pos) { return _site[pos]; };
+	unsigned int getPos(unsigned int pos) { return _site[pos]; };
 	bool isInformative() { return _isInformative; };
 	int getComp() { return _compSites; };
 	double getCo() { return _coScore; };
@@ -41,16 +41,16 @@ public:
 	int getUnambiguousCount() { return _unambiguousCount; };
 	int getAmbiguousCount() { return _ambiguousCount; };
 	BaseOccurenceMap& getFrequencies() { return _r; };
-	bool charIsUnambiguous(int n);
-	virtual string mapNumToChar(int n) =0;
-	virtual int mapCharToNum(string s) =0;
+	bool charIsUnambiguous(unsigned int n);
+	virtual string mapNumToChar(unsigned int n) =0;
+	virtual unsigned int mapCharToNum(string s) =0;
 	string toString();
 	string toNumString();
 	string colsToString();
 
 protected:
 	int _type; // 0=DNA, 1=AA
-	vector<int> _site;
+	vector<unsigned int> _site;
 	char _unambiguousThreshold;
 	BaseOccurenceMap _r;
 	int _unambiguousCount;
