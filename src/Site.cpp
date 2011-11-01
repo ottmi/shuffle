@@ -227,14 +227,14 @@ void Site::computePOC(int poc, int randomizations)
 
 Site* Site::randomize()
 {
-	vector<unsigned int> r;
+	vector<unsigned int> r(_site.size(), 0);
 	Site* randomizedSite = NULL;
 	vector<unsigned int> positions = _site;
 
 	for (unsigned int i=0; i<_site.size(); i++)
 	{
 		unsigned int j = rand() % positions.size();
-		r.push_back(positions[j]);
+		r[i] = positions[j];
 		positions.erase(positions.begin()+j);
 	}
 
