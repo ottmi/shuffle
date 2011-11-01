@@ -56,107 +56,107 @@ unsigned int AASite::mapCharToNum(string s)
 		switch (c)
 		{
 			case 'A': // unambiguous
-				d = 0x00;
+				d += 0x00;
 				break;
 
 			case 'C':
-				d = 0x01;
+				d += 0x01;
 				break;
 
 			case 'D':
-				d = 0x02;
+				d += 0x02;
 				break;
 
 			case 'E':
-				d = 0x03;
+				d += 0x03;
 				break;
 
 			case 'F':
-				d = 0x04;
+				d += 0x04;
 				break;
 
 			case 'G':
-				d = 0x05;
+				d += 0x05;
 				break;
 
 			case 'H':
-				d = 0x06;
+				d += 0x06;
 				break;
 
 			case 'I':
-				d = 0x07;
+				d += 0x07;
 				break;
 
 			case 'K':
-				d = 0x08;
+				d += 0x08;
 				break;
 
 			case 'L':
-				d = 0x09;
+				d += 0x09;
 				break;
 
 			case 'M':
-				d = 0x0A;
+				d += 0x0A;
 				break;
 
 			case 'N':
-				d = 0x0B;
+				d += 0x0B;
 				break;
 
 			case 'P':
-				d = 0x0C;
+				d += 0x0C;
 				break;
 
 			case 'Q':
-				d = 0x0D;
+				d += 0x0D;
 				break;
 
 			case 'R':
-				d = 0x0E;
+				d += 0x0E;
 				break;
 
 			case 'S':
-				d = 0x0F;
+				d += 0x0F;
 				break;
 
 			case 'T':
-				d = 0x10;
+				d += 0x10;
 				break;
 
 			case 'V':
-				d = 0x11;
+				d += 0x11;
 				break;
 
 			case 'W':
-				d = 0x12;
+				d += 0x12;
 				break;
 
 			case 'Y':
-				d = 0x13;
+				d += 0x13;
 				break;
 
 			case 'B': // ambiguous
-				d = 0x14;
+				d += 0x14;
 				break;
 
 			case 'J':
-				d = 0x15;
+				d += 0x15;
 				break;
 
 			case 'X':
-				d = 0x16;
+				d += 0x16;
 				break;
 
 			case 'Z':
-				d = 0x17;
+				d += 0x17;
 				break;
 
 			case '?':
-				d = 0x18;
+				d += 0x18;
 				break;
 
 			default: // missing
-				d = 0x19;
+				d += 0x19;
 				break;
 		}
 	}
