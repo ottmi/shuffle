@@ -54,66 +54,82 @@ unsigned int DNASite::mapCharToNum(string s)
 		switch (c)
 		{
 			case 'A':
+			case 'a':
 				d+= 0x00;
 				break;
 
 			case 'C':
+			case 'c':
 				d+= 0x01;
 				break;
 
 			case 'G':
+			case 'g':
 				d+= 0x02;
 				break;
 
 			case 'T':
+			case 't':
 				d+= 0x03;
 				break;
 
 			case 'U':
+			case 'u':
 				d+= 0x04;
 				break;
 
 			case 'R':
+			case 'r':
 				d+= 0x05;
 				break;
 
 			case 'Y':
+			case 'y':
 				d+= 0x06;
 				break;
 
 			case 'K':
+			case 'k':
 				d+= 0x07;
 				break;
 
 			case 'M':
+			case 'm':
 				d+= 0x08;
 				break;
 
 			case 'S':
+			case 's':
 				d+= 0x09;
 				break;
 
 			case 'W':
+			case 'w':
 				d+= 0x0a;
 				break;
 
 			case 'B':
+			case 'b':
 				d+= 0x0b;
 				break;
 
 			case 'D':
+			case 'd':
 				d+= 0x0c;
 				break;
 
 			case 'H':
+			case 'h':
 				d+= 0x0d;
 				break;
 
 			case 'V':
+			case 'v':
 				d+= 0x0e;
 				break;
 
 			case 'N':
+			case 'n':
 				d+= 0x0f;
 				break;
 

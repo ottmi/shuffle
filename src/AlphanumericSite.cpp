@@ -48,6 +48,8 @@ unsigned int AlphanumericSite::mapCharToNum(string s)
 
 		if (c >= 65 && c <= 90) // A-Z
 			d+= c-65;
+		else if (c >= 97 && c <= 122) // a-z
+			d+= c-97;
 		else if (c >= 48 && c <= 57) // 0-9
 			d+= c-48+26;
 		else if (c == '?')
