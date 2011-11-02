@@ -38,6 +38,8 @@ public:
 	double getEntropy() { return _entropy; };
 	int getSmin() { return _smin; };
 	double getOV() { return _ov; };
+	void addRandomizedCo(double co) { _randomizedCo.push_back(co); };
+	vector<double>& getRandomizedCo() { return _randomizedCo; };
 	int getUnambiguousCount() { return _unambiguousCount; };
 	int getAmbiguousCount() { return _ambiguousCount; };
 	BaseOccurenceMap& getFrequencies() { return _r; };
@@ -63,6 +65,7 @@ protected:
 	double _entropy;
 	int _smin;
 	double _ov;
+	vector<double> _randomizedCo;
 };
 
 #endif /* SITE_H_ */

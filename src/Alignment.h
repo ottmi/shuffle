@@ -23,6 +23,7 @@ public:
 	void checkIdenticalSites();
 	void computeBasicScores();
 	void computeCompatibilityScores(int randomizations);
+	void writePoc(string prefix);
 	void writeSummary(string prefix);
 	Alignment getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
 	void write(string baseName, int format);

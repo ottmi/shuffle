@@ -532,6 +532,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 						comp++;
 				}
 				delete randomSite;
+				_informativeSites[i]->addRandomizedCo(((double) comp) / n);
 				if (_informativeSites[i]->getComp() <= comp)
 					poc++;
 			}
@@ -585,6 +586,28 @@ Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSm
 
 	return a;
 }
+
+
+void Alignment::writePoc(string prefix)
+{
+	string fileName = prefix + ".poc.csv";
+	ofstream file(fileName.c_str(), ifstream::trunc);
+	if (!file.is_open())
+		throw("\n\nError, cannot open file " + fileName);
+	cout << "Writing Co scores of randomized sites to " << fileName << endl;
+
+	for (unsigned int i = 0; i < _informativeSites.size(); i++)
+	{
+		Site* s = _informativeSites[i];
+		vector<double> co = s->getRandomizedCo();
+		file << s->getCols()[0] + 1;
+		for (unsigned int j = 0; j < co.size(); j++)
+			file << "," << scientific << co[j];
+		file << endl;
+	}
+	file.close();
+}
+
 
 void Alignment::writeSummary(string prefix)
 {

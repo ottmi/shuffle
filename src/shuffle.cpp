@@ -310,7 +310,10 @@ int main(int argc, char** argv) {
 		}
 
 		if (options.writeSiteSummary)
+		{
+			alignment.writePoc(options.prefix);
 			alignment.writeSummary(options.prefix);
+		}
 
 		if (options.filterAlignment)
 		{
