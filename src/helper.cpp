@@ -2,7 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
-#include <math.h>
+#include <cmath>
 #ifdef _GMP
 #include <mpfr.h>
 #endif

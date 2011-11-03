@@ -1,10 +1,8 @@
 #include <iostream>
 #include <algorithm>
-#include <stdlib.h>
-#include <limits.h>
-#include <float.h>
+#include <climits>
+#include <cfloat>
 #include <sstream>
-#include <cstdio>
 #include "globals.h"
 #include "Alignment.h"
 #include "helper.h"

@@ -1,13 +1,11 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <functional>
 #include <algorithm>
 #include <set>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <limits.h>
+#include <cmath>
+#include <climits>
+#include <cfloat>
 #include "AlignmentReader.h"
 #include "AASite.h"
 #include "DNASite.h"

@@ -2,9 +2,8 @@
 #include <iomanip>
 #include <set>
 #include <sstream>
-#include <math.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cmath>
+#include <cstdlib>
 #include "globals.h"
 #include "helper.h"
 #include "AASite.h"
