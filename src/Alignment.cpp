@@ -183,7 +183,7 @@ void Alignment::collectSites(Options *options)
 	long lastTime = t1;
 	unsigned int numOfSites = (getNumOfCols() - options->groupOffset) / options->groupLength;
 	unsigned int count = 0;
-	bool requireInformative = options->writeSiteSummary || options->filterAlignment;
+	bool requireInformative = options->writeSiteSummary || options->writeRandomizedCo || options->filterAlignment;
 	_sites.resize(numOfSites, NULL);
 
 #ifdef _OPENMP
@@ -588,7 +588,7 @@ Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSm
 }
 
 
-void Alignment::writePoc(string prefix)
+void Alignment::writeRandomizedCo(string prefix)
 {
 	string fileName = prefix + ".poc.csv";
 	ofstream file(fileName.c_str(), ifstream::trunc);

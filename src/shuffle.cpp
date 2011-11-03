@@ -31,6 +31,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->writeExtendedTestResults = false;
 	options->randomizations = 100;
 	options->writeSiteSummary = false;
+	options->writeRandomizedCo = false;
 	options->filterAlignment = false;
 	options->minCo = 0;
 	options->minPOC = 0.0;
@@ -45,7 +46,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "t:p:g:diyxw:r:sf:a:n:v::h")) != -1)
+	while ( (c = getopt(argc, argv, "t:p:g:diyxw:r:scf:a:n:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -129,6 +130,9 @@ int parseArguments(int argc, char** argv, Options *options)
 				break;
 			case 's':
 				options->writeSiteSummary = true;
+				break;
+			case 'c':
+				options->writeRandomizedCo = true;
 				break;
 			case 'f':
 			{
@@ -245,6 +249,7 @@ void printSyntax()
 	cout << endl;
 	cout << "  -r<NUM>        Number of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -s             Write a site summary" << endl;
+	cout << "  -c             Write Co scores of randomized sites to file" << endl;
 	cout << "  -f<LIST>       Write a new alignment file, filtered by (comma-separated):" << endl;
 	cout << "                   c<NUM>  Minimum Co score [default: 0]" << endl;
 	cout << "                   p<NUM>  Minimum POC score [default: 0.0]" << endl;
@@ -290,7 +295,7 @@ int main(int argc, char** argv) {
 		alignment.write(options.prefix+".noDupes", options.alignmentFormat);
 	}
 
-	if (options.removeInformativeSitesDuplicates || options.symmetryTest || options.writeSiteSummary || options.filterAlignment)
+	if (options.removeInformativeSitesDuplicates || options.symmetryTest || options.writeSiteSummary || options.writeRandomizedCo || options.filterAlignment)
 	{
 		alignment.collectSites(&options);
 
@@ -303,17 +308,17 @@ int main(int argc, char** argv) {
 		if (options.symmetryTest)
 			alignment.testSymmetry(options.prefix, options.writeExtendedTestResults, options.windowSize, options.windowStep);
 
-		if (options.writeSiteSummary || options.filterAlignment)
+		if (options.writeSiteSummary || options.writeRandomizedCo || options.filterAlignment)
 		{
 			alignment.computeBasicScores();
 			alignment.computeCompatibilityScores(options.randomizations);
 		}
 
 		if (options.writeSiteSummary)
-		{
-			alignment.writePoc(options.prefix);
 			alignment.writeSummary(options.prefix);
-		}
+
+		if (options.writeRandomizedCo)
+			alignment.writeRandomizedCo(options.prefix);
 
 		if (options.filterAlignment)
 		{
