@@ -21,6 +21,12 @@ int parseArguments(int argc, char** argv, Options *options)
 	if (argc < 2)
 		return 0;
 
+	if (argc == 2 && (strcmp(argv[1], "-h") || strcmp(argv[1], "--help")))
+	{
+		options->help = true;
+		return 0;
+	}
+
 	options->inputAlignment = string(argv[--argc]);
 
 	options->alignmentFormat = -1;
