@@ -1,15 +1,15 @@
 #include <sstream>
-#include <stdlib.h>
 #include "globals.h"
 #include "helper.h"
 #include "AlignmentReader.h"
 
 AlignmentReader::AlignmentReader(string fileName)
 {
-	cout << "Opening alignment file: " << fileName << endl;
 	_fileReader.open(fileName.c_str());
 	if (! _fileReader.is_open())
-		throw("\n\nError, cannot open file " + fileName );
+		throw("Error, cannot open file " + fileName );
+
+	cout << "Reading alignment file: " << fileName << endl;
 
 	_rows = 0;
 	_cols = 0;
@@ -41,9 +41,9 @@ AlignmentReader::AlignmentReader(string fileName)
 				_format = _PHYLIP_FORMAT;
 			} else
 			{
-				cout << "Unable to detect alignment format." << endl;
-				cout << PROGNAME << " only supports the Fasta and sequential Phylip formats."<< endl;
-				exit(255);
+				stringstream s;
+				s << "Unable to detect alignment format.\n" << PROGNAME << " only supports the Fasta and sequential Phylip formats.";
+				throw(s.str());
 			}
 		}
 	}

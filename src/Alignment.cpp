@@ -266,15 +266,15 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 
 		bowkerFile.open(bowkerFileName.c_str(), ifstream::trunc);
 		if (!bowkerFile.is_open())
-			throw("\n\nError, cannot open file " + bowkerFileName);
+			throw("Error, cannot open file " + bowkerFileName);
 
 		delta_sFile.open(delta_sFileName.c_str(), ifstream::trunc);
 		if (!delta_sFile.is_open())
-			throw("\n\nError, cannot open file " + delta_sFileName);
+			throw("Error, cannot open file " + delta_sFileName);
 
 		delta_msFile.open(delta_msFileName.c_str(), ifstream::trunc);
 		if (!delta_msFile.is_open())
-			throw("\n\nError, cannot open file " + delta_msFileName);
+			throw("Error, cannot open file " + delta_msFileName);
 	} else
 	{
 		cout << resultsFileName << endl;
@@ -282,7 +282,7 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 
 	resultsFile.open(resultsFileName.c_str(), ifstream::trunc);
 	if (!resultsFile.is_open())
-		throw("\n\nError, cannot open file " + resultsFileName);
+		throw("Error, cannot open file " + resultsFileName);
 
 	unsigned int n = _alignment.size();
 	unsigned int cols = _sites.size();
@@ -593,7 +593,7 @@ void Alignment::writeRandomizedCo(string prefix)
 	string fileName = prefix + ".poc.csv";
 	ofstream file(fileName.c_str(), ifstream::trunc);
 	if (!file.is_open())
-		throw("\n\nError, cannot open file " + fileName);
+		throw("Error, cannot open file " + fileName);
 	cout << "Writing Co scores of randomized sites to " << fileName << endl;
 
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
@@ -614,7 +614,7 @@ void Alignment::writeSummary(string prefix)
 	string fileName = prefix + ".sites.csv";
 	ofstream file(fileName.c_str(), ifstream::trunc);
 	if (!file.is_open())
-		throw("\n\nError, cannot open file " + fileName);
+		throw("Error, cannot open file " + fileName);
 	cout << "Writing site summary to " << fileName << endl;
 
 	set<int> bases;
@@ -653,7 +653,7 @@ void Alignment::write(string baseName, int format)
 
 	ofstream file(fileName.c_str(), ifstream::trunc);
 	if (!file.is_open())
-		throw("\n\nError, cannot open file " + fileName);
+		throw("Error, cannot open file " + fileName);
 
 	switch (format) {
 		case _FASTA_FORMAT:
