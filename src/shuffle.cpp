@@ -16,7 +16,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	char c;
 
 	if (argc < 2)
-		return 1;
+		return 0;
 
 	if (argc == 2 && argv[1][0] == '-')
 	{
