@@ -24,6 +24,8 @@ Alignment::Alignment(Options *options)
  	_alignment = alignmentReader.getSequences();
  	if (options->alignmentFormat == -1)
  		options->alignmentFormat = alignmentReader.getFormat();
+ 	else if (options->alignmentFormat == -2)
+ 		options->alignmentFormat = (alignmentReader.getFormat() + 1)%2;
 
 	string dataTypeDesc[] = { "DNA", "AA", "alphanumeric" };
 	if (options->dataType < 0)

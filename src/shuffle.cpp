@@ -30,6 +30,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->dataType = -1;
 	options->removeDuplicates = false;
 	options->removeInformativeSitesDuplicates = false;
+	options->convertAlignment = false;
 	options->symmetryTest = false;
 	options->writeExtendedTestResults = false;
 	options->randomizations = 100;
@@ -49,7 +50,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ((c = getopt(argc, argv, "t:p:g:diyxw:r:scf:a:n:v::h")) != -1)
+	while ((c = getopt(argc, argv, "t:p:g:dicyxw:r:szf:a:n:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -108,6 +109,11 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 'i':
 				options->removeInformativeSitesDuplicates = true;
 				break;
+			case 'c':
+				options->convertAlignment = true;
+				if (options->alignmentFormat == -1)
+					options->alignmentFormat = -2;
+				break;
 			case 'y':
 				options->symmetryTest = true;
 				break;
@@ -134,7 +140,7 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 's':
 				options->writeSiteSummary = true;
 				break;
-			case 'c':
+			case 'z':
 				options->writeRandomizedCo = true;
 				break;
 			case 'f':
@@ -243,6 +249,7 @@ void printSyntax()
 	cout << "  -p<STRING>     Prefix for output files [default: name of alignment w/o .ext]" << endl;
 	cout << "  -g<LIST>       Grouping of sites, e.g. 0,1,-2 for duplets, 0,1,2 for codons" << endl;
 	cout << endl;
+	cout << "  -c             Convert alignment format" << endl;
 	cout << "  -d             Remove duplicates and write reduced alignment file" << endl;
 	cout << "  -i             Remove informative sites duplicates, write reduced alignment" << endl;
 	cout << endl;
@@ -252,7 +259,7 @@ void printSyntax()
 	cout << endl;
 	cout << "  -r<NUM>        Number of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -s             Write a site summary" << endl;
-	cout << "  -c             Write Co scores of randomized sites to file" << endl;
+	cout << "  -z             Write Co scores of randomized sites to file" << endl;
 	cout << "  -f<LIST>       Write a new alignment file, filtered by (comma-separated):" << endl;
 	cout << "                   c<NUM>  Minimum Co score [default: 0]" << endl;
 	cout << "                   p<NUM>  Minimum POC score [default: 0.0]" << endl;
@@ -295,6 +302,9 @@ int main(int argc, char** argv)
 	try
 	{
 		Alignment alignment = Alignment(&options);
+
+		if (options.convertAlignment)
+			alignment.write(options.prefix, options.alignmentFormat);
 
 		if (options.removeDuplicates)
 		{
