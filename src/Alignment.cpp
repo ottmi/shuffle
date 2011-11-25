@@ -13,10 +13,11 @@
 #include "Alignment.h"
 #include "helper.h"
 
-Alignment::Alignment(int dataType)
+
+Alignment::Alignment()
 {
-	_dataType = dataType;
 }
+
 
 Alignment::Alignment(Options *options)
 {
@@ -65,16 +66,19 @@ Alignment::Alignment(Options *options)
 	}
 }
 
+
 Alignment::~Alignment()
 {
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 		delete _informativeSites[i];
 }
 
+
 void Alignment::addSequence(Sequence s)
 {
 	_alignment.push_back(s);
 }
+
 
 void Alignment::removeDuplicates()
 {
@@ -120,7 +124,9 @@ void Alignment::removeInformativeSitesDuplicates()
 	unsigned int count = 0;
 	do
 	{
-		vector<Sequence> a = getModifiedAlignment(0, 0, INT_MAX, DBL_MAX).getAlignment();
+		vector<Site*> sites = _informativeSites;
+		vector<Sequence> a = getSubAlignment(sites).getAlignment();
+
 		vector<Sequence>::iterator it1, it2;
 		unsigned int i = 0;
 		count = 0;
@@ -555,27 +561,34 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
 }
 
-Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy)
-{
-	Alignment a(_dataType);
-	vector<int> sites;
 
+Alignment Alignment::getFilteredAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy)
+{
+	cout << "Creating new alignment with minCo=" << minCo << " minPOC=" << minPOC << " maxSmin=" << maxSmin << " maxEntropy=" << maxEntropy << endl;
+
+	vector<Site*> sites;
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
 		Site *site = _informativeSites[i];
 		if (site->getCo() >= minCo && site->getPOC() >= minPOC && site->getSmin() <= maxSmin && site->getEntropy() <= maxEntropy)
-			sites.push_back(i);
+			sites.push_back(site);
 	}
 
+	return getSubAlignment(sites);
+}
+
+
+Alignment Alignment::getSubAlignment(vector<Site*> sites)
+{
+	Alignment a;
 	for (unsigned int i = 0; i < _alignment.size(); i++)
 	{
 		string newSeq;
 		Sequence seq = _alignment[i];
-		for (unsigned int j = 0; j < sites.size(); j++)
-		{
-			Site *site = _informativeSites[sites[j]];
-			newSeq += seq.getColumns(site->getCols());
-		}
+		vector<Site*>::iterator it;
+		for (it = sites.begin(); it != sites.end(); it++)
+			newSeq += seq.getColumns((*it)->getCols());
+
 		if (newSeq.length())
 		{
 			Sequence s(_alignment[i].getName(), newSeq);
@@ -641,6 +654,7 @@ void Alignment::writeSummary(string prefix)
 		file << "," << ((double) s->getAmbiguousCount()) / getNumOfRows() << endl;
 	}
 }
+
 
 void Alignment::write(string baseName, int format)
 {

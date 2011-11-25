@@ -12,6 +12,7 @@ class Site;
 class Alignment
 {
 public:
+	Alignment();
 	Alignment(int dataType);
 	Alignment(Options *options);
 	virtual ~Alignment();
@@ -25,7 +26,8 @@ public:
 	void computeCompatibilityScores(int randomizations);
 	void writeRandomizedCo(string prefix);
 	void writeSummary(string prefix);
-	Alignment getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
+	Alignment getFilteredAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
+	Alignment getSubAlignment(vector<Site*> sites);
 	void write(string baseName, int format);
 
 	vector<Sequence>& getAlignment() { return _alignment; };

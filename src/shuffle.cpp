@@ -341,10 +341,9 @@ int main(int argc, char** argv)
 
 			if (options.filterAlignment)
 			{
-				cout << "Creating new alignment with minCo=" << options.minCo << " minPOC=" << options.minPOC << " maxSmin=" << options.maxSmin << " maxEntropy=" << options.maxEntropy << endl;
-				Alignment modifiedAlignment = alignment.getModifiedAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
-				cout << "New alignment contains " << modifiedAlignment.getNumOfRows() << " sequences with " << modifiedAlignment.getNumOfCols() << " columns." << endl;
-				modifiedAlignment.write(options.prefix + ".filtered", options.alignmentFormat);
+				Alignment filteredAlignment = alignment.getFilteredAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
+				cout << "New alignment contains " << filteredAlignment.getNumOfRows() << " sequences with " << filteredAlignment.getNumOfCols() << " columns." << endl;
+				filteredAlignment.write(options.prefix + ".filtered", options.alignmentFormat);
 			}
 		}
 
