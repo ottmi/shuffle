@@ -183,7 +183,6 @@ void Alignment::collectSites(Options *options)
 	long lastTime = t1;
 	unsigned int numOfSites = (getNumOfCols() - options->groupOffset) / options->groupLength;
 	unsigned int count = 0;
-	bool requireInformative = options->writeSiteSummary || options->writeRandomizedCo || options->filterAlignment;
 	_sites.resize(numOfSites, NULL);
 
 #ifdef _OPENMP
@@ -209,7 +208,7 @@ void Alignment::collectSites(Options *options)
 		if (s)
 		{
 			_sites[i] = s;
-			if (requireInformative)
+			if (options->requireInformative)
 				s->checkInformative();
 		}
 		count++;
@@ -229,7 +228,7 @@ void Alignment::collectSites(Options *options)
 	long t2 = time(NULL);
 	cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
 
-	if (requireInformative)
+	if (options->requireInformative)
 	{
 		for (unsigned int i = 0; i < _sites.size(); i++)
 		{
@@ -239,7 +238,7 @@ void Alignment::collectSites(Options *options)
 		}
 	}
 
-	if (requireInformative)
+	if (options->requireInformative)
 		cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative." << endl;
 	else
 		cout << "Found " << numOfSites << " sites." << endl;

@@ -234,6 +234,8 @@ int parseArguments(int argc, char** argv, Options *options)
 		options->prefix = options->inputAlignment.substr(m, n);
 	}
 
+	options->requireInformative = options->removeInformativeSitesDuplicates || options->writeSiteSummary || options->writeRandomizedCo || options->filterAlignment;
+
 	return 0;
 }
 
@@ -312,7 +314,7 @@ int main(int argc, char** argv)
 			alignment.write(options.prefix + ".noDupes", options.alignmentFormat);
 		}
 
-		if (options.removeInformativeSitesDuplicates || options.symmetryTest || options.writeSiteSummary || options.writeRandomizedCo || options.filterAlignment)
+		if (options.symmetryTest || options.requireInformative)
 		{
 			alignment.collectSites(&options);
 

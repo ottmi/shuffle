@@ -6,7 +6,7 @@
 using namespace std;
 
 #define PROGNAME "shuffle++"
-#define VERSION "0.7.0"
+#define VERSION "0.7.1"
 #define PROGDATE "2011-11-25"
 
 #define _DNA_DATA				0
@@ -39,6 +39,7 @@ typedef struct opt_struct
 	int windowSize;
 	int windowStep;
 	int randomizations;
+	bool requireInformative;
 	bool writeSiteSummary;
 	bool writeRandomizedCo;
 	bool filterAlignment;
