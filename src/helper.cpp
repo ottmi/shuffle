@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <sstream>
 #include <cmath>
+#include <cstdio>
 #ifdef _GMP
 #include <mpfr.h>
 #endif

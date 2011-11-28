@@ -3,6 +3,7 @@
 #include <climits>
 #include <cfloat>
 #include <sstream>
+#include <cstdio>
 #include "globals.h"
 #include "Alignment.h"
 #include "helper.h"
