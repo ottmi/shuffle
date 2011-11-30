@@ -16,6 +16,7 @@
 
 Alignment::Alignment()
 {
+	_cols = 0;
 }
 
 
@@ -23,6 +24,8 @@ Alignment::Alignment(Options *options)
 {
 	AlignmentReader alignmentReader(options->inputAlignment);
  	_alignment = alignmentReader.getSequences();
+ 	_cols = alignmentReader.getCols();
+
  	if (options->alignmentFormat == -1)
  		options->alignmentFormat = alignmentReader.getFormat();
  	else if (options->alignmentFormat == -2)
@@ -77,6 +80,8 @@ Alignment::~Alignment()
 void Alignment::addSequence(Sequence s)
 {
 	_alignment.push_back(s);
+	if (s.getLength() > _cols)
+		_cols = s.getLength();
 }
 
 

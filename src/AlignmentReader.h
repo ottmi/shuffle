@@ -15,6 +15,8 @@ public:
 	~AlignmentReader();
 	vector<Sequence> getSequences();
 	int getFormat() { return _format; };
+	unsigned int getRows() { return _rows; };
+	unsigned int getCols() { return _cols; };
 
 private:
 	ifstream _fileReader;

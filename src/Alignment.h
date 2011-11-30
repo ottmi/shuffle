@@ -33,11 +33,12 @@ public:
 	vector<Sequence>& getAlignment() { return _alignment; };
 	Sequence getSequence(int col) { return _alignment[col]; };
 	unsigned int getNumOfRows() { return _alignment.size(); };
-	unsigned int getNumOfCols() { return _alignment[0].getLength(); };
+	unsigned int getNumOfCols() { return _cols; };
 
 private:
 	int _dataType;
 	int _format;
+	unsigned int _cols;
 	vector<Sequence> _alignment;
 	vector<Site*> _sites;
 	vector<Site*> _informativeSites;
