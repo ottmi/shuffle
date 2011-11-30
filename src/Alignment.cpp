@@ -570,7 +570,7 @@ Alignment Alignment::getFilteredAlignment(double minCo, double minPOC, int maxSm
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
 		Site *site = _informativeSites[i];
-		if (site->getCo() >= minCo && site->getPOC() >= minPOC && site->getSmin() <= maxSmin && site->getEntropy() <= maxEntropy)
+		if (site->getCo() >= minCo && site->getPOC() >= minPOC && site->getSmin() <= maxSmin && (isnan(site->getEntropy()) || site->getEntropy() <= maxEntropy))
 			sites.push_back(site);
 	}
 
