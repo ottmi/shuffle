@@ -3013,63 +3013,6 @@ else
 fi
 
 
-for ac_header in gmpxx.h
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "gmpxx.h" "ac_cv_header_gmpxx_h" "$ac_includes_default"
-if test "x$ac_cv_header_gmpxx_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GMPXX_H 1
-_ACEOF
- GMP=$(($GMP+1))
-else
-  GMP=0
-fi
-
-done
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for _init in -lgmpxx" >&5
-$as_echo_n "checking for _init in -lgmpxx... " >&6; }
-if test "${ac_cv_lib_gmpxx__init+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgmpxx  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char _init ();
-int
-main ()
-{
-return _init ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_gmpxx__init=yes
-else
-  ac_cv_lib_gmpxx__init=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gmpxx__init" >&5
-$as_echo "$ac_cv_lib_gmpxx__init" >&6; }
-if test "x$ac_cv_lib_gmpxx__init" = x""yes; then :
-  GMP=$(($GMP+1))
-else
-  GMP=0
-fi
-
-
 for ac_header in mpfr.h
 do :
   ac_fn_cxx_check_header_mongrel "$LINENO" "mpfr.h" "ac_cv_header_mpfr_h" "$ac_includes_default"
@@ -3127,9 +3070,9 @@ else
 fi
 
 
-if test $GMP -ge 6; then
+if test $GMP -ge 4; then
   CXXFLAGS="$CXXFLAGS -D_GMP"
-  LIBS="$LIBS -lgmp -lgmpxx -lmpfr"
+  LIBS="$LIBS -lgmp -lmpfr"
 fi
 
 

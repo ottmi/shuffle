@@ -11,6 +11,11 @@
 #include "AlphanumericSite.h"
 #include "Sequence.h"
 #include "Site.h"
+#ifdef _GMP
+#include <gmp.h>
+#include <mpfr.h>
+#endif
+
 
 Site::Site()
 {
@@ -182,23 +187,61 @@ void Site::computeScores(unsigned int cols)
 	map<unsigned int, int> t;
 	map<unsigned int, int>::const_iterator t_it;
 
-	unsigned int n = 0;
-	bignum prod_r = 1;
+#ifdef _GMP
+	mpfr_set_default_prec(512);
+	mpfr_t tmp1, tmp2;
+	mpfr_init(tmp1);
+	mpfr_init(tmp2);
+	mpfr_t prod_r;
+	mpfr_init_set_ui(prod_r, 1, GMP_RNDN);			/* prod_r = 1 */
 	for (BaseOccurenceMapIterator it = _r.begin(); it != _r.end(); it++)
 	{
-		n+= it->second;
+		t[it->second]++;
+		mpfr_fac_ui(tmp1, it->second, GMP_RNDN);	/* tmp1 = factorial(it->second) */
+		mpfr_set(tmp2, prod_r, GMP_RNDN);		/* tmp2 = prod_r */
+		mpfr_mul(prod_r, tmp1, tmp2, GMP_RNDN);		/* prod_r = tmp1 * tmp2 */
+	}
+
+	mpfr_t prod_t;
+	mpfr_init_set_ui(prod_t, 1, GMP_RNDN);			/* prod_t = 1 */
+	for (t_it = t.begin(); t_it != t.end(); t_it++)
+	{
+		mpfr_fac_ui(tmp1, t_it->second, GMP_RNDN);	/* tmp1 = factorial(t_it->second) */
+		mpfr_set(tmp2, prod_t, GMP_RNDN);		/* tmp2 = prod_t */
+		mpfr_mul(prod_t, tmp1, tmp2, GMP_RNDN);		/* prod_t = tmp1 * tmp2 */
+	}
+
+	mpfr_t unamb;
+	mpfr_init(unamb);
+	mpfr_fac_ui(unamb, _unambiguousCount, GMP_RNDN);	/* unamb = factorial(_unambiguousCount) */
+
+	mpfr_div(tmp1, unamb, prod_r, GMP_RNDN);		/* tmp1 = unamb / prod_r */
+	mpfr_div(tmp2, tmp1, prod_t, GMP_RNDN);			/* tmp2 = tmp1 / prod_t */
+	mpfr_log(tmp1, tmp2, GMP_RNDN);				/* tmp1 = log(tmp2) */
+
+	_entropy = mpfr_get_d(tmp1, GMP_RNDN);
+	mpfr_clears(tmp1, tmp2, prod_r, prod_t, unamb, (mpfr_ptr) 0);
+#else
+	double prod_r = 1;
+	for (BaseOccurenceMapIterator it = _r.begin(); it != _r.end(); it++)
+	{
 		t[it->second]++;
 		prod_r *= factorial(it->second);
 	}
 
-	bignum prod_t = 1.0;
+	double prod_t = 1.0;
 	for (t_it = t.begin(); t_it != t.end(); t_it++)
 	{
 		prod_t *= factorial(t_it->second);
 	}
-	bignum unamb = factorial(_unambiguousCount);
-	bignum div =  (unamb / prod_r) / prod_t;
-	_entropy = bignum_log(div);
+	double unamb = factorial(_unambiguousCount);
+	double div =  (unamb / prod_r) / prod_t;
+	_entropy = log(div);
+#endif
+
+	unsigned int n = 0;
+	for (BaseOccurenceMapIterator it = _r.begin(); it != _r.end(); it++)
+		n+= it->second;
 
 	unsigned int d = 0;
 	for (BaseOccurenceMapIterator it=_r.begin(); it!=_r.end(); it++)

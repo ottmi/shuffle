@@ -1,14 +1,6 @@
 #ifndef HELPER_H_
 #define HELPER_H_
 
-#ifdef _GMP
-#include <gmp.h>
-#include <gmpxx.h>
-#define bignum mpz_class
-#else
-#define bignum double
-#endif
-
 #ifdef _OPENMP
 #include <omp.h>
 #else
@@ -20,8 +12,7 @@
 #include <string>
 using namespace std;
 
-bignum factorial(int n);
-double bignum_log(bignum);
+double factorial(int n);
 string printTime(long t);
 istream& safeGetline(istream& is, string& t);
 string adjustString(string s, bool upercase=false);
