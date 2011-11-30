@@ -1,6 +1,6 @@
 #include "AASite.h"
 
-AASite::AASite(vector<Sequence>* alignment, int offset, Options *options)
+AASite::AASite(int offset, Options *options)
 {
 	/*
 	 _unambiguousCharacters = "ACDEFGHIKLMNPQRSTVWY";
@@ -12,8 +12,6 @@ AASite::AASite(vector<Sequence>* alignment, int offset, Options *options)
 	_type = 1;
 	for (unsigned int i = 0; i < options->grouping.size(); i++)
 		_cols.push_back(options->grouping[i] + options->groupLength * offset);
-
-	initialize(alignment, options);
 }
 
 

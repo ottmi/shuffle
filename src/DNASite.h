@@ -5,7 +5,7 @@
 class DNASite: public Site
 {
 public:
-	DNASite(vector<Sequence>* alignment, int offset, Options *options);
+	DNASite(int offset, Options *options);
 	DNASite(vector<unsigned int> site);
 	virtual ~DNASite();
 

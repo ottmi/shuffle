@@ -5,7 +5,7 @@
 class AASite: public Site
 {
 public:
-	AASite(vector<Sequence>* alignment, int offset, Options *options);
+	AASite(int offset, Options *options);
 	AASite(vector<unsigned int> site);
 	virtual ~AASite();
 
