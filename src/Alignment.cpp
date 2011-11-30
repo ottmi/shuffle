@@ -219,7 +219,7 @@ void Alignment::collectSites(Options *options)
 		if (s)
 		{
 			_sites[i] = s;
-			s->initialize(&_alignment, options);
+			s->initialize(&_alignment, options, numOfSites);
 			if (options->requireInformative)
 				s->checkInformative();
 		}
@@ -502,8 +502,8 @@ void Alignment::computeCompatibilityScores(int randomizations)
 		{
 			if (_informativeSites[i]->checkCompatibility(_informativeSites[j]))
 			{
-				_informativeSites[i]->incComp();
-				_informativeSites[j]->incComp();
+				_informativeSites[i]->addCompatibleSite(_informativeSites[j]->getCols()[0]);
+				_informativeSites[j]->addCompatibleSite(_informativeSites[i]->getCols()[0]);
 			}
 		}
 		count += n - i - 1;

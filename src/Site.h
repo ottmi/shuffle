@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <set>
 #include "globals.h"
 #include "Sequence.h"
 
@@ -21,7 +22,8 @@ public:
 	void remove(unsigned int i);
 	bool checkInformative();
 	bool checkCompatibility(Site* site);
-	void incComp();
+	void addCompatibleSite(int site);
+	void removeCompatibleSite(int site);
 	void computeScores(unsigned int cols);
 	void computeCo(unsigned int cols);
 	void computePOC(int poc, int randomizations);
@@ -32,7 +34,7 @@ public:
 	vector<int> getCols() { return _cols; };
 	unsigned int getPos(unsigned int pos) { return _site[pos]; };
 	bool isInformative() { return _isInformative; };
-	int getComp() { return _compSites; };
+	int getComp() { return _compatibleSites.size(); };
 	double getCo() { return _coScore; };
 	double getPOC() { return _poc; };
 	double getEntropy() { return _entropy; };
@@ -58,7 +60,7 @@ protected:
 	int _unambiguousCount;
 	int _ambiguousCount;
 	vector<int> _cols;
-	int _compSites;
+	set<int> _compatibleSites;
 	bool _isInformative;
 	double _coScore;
 	double _poc;

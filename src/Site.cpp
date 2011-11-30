@@ -30,7 +30,6 @@ void Site::initialize(vector<Sequence>* alignment, Options *options)
 {
 	_unambiguousCount = 0;
 	_ambiguousCount = 0;
-	_compSites = 0;
 	_coScore = .0;
 	_poc = .0;
 	_entropy = .0;
@@ -44,6 +43,7 @@ void Site::initialize(vector<Sequence>* alignment, Options *options)
 		_site.push_back(c);
 	}
 }
+
 
 void Site::remove(unsigned int i)
 {
@@ -171,12 +171,18 @@ bool Site::checkCompatibility(Site* site)
 }
 
 
-void Site::incComp()
+void Site::addCompatibleSite(int site)
 {
 #ifdef _OPENMP
-	#pragma omp atomic
+#pragma omp critical
 #endif
-	_compSites++;
+	_compatibleSites.insert(site);
+}
+
+
+void Site::removeCompatibleSite(int site)
+{
+	_compatibleSites.erase(site);
 }
 
 
@@ -254,7 +260,7 @@ void Site::computeScores(unsigned int cols)
 
 void Site::computeCo(unsigned int cols)
 {
-	_coScore = ((double) _compSites) / (cols-1);
+	_coScore = ((double) getComp()) / (cols-1);
 }
 
 
@@ -262,7 +268,7 @@ void Site::computePOC(int poc, int randomizations)
 {
 	_poc = ((double) poc) / randomizations;
 	if (verbose >= 5)
-		cout << "\rSite [" << colsToString() << "]: compSites=" << _compSites << " co=" << _coScore << " poc=" << _poc << " entropy=" << _entropy << " smin=" << _smin << endl;
+		cout << "\rSite [" << colsToString() << "]: compSites=" << getComp() << " co=" << _coScore << " poc=" << _poc << " entropy=" << _entropy << " smin=" << _smin << endl;
 }
 
 
