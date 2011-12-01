@@ -11,8 +11,7 @@
 #include "AlphanumericSite.h"
 #include "Sequence.h"
 #include "Site.h"
-#ifdef _GMP
-#include <gmp.h>
+#ifdef _MPFR
 #include <mpfr.h>
 #endif
 
@@ -187,7 +186,7 @@ void Site::computeScores(unsigned int cols)
 	map<unsigned int, int> t;
 	map<unsigned int, int>::const_iterator t_it;
 
-#ifdef _GMP
+#ifdef _MPFR
 	mpfr_set_default_prec(512);
 	mpfr_t tmp1, tmp2;
 	mpfr_init(tmp1);

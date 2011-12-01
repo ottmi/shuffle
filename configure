@@ -644,7 +644,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
-with_libgmp
+with_libmpfr
 with_openmp
 '
       ac_precious_vars='build_alias
@@ -1265,8 +1265,8 @@ if test -n "$ac_init_help"; then
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-libgmp           use GNU Multiple Precision Library [default=check]
-  --with-openmp           Compile OpenMP parallel code [default=check]
+  --with-libmpfr          use GNU MPFR Library [default=yes]
+  --with-openmp           Compile OpenMP parallel code [default=yes]
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -1998,6 +1998,10 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
+if test -z $CXXFLAGS; then
+    CXXFLAGS='-O3'
+fi
+
 # Checks for programs.
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
@@ -2508,11 +2512,11 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
 
-# Check whether --with-libgmp was given.
-if test "${with_libgmp+set}" = set; then :
-  withval=$with_libgmp;
+# Check whether --with-libmpfr was given.
+if test "${with_libmpfr+set}" = set; then :
+  withval=$with_libmpfr;
 else
-  with_libgmp=check
+  with_libmpfr=yes
 fi
 
 
@@ -2521,7 +2525,7 @@ fi
 if test "${with_openmp+set}" = set; then :
   withval=$with_openmp;
 else
-  with_openmp=check
+  with_openmp=yes
 fi
 
 
@@ -2982,64 +2986,22 @@ else
 fi
 
 
-GMP=0
-if test "$with_libgmp" != "no"; then
-  for ac_header in gmp.h
-do :
-  ac_fn_cxx_check_header_mongrel "$LINENO" "gmp.h" "ac_cv_header_gmp_h" "$ac_includes_default"
-if test "x$ac_cv_header_gmp_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GMP_H 1
-_ACEOF
- GMP=1
-else
-  GMP=0
-fi
+MPFR=0
+if test "$with_libmpfr" != "no"; then
+  if test "$with_libmpfr" != "yes"; then
+    MPFR_INC=`find $with_libmpfr -name "mpfr.h"|head -n1`
+    if test "$MPFR_INC" != ""; then
+      MPFR_INC=`dirname $MPFR_INC`
+    fi
+    MPFR_LIB=`find $with_libmpfr -name "libmpfr.so"|head -n1`
+    if test "$MPFR_LIB" != ""; then
+      MPFR_LIB=`dirname $MPFR_LIB`
+    fi
 
-done
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for __gmpz_init in -lgmp" >&5
-$as_echo_n "checking for __gmpz_init in -lgmp... " >&6; }
-if test "${ac_cv_lib_gmp___gmpz_init+set}" = set; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgmp  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char __gmpz_init ();
-int
-main ()
-{
-return __gmpz_init ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_cxx_try_link "$LINENO"; then :
-  ac_cv_lib_gmp___gmpz_init=yes
-else
-  ac_cv_lib_gmp___gmpz_init=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gmp___gmpz_init" >&5
-$as_echo "$ac_cv_lib_gmp___gmpz_init" >&6; }
-if test "x$ac_cv_lib_gmp___gmpz_init" = x""yes; then :
-  GMP=$(($GMP+1))
-else
-  GMP=0
-fi
-
+    CPPFLAGS="-I$MPFR_INC $CPPFLAGS"
+    CXXFLAGS="-I$MPFR_INC $CXXFLAGS"
+    LDFLAGS="-L$MPFR_LIB $LDFLAGS"
+  fi
 
   for ac_header in mpfr.h
 do :
@@ -3048,9 +3010,9 @@ if test "x$ac_cv_header_mpfr_h" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_MPFR_H 1
 _ACEOF
- GMP=$(($GMP+1))
+ MPFR=$(($MPFR+1))
 else
-  GMP=0
+  MPFR=0
 fi
 
 done
@@ -3092,16 +3054,16 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_mpfr_mpfr_log" >&5
 $as_echo "$ac_cv_lib_mpfr_mpfr_log" >&6; }
 if test "x$ac_cv_lib_mpfr_mpfr_log" = x""yes; then :
-  GMP=$(($GMP+1))
+  MPFR=$(($MPFR+1))
 else
-  GMP=0
+  MPFR=0
 fi
 
 fi
 
-if test $GMP -ge 4; then
-  CXXFLAGS="$CXXFLAGS -D_GMP"
-  LIBS="$LIBS -lgmp -lmpfr"
+if test $MPFR -ge 2; then
+  CXXFLAGS="$CXXFLAGS -D_MPFR"
+  LIBS="$LIBS -lmpfr"
 fi
 
 
@@ -3237,6 +3199,7 @@ $as_echo "#define HAVE_OPENMP 1" >>confdefs.h
 fi
 
   CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS"
+  LDFLAGS="$LDFLAGS $OPENMP_CXXFLAGS"
 fi
 
 ac_config_files="$ac_config_files Makefile"
@@ -4397,16 +4360,14 @@ fi
 echo
 echo "================================================================================"
 echo "Summary:"
-echo -n "  Using libgmp: "
-if test $GMP -ge 4; then
-  echo "yes"
+if test $MPFR -ge 2; then
+  echo "  Using libmpfr: yes"
 else
-  echo "no"
+  echo "  Using libmpfr: no"
 fi
-echo -n "  Using OpenMP: "
 if test "$OPENMP_CXXFLAGS" != ""; then
-  echo "yes"
+  echo "  Using OpenMP: yes"
 else
-  echo "no"
+  echo "  Using OpenMP: no"
 fi
 echo "================================================================================"

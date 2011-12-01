@@ -13,7 +13,7 @@ BIN = shuffle
 all: $(BIN)
 
 $(BIN): $(OBJ)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(LIBS) -o $(BIN) $(OBJ)
+	$(CXX) $(LDFLAGS) $(LIBS) -o $(BIN) $(OBJ)
 
 src/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
