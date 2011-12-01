@@ -342,7 +342,7 @@ int main(int argc, char** argv)
 			}
 
 			if (options.writeSiteSummary)
-				alignment.writeSummary(options.prefix);
+				alignment.writeSummary(options.prefix + ".sites");
 
 			if (options.writeRandomizedCo)
 				alignment.writeRandomizedCo(options.prefix);

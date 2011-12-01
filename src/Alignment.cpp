@@ -688,7 +688,7 @@ void Alignment::writeRandomizedCo(string prefix)
 
 void Alignment::writeSummary(string prefix)
 {
-	string fileName = prefix + ".sites.csv";
+	string fileName = prefix + ".csv";
 	ofstream file(fileName.c_str(), ifstream::trunc);
 	if (!file.is_open())
 		throw("Error, cannot open file " + fileName);
