@@ -51,7 +51,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ((c = getopt(argc, argv, "t:p:g:dicyxw:r:szf:a:n:v::h")) != -1)
+	while ((c = getopt(argc, argv, "t:p:g:dij:cyxw:r:szf:a:n:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -110,6 +110,12 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 'i':
 				options->removeInformativeSitesDuplicates = true;
 				break;
+			case 'j':
+			{
+				stringstream ss(optarg);
+				ss >> options->removeIncompatibles;
+				break;
+			}
 			case 'c':
 				options->convertAlignment = true;
 				if (options->alignmentFormat == -1)
@@ -235,7 +241,7 @@ int parseArguments(int argc, char** argv, Options *options)
 		options->prefix = options->inputAlignment.substr(m, n);
 	}
 
-	options->requireInformative = options->removeInformativeSitesDuplicates || options->writeSiteSummary || options->writeRandomizedCo || options->filterAlignment;
+	options->requireInformative = options->removeInformativeSitesDuplicates || options->removeIncompatibles || options->writeSiteSummary || options->writeRandomizedCo || options->filterAlignment;
 
 	return 0;
 }
@@ -255,6 +261,7 @@ void printSyntax()
 	cout << "  -c             Convert alignment format" << endl;
 	cout << "  -d             Remove duplicates and write reduced alignment file" << endl;
 	cout << "  -i             Remove informative sites duplicates, write reduced alignment" << endl;
+	cout << "  -j<NUM>        Iteratively remove incompatible sites until avgCo>=NUM" << endl;
 	cout << endl;
 	cout << "  -y             Perform tests of pairwise symmetry" << endl;
 	cout << "  -x             Write extended output files with test results" << endl;
@@ -328,7 +335,7 @@ int main(int argc, char** argv)
 			if (options.symmetryTest)
 				alignment.testSymmetry(options.prefix, options.writeExtendedTestResults, options.windowSize, options.windowStep);
 
-			if (options.writeSiteSummary || options.writeRandomizedCo || options.filterAlignment)
+			if (options.removeIncompatibles || options.writeSiteSummary || options.writeRandomizedCo || options.filterAlignment)
 			{
 				alignment.computeBasicScores();
 				alignment.computeCompatibilityScores(options.randomizations);
@@ -346,6 +353,9 @@ int main(int argc, char** argv)
 				cout << "New alignment contains " << filteredAlignment.getNumOfRows() << " sequences with " << filteredAlignment.getNumOfCols() << " columns." << endl;
 				filteredAlignment.write(options.prefix + ".filtered", options.alignmentFormat);
 			}
+
+			if (options.removeIncompatibles)
+			    alignment.removeIncompatiblesIterative(&options);
 		}
 
 	} catch (string& s)

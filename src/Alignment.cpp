@@ -6,6 +6,7 @@
 #include <cmath>
 #include <climits>
 #include <cfloat>
+#include <sstream>
 #include "AlignmentReader.h"
 #include "AASite.h"
 #include "DNASite.h"
@@ -186,6 +187,64 @@ void Alignment::removeInformativeSitesDuplicates()
 }
 
 
+bool compPos(Site *a, Site *b)
+{
+	return a->getCols()[0] < b->getCols()[0];
+}
+
+bool compCo(Site *a, Site *b)
+{
+	unsigned int aVal = a->getComp();
+	unsigned int bVal = b->getComp();
+
+	if (aVal == bVal)
+		return compPos(a, b);
+	else
+		return aVal < bVal;
+}
+
+void Alignment::removeIncompatiblesIterative(Options *options)
+{
+	double threshold = options->removeIncompatibles;
+	cout << endl << "Removing incompatbile sites iteratively, target avgCo=" << threshold << endl;
+
+	double avgCo = .0;
+	double siteCo;
+	unsigned int siteComp;
+	int siteCol;
+	while (avgCo < threshold)
+	{
+		sort(_informativeSites.begin(), _informativeSites.end(), compCo);
+		Site *s = _informativeSites.front();
+		siteCol = s->getCols()[0];
+		siteCo = s->getCo();
+		siteComp = s->getComp();
+
+		_informativeSites.erase(_informativeSites.begin());
+
+		avgCo = .0;
+		for (unsigned int i = 0; i < _informativeSites.size(); i++)
+		{
+			_informativeSites[i]->removeCompatibleSite(siteCol);
+			_informativeSites[i]->computeCo(_informativeSites.size());
+			avgCo+= _informativeSites[i]->getCo();
+		}
+		avgCo /= _informativeSites.size();
+
+		if (verbose)
+			cout << "  Site " << siteCol+1 << ": Comp=" << siteComp << " Co=" << siteCo << " avgCo=" << avgCo << endl;
+	}
+
+	sort(_informativeSites.begin(), _informativeSites.end(), compPos);
+
+	stringstream ss;
+	ss << options->prefix << ".iterative." << threshold;
+	writeSummary(ss.str());
+	Alignment a = getSubAlignment(_informativeSites);
+	a.write(ss.str(), options->alignmentFormat);
+}
+
+
 void Alignment::collectSites(Options *options)
 {
 	cout << endl;
@@ -219,7 +278,7 @@ void Alignment::collectSites(Options *options)
 		if (s)
 		{
 			_sites[i] = s;
-			s->initialize(&_alignment, options, numOfSites);
+			s->initialize(&_alignment, options);
 			if (options->requireInformative)
 				s->checkInformative();
 		}

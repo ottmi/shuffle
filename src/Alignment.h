@@ -19,6 +19,7 @@ public:
 	void addSequence(Sequence sequence);
 	void removeDuplicates();
 	void removeInformativeSitesDuplicates();
+	void removeIncompatiblesIterative(Options *options);
 	void collectSites(Options *options);
 	void testSymmetry(string prefix, bool extended, int windowSize, int windowStep);
 	void checkIdenticalSites();
