@@ -31,6 +31,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->dataType = -1;
 	options->removeDuplicates = false;
 	options->removeInformativeSitesDuplicates = false;
+	options->removeIncompatibles = .0;
 	options->convertAlignment = false;
 	options->symmetryTest = false;
 	options->writeExtendedTestResults = false;
@@ -241,7 +242,7 @@ int parseArguments(int argc, char** argv, Options *options)
 		options->prefix = options->inputAlignment.substr(m, n);
 	}
 
-	options->requireInformative = options->removeInformativeSitesDuplicates || options->removeIncompatibles || options->writeSiteSummary || options->writeRandomizedCo || options->filterAlignment;
+	options->requireInformative = options->removeInformativeSitesDuplicates || options->removeIncompatibles > 0 || options->writeSiteSummary || options->writeRandomizedCo || options->filterAlignment;
 
 	return 0;
 }
@@ -354,7 +355,7 @@ int main(int argc, char** argv)
 				filteredAlignment.write(options.prefix + ".filtered", options.alignmentFormat);
 			}
 
-			if (options.removeIncompatibles)
+			if (options.removeIncompatibles > 0)
 			    alignment.removeIncompatiblesIterative(&options);
 		}
 
