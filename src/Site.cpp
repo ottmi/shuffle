@@ -58,6 +58,7 @@ bool Site::checkInformative()
 	for (unsigned int i = 0; i < _site.size(); i++)
 	{
 		unsigned int c = _site[i];
+		_pattern[c].insert(i);
 
 		if (charIsUnambiguous(c))
 		{
@@ -183,6 +184,66 @@ void Site::addCompatibleSite(int site)
 void Site::removeCompatibleSite(int site)
 {
 	_compatibleSites.erase(site);
+}
+
+
+double Site::checkPattern(Site* site)
+{
+    /*
+     * Carla A. Cummins and James O. McInerney:
+     * "A Method for Inferring the Rate of Evolution of Homologous Characters that Can Potentially
+     * Improve Phylogenetic Inference, Resolve Deep Divergence and Correct Systematic Biases"
+     * Syst. Biol. 60(6):833–844, 2011
+     */
+
+    SitePattern p_i = getPattern();
+    SitePattern p_j = site->getPattern();
+    set<unsigned int>::iterator base;
+    unsigned int count = 0;
+
+    if (verbose >= 3)
+    {
+	cout << "  Site [" << getCols()[0] << "] ";
+	for (SitePatternIterator part = p_i.begin(); part != p_i.end(); part++)
+	{
+	    for (base = part->second.begin(); base != part->second.end(); base++)
+		cout << *base << " ";
+	    cout << "   ";
+	}
+	cout << endl;
+	cout << "  Site [" << site->getCols()[0] << "] ";
+	for (SitePatternIterator part = p_j.begin(); part != p_j.end(); part++)
+	{
+	    for (base = part->second.begin(); base != part->second.end(); base++)
+		cout << *base << " ";
+	    cout << "   ";
+	}
+	cout << endl;
+    }
+
+    for (SitePatternIterator part1 = p_j.begin(); part1 != p_j.end(); part1++)
+    {
+	for (SitePatternIterator part2 = p_i.begin(); part2 != p_i.end(); part2++)
+	{
+	    unsigned int matches = 0;
+	    for (base = part1->second.begin(); base != part1->second.end(); base++)
+	    {
+		if (part2->second.count(*base))
+		    matches++;
+		else
+		    break;
+	    }
+
+	    if (matches == part1->second.size())
+		count++;
+	}
+    }
+
+    double pa_ij = ((double) count) / p_j.size();
+    if (verbose >= 3)
+	cout << "  patterns=" << p_j.size() << " count=" << count << " pa_ij=" << pa_ij << endl;
+
+    return pa_ij;
 }
 
 

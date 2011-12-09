@@ -519,10 +519,10 @@ void Alignment::checkIdenticalSites()
 }
 
 
-void Alignment::computeBasicScores()
+void Alignment::computeNonContextScores()
 {
 	cout << endl;
-	cout << "Computing basic scores..." << endl;
+	cout << "Computing non context sensitive scores..." << endl;
 
 	unsigned long n = _informativeSites.size();
 	long t1 = time(NULL);
@@ -539,11 +539,10 @@ void Alignment::computeBasicScores()
 }
 
 
-void Alignment::computeCompatibilityScores(int randomizations)
+void Alignment::computeContextScores(int randomizations)
 {
 	cout << endl;
-	cout << "Computing compatibility scores, doing " << randomizations << " randomizations..." << endl;
-	cout << "0%" << flush;
+	cout << "Computing context sensitive scores, doing " << randomizations << " randomizations for POC..." << endl;
 
 	long t1 = time(NULL);
 	long lastTime = t1;
@@ -552,6 +551,25 @@ void Alignment::computeCompatibilityScores(int randomizations)
 	unsigned long count = 0;
 
 	srand( t1 );
+
+	double sum;
+	for (unsigned int i = 0; i < n; i++)
+	{
+	    sum = 0;
+	    for (unsigned int j = 0; j < n; j++)
+	    {
+		if (i != j)
+		    sum+= _informativeSites[i]->checkPattern(_informativeSites[j]);
+	    }
+	    _informativeSites[i]->setR_i(sum/(n-1));
+	    if (verbose >= 2)
+		cout << "Site [" << _informativeSites[i]->getCols()[0] << "] sum=" << sum << " n-1=" << n-1 << " r_i=" << sum/(n-1) << endl;
+	    if (verbose >= 3)
+		cout << endl;
+	}
+
+	cout << "0%" << flush;
+
 #ifdef _OPENMP
 #pragma omp parallel for shared(count) schedule(guided)
 #endif
@@ -703,7 +721,7 @@ void Alignment::writeSummary(string prefix)
 			bases.insert(it->first);
 	}
 
-	file << "Site No.,Smin,Entropy,OV,Co,Poc";
+	file << "Site No.,Smin,Entropy,OV,Co,Poc,r_i";
 	Site* s = _informativeSites[0];
 	for (set<int>::iterator it = bases.begin(); it != bases.end(); it++)
 		file << ",f(" << s->mapNumToChar(*it) << ")";
@@ -713,7 +731,7 @@ void Alignment::writeSummary(string prefix)
 	{
 		Site* s = _informativeSites[i];
 		BaseOccurenceMap f = s->getFrequencies();
-		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << fixed << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC();
+		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << fixed << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC()<< "," << s->getR_i();
 		for (set<int>::iterator it = bases.begin(); it != bases.end(); it++)
 			file << "," << (((double) f[*it]) / getNumOfRows());
 		file << "," << ((double) s->getAmbiguousCount()) / getNumOfRows() << endl;

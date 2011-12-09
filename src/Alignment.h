@@ -23,8 +23,8 @@ public:
 	void collectSites(Options *options);
 	void testSymmetry(string prefix, bool extended, int windowSize, int windowStep);
 	void checkIdenticalSites();
-	void computeBasicScores();
-	void computeCompatibilityScores(int randomizations);
+	void computeNonContextScores();
+	void computeContextScores(int randomizations);
 	void writeRandomizedCo(string prefix);
 	void writeSummary(string prefix);
 	Alignment getFilteredAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);

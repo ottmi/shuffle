@@ -13,6 +13,9 @@ using namespace std;
 typedef map<unsigned int,int> BaseOccurenceMap;
 typedef map<unsigned int,int>::iterator BaseOccurenceMapIterator;
 
+typedef map<unsigned int, set<unsigned int> > SitePattern;
+typedef map<unsigned int, set<unsigned int> >::iterator SitePatternIterator;
+
 class Site
 {
 public:
@@ -24,12 +27,15 @@ public:
 	bool checkCompatibility(Site* site);
 	void addCompatibleSite(int site);
 	void removeCompatibleSite(int site);
+	double checkPattern(Site* site);
 	void computeScores(unsigned int cols);
 	void computeCo(unsigned int cols);
 	void computePOC(int poc, int randomizations);
 	bool compare(Site* s);
 	Site* randomize();
 	void setPOC(double poc);
+	void setR_i(double r_i) { _r_i = r_i; };
+	double getR_i() { return _r_i; };
 	vector<unsigned int> getSite() { return _site; };
 	vector<int> getCols() { return _cols; };
 	unsigned int getPos(unsigned int pos) { return _site[pos]; };
@@ -42,6 +48,7 @@ public:
 	double getOV() { return _ov; };
 	void addRandomizedCo(double co) { _randomizedCo.push_back(co); };
 	vector<double>& getRandomizedCo() { return _randomizedCo; };
+	SitePattern& getPattern() { return _pattern; };
 	int getUnambiguousCount() { return _unambiguousCount; };
 	int getAmbiguousCount() { return _ambiguousCount; };
 	BaseOccurenceMap& getFrequencies() { return _r; };
@@ -57,6 +64,7 @@ protected:
 	vector<unsigned int> _site;
 	char _unambiguousThreshold;
 	BaseOccurenceMap _r;
+	SitePattern _pattern;
 	int _unambiguousCount;
 	int _ambiguousCount;
 	vector<int> _cols;
@@ -67,6 +75,7 @@ protected:
 	double _entropy;
 	int _smin;
 	double _ov;
+	double _r_i;
 	vector<double> _randomizedCo;
 };
 
