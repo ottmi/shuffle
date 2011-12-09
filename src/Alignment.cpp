@@ -542,34 +542,18 @@ void Alignment::computeNonContextScores()
 void Alignment::computeContextScores(int randomizations)
 {
 	cout << endl;
-	cout << "Computing context sensitive scores, doing " << randomizations << " randomizations for POC..." << endl;
+	cout << "Computing context sensitive scores, doing " << randomizations << " randomizations for POC:" << endl;
 
-	long t1 = time(NULL);
-	long lastTime = t1;
+	long t1, t2, lastTime, total, count;
 	unsigned long n = _informativeSites.size();
-	unsigned long total = n * (n - 1) / 2 + n * n * randomizations;
-	unsigned long count = 0;
 
+	t1 = time(NULL);
+	lastTime = t1;
 	srand( t1 );
 
-	double sum;
-	for (unsigned int i = 0; i < n; i++)
-	{
-	    sum = 0;
-	    for (unsigned int j = 0; j < n; j++)
-	    {
-		if (i != j)
-		    sum+= _informativeSites[i]->checkPattern(_informativeSites[j]);
-	    }
-	    _informativeSites[i]->setR_i(sum/(n-1));
-	    if (verbose >= 2)
-		cout << "Site [" << _informativeSites[i]->getCols()[0] << "] sum=" << sum << " n-1=" << n-1 << " r_i=" << sum/(n-1) << endl;
-	    if (verbose >= 3)
-		cout << endl;
-	}
-
-	cout << "0%" << flush;
-
+	count = 0;
+	total = n * (n - 1) / 2;
+	cout << "  Computing Co:  0%" << flush;
 #ifdef _OPENMP
 #pragma omp parallel for shared(count) schedule(guided)
 #endif
@@ -586,17 +570,24 @@ void Alignment::computeContextScores(int randomizations)
 		count += n - i - 1;
 		if (omp_get_thread_num() == 0)
 		{
-			long t2 = time(NULL);
+			t2 = time(NULL);
 			if (t2 > lastTime)
 			{
 				long elapsed = t2 - t1;
 				long eta = (elapsed * total) / count - elapsed;
-				cout << "\r" << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+				cout << "\r  Computing Co:  " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
 
 			}
 		}
 	}
+	t2 = time(NULL);
+	cout << "\r  Computing Co:  Done, taking " << printTime(t2-t1) << "                         " << endl;
+	t1 = t2;
 
+	count = 0;
+	total = n * n * randomizations;
+	if (randomizations)
+	    cout << "  Computing POC: 0%" << flush;
 #ifdef _OPENMP
 #pragma omp parallel for shared(count) schedule(guided)
 #endif
@@ -628,20 +619,51 @@ void Alignment::computeContextScores(int randomizations)
 			count += randomizations * n;
 			if (omp_get_thread_num() == 0)
 			{
-				long t2 = time(NULL);
+				t2 = time(NULL);
 				if (t2 > lastTime)
 				{
 					long elapsed = t2 - t1;
 					long eta = (elapsed * total) / count - elapsed;
-					cout << "\r" << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+					cout << "\r  Computing POC: " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
 				}
 			}
 			_informativeSites[i]->computePOC(poc, randomizations);
 		}
 	}
+	if (randomizations)
+	{
+	    t2 = time(NULL);
+	    cout << "\r  Computing POC: Done, taking " << printTime(t2-t1) << "                         " << endl;
+	    t1 = t2;
+	}
 
-	long t2 = time(NULL);
-	cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
+	count = 0;
+	total = n * n;
+	cout << "  Computing r_i: 0%" << flush;
+	for (unsigned int i = 0; i < n; i++)
+	{
+	    double sum = 0;
+	    for (unsigned int j = 0; j < n; j++)
+	    {
+		if (i != j)
+		    sum+= _informativeSites[i]->checkPattern(_informativeSites[j]);
+	    }
+	    _informativeSites[i]->setR_i(sum/(n-1));
+
+	    count+= n;
+	    if (omp_get_thread_num() == 0)
+	    {
+		t2 = time(NULL);
+		if (t2 > lastTime)
+		{
+		    long elapsed = t2 - t1;
+		    long eta = (elapsed * total) / count - elapsed;
+		    cout << "\r  Computing r_i: " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+		}
+	    }
+	}
+	t2 = time(NULL);
+	cout << "\r  Computing r_i: Done, taking " << printTime(t2-t1) << "                         " << endl;
 }
 
 
