@@ -555,7 +555,8 @@ void Alignment::computeContextScores(int randomizations)
 	total = n * (n - 1) / 2;
 	cout << "  Computing Co:  0%" << flush;
 #ifdef _OPENMP
-#pragma omp parallel for shared(count) schedule(guided)
+	long chunk = n / (omp_get_num_threads() * 8);
+#pragma omp parallel for shared(count) schedule(dynamic, chunk)
 #endif
 	for (unsigned int i = 0; i < n; i++)
 	{
@@ -640,6 +641,9 @@ void Alignment::computeContextScores(int randomizations)
 	count = 0;
 	total = n * n;
 	cout << "  Computing r_i: 0%" << flush;
+#ifdef _OPENMP
+#pragma omp parallel for shared(count) schedule(guided)
+#endif
 	for (unsigned int i = 0; i < n; i++)
 	{
 	    double sum = 0;
@@ -663,7 +667,7 @@ void Alignment::computeContextScores(int randomizations)
 	    }
 	}
 	t2 = time(NULL);
-	cout << "\r  Computing r_i: Done, taking " << printTime(t2-t1) << "                         " << endl;
+	cout << "\r  Computing r_i: Done, taking " << printTime(t2-t1) << "                         " << endl << endl;
 }
 
 
