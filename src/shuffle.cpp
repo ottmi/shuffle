@@ -7,6 +7,9 @@
 #include "globals.h"
 #include "Alignment.h"
 #include "helper.h"
+#ifdef _MPFR
+#include "mpfr.h"
+#endif
 
 using namespace std;
 
@@ -294,6 +297,10 @@ int main(int argc, char** argv)
 #ifdef _OPENMP
 	cout << "OpenMP|";
 #endif
+#ifdef _MPFR
+	cout << "MPFR|";
+#endif
+
 	cout << PROGDATE << endl << endl;
 
 	int ret = parseArguments(argc, argv, &options);
@@ -305,6 +312,10 @@ int main(int argc, char** argv)
 		printSyntax();
 		return 254;
 	}
+
+#ifdef _MPFR
+	cout << "Using MPFR " << MPFR_VERSION_STRING << " for high precision entropy computation." << endl;
+#endif
 
 #ifdef _OPENMP
 	cout << "Parallel execution with " << omp_get_max_threads() << " threads." << endl << endl;

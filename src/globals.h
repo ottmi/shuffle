@@ -7,7 +7,7 @@ using namespace std;
 
 #define PROGNAME "shuffle++"
 #define VERSION "0.7.17"
-#define PROGDATE "2011-12-09"
+#define PROGDATE "2011-12-13"
 
 #define _DNA_DATA				0
 #define	_AA_DATA				1
