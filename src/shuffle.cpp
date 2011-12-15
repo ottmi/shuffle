@@ -34,6 +34,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->dataType = -1;
 	options->removeDuplicates = false;
 	options->removeInformativeSitesDuplicates = false;
+	options->writeInformativeSitesAlignment = false;
 	options->removeIncompatibles = .0;
 	options->convertAlignment = false;
 	options->symmetryTest = false;
@@ -55,7 +56,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ((c = getopt(argc, argv, "t:p:g:dij:cyxw:r:szf:a:n:v::h")) != -1)
+	while ((c = getopt(argc, argv, "t:p:g:deij:cyxw:r:szf:a:n:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -111,8 +112,11 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 'd':
 				options->removeDuplicates = true;
 				break;
-			case 'i':
+			case 'e':
 				options->removeInformativeSitesDuplicates = true;
+				break;
+			case 'i':
+				options->writeInformativeSitesAlignment = true;
 				break;
 			case 'j':
 			{
@@ -245,7 +249,7 @@ int parseArguments(int argc, char** argv, Options *options)
 		options->prefix = options->inputAlignment.substr(m, n);
 	}
 
-	options->requireInformative = options->removeInformativeSitesDuplicates || options->removeIncompatibles > 0 || options->writeSiteSummary || options->writeRandomizedCo || options->filterAlignment;
+	options->requireInformative = options->removeInformativeSitesDuplicates || options->writeInformativeSitesAlignment|| options->removeIncompatibles > 0 || options->writeSiteSummary || options->writeRandomizedCo || options->filterAlignment;
 
 	return 0;
 }
@@ -264,7 +268,8 @@ void printSyntax()
 	cout << endl;
 	cout << "  -c             Convert alignment format" << endl;
 	cout << "  -d             Remove duplicates and write reduced alignment file" << endl;
-	cout << "  -i             Remove informative sites duplicates, write reduced alignment" << endl;
+	cout << "  -e             Remove informative sites duplicates, write reduced alignment" << endl;
+	cout << "  -i             Write reduced alignment only with parsimony informative sites" << endl;
 	cout << "  -j<NUM>        Iteratively remove incompatible sites until avgCo>=NUM" << endl;
 	cout << endl;
 	cout << "  -y             Perform tests of pairwise symmetry" << endl;
@@ -337,6 +342,12 @@ int main(int argc, char** argv)
 		if (options.symmetryTest || options.requireInformative)
 		{
 			alignment.collectSites(&options);
+
+			if (options.writeInformativeSitesAlignment)
+			{
+			    Alignment informativeSitesAlignment = alignment.getInformativeSitesAlignment();
+			    informativeSitesAlignment.write(options.prefix+".informative", options.alignmentFormat);
+			}
 
 			if (options.removeInformativeSitesDuplicates)
 			{

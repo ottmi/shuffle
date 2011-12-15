@@ -6,8 +6,8 @@
 using namespace std;
 
 #define PROGNAME "shuffle++"
-#define VERSION "0.7.17"
-#define PROGDATE "2011-12-13"
+#define VERSION "0.7.18"
+#define PROGDATE "2011-12-15"
 
 #define _DNA_DATA				0
 #define	_AA_DATA				1
@@ -33,6 +33,7 @@ typedef struct opt_struct
 	int groupLength;
 	bool removeDuplicates;
 	bool removeInformativeSitesDuplicates;
+	bool writeInformativeSitesAlignment;
 	double removeIncompatibles;
 	bool convertAlignment;
 	bool symmetryTest;

@@ -687,6 +687,12 @@ Alignment Alignment::getFilteredAlignment(double minCo, double minPOC, int maxSm
 }
 
 
+Alignment Alignment::getInformativeSitesAlignment()
+{
+    return getSubAlignment(_informativeSites);
+}
+
+
 Alignment Alignment::getSubAlignment(vector<Site*> sites)
 {
 	Alignment a;
