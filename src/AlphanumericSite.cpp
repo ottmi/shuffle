@@ -1,16 +1,15 @@
 #include "AlphanumericSite.h"
 
-AlphanumericSite::AlphanumericSite(vector<Sequence>* alignment, int offset, Options *options)
+AlphanumericSite::AlphanumericSite(int offset, Options *options)
 {
 	_unambiguousThreshold = 35;
 	_type = _ALPHANUM_DATA;
 	for (unsigned int i = 0; i < options->grouping.size(); i++)
 		_cols.push_back(options->grouping[i] + options->groupLength * offset);
-	initialize(alignment);
 }
 
 
-AlphanumericSite::AlphanumericSite(vector<int> site)
+AlphanumericSite::AlphanumericSite(vector<unsigned int> site)
 {
 	_unambiguousThreshold = 35;
 	_type = _ALPHANUM_DATA;
@@ -25,7 +24,7 @@ AlphanumericSite::~AlphanumericSite()
 }
 
 
-string AlphanumericSite::mapNumToChar(int n)
+string AlphanumericSite::mapNumToChar(unsigned int n)
 {
 	string map = _ALPHANUM_MAP;
 	string s;
@@ -39,9 +38,9 @@ string AlphanumericSite::mapNumToChar(int n)
 }
 
 
-int AlphanumericSite::mapCharToNum(string s)
+unsigned int AlphanumericSite::mapCharToNum(string s)
 {
-	int d = 0;
+	unsigned int d = 0;
 	for (unsigned int i = 0; i < s.size(); i++)
 	{
 		char c = s[i];
@@ -49,6 +48,8 @@ int AlphanumericSite::mapCharToNum(string s)
 
 		if (c >= 65 && c <= 90) // A-Z
 			d+= c-65;
+		else if (c >= 97 && c <= 122) // a-z
+			d+= c-97;
 		else if (c >= 48 && c <= 57) // 0-9
 			d+= c-48+26;
 		else if (c == '?')

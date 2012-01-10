@@ -5,15 +5,13 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <functional>
 #include <algorithm>
 #include <set>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <limits.h>
-#include "FastaReader.h"
-#include "PhylipReader.h"
+#include <cmath>
+#include <climits>
+#include <cfloat>
+#include <sstream>
+#include "AlignmentReader.h"
 #include "AASite.h"
 #include "DNASite.h"
 #include "AlphanumericSite.h"
@@ -21,36 +19,22 @@
 #include "helper.h"
 
 
-
 Alignment::Alignment()
 {
-}
-
-
-Alignment::Alignment(int dataType)
-{
-	_dataType = dataType;
+	_cols = 0;
 }
 
 
 Alignment::Alignment(Options *options)
 {
-	AlignmentReader *alignmentReader;
+	AlignmentReader alignmentReader(options->inputAlignment);
+ 	_alignment = alignmentReader.getSequences();
+ 	_cols = alignmentReader.getCols();
 
-	string ext = options->inputAlignment.substr(options->inputAlignment.find_last_of('.') + 1);
-	if (!ext.compare("phy") || !ext.compare("phylip"))
-	{
-		alignmentReader = new PhylipReader(options->inputAlignment);
-	} else if (!ext.compare("fsa") || !ext.compare("fasta"))
-	{
-		alignmentReader = new FastaReader(options->inputAlignment);
-	} else
-	{
-		cerr << "Unknown input alignment format" << endl;
-		exit(255);
-	}
-	_alignment = alignmentReader->getSequences();
-	delete alignmentReader;
+ 	if (options->alignmentFormat == -1)
+ 		options->alignmentFormat = alignmentReader.getFormat();
+ 	else if (options->alignmentFormat == -2)
+ 		options->alignmentFormat = (alignmentReader.getFormat() + 1)%2;
 
 	string dataTypeDesc[] = { "DNA", "AA", "alphanumeric" };
 	if (options->dataType < 0)
@@ -82,13 +66,14 @@ Alignment::Alignment(Options *options)
 			dataTypeGuess = _AA_DATA;
 		_dataType = dataTypeGuess;
 
-		cout << "The alignment contains " << getNumOfRows() << " sequences " << "which appear to be " << dataTypeDesc[_dataType] << "." << endl;
+		cout << "It contains " << getNumOfRows() << " sequences " << "which appear to be " << dataTypeDesc[_dataType] << "." << endl;
 	} else
 	{
 		_dataType = options->dataType;
-		cout << "The alignment contains " << getNumOfRows() << " sequences which have been defined to be " << dataTypeDesc[_dataType] << "." << endl;
+		cout << "It contains " << getNumOfRows() << " sequences which have been defined to be " << dataTypeDesc[_dataType] << "." << endl;
 	}
 }
+
 
 Alignment::~Alignment()
 {
@@ -96,10 +81,14 @@ Alignment::~Alignment()
 		delete _informativeSites[i];
 }
 
+
 void Alignment::addSequence(Sequence s)
 {
 	_alignment.push_back(s);
+	if (s.getLength() > _cols)
+		_cols = s.getLength();
 }
+
 
 void Alignment::removeDuplicates()
 {
@@ -145,7 +134,9 @@ void Alignment::removeInformativeSitesDuplicates()
 	unsigned int count = 0;
 	do
 	{
-		vector<Sequence> a = getModifiedAlignment(0, 0, INT_MAX, DBL_MAX).getAlignment();
+		vector<Site*> sites = _informativeSites;
+		vector<Sequence> a = getSubAlignment(sites).getAlignment();
+
 		vector<Sequence>::iterator it1, it2;
 		unsigned int i = 0;
 		count = 0;
@@ -200,6 +191,64 @@ void Alignment::removeInformativeSitesDuplicates()
 }
 
 
+bool compPos(Site *a, Site *b)
+{
+	return a->getCols()[0] < b->getCols()[0];
+}
+
+bool compCo(Site *a, Site *b)
+{
+	unsigned int aVal = a->getComp();
+	unsigned int bVal = b->getComp();
+
+	if (aVal == bVal)
+		return compPos(a, b);
+	else
+		return aVal < bVal;
+}
+
+void Alignment::removeIncompatiblesIterative(Options *options)
+{
+	double threshold = options->removeIncompatibles;
+	cout << endl << "Removing incompatbile sites iteratively, target avgCo=" << threshold << endl;
+
+	double avgCo = .0;
+	double siteCo;
+	unsigned int siteComp;
+	int siteCol;
+	while (avgCo < threshold)
+	{
+		sort(_informativeSites.begin(), _informativeSites.end(), compCo);
+		Site *s = _informativeSites.front();
+		siteCol = s->getCols()[0];
+		siteCo = s->getCo();
+		siteComp = s->getComp();
+
+		_informativeSites.erase(_informativeSites.begin());
+
+		avgCo = .0;
+		for (unsigned int i = 0; i < _informativeSites.size(); i++)
+		{
+			_informativeSites[i]->removeCompatibleSite(siteCol);
+			_informativeSites[i]->computeCo(_informativeSites.size());
+			avgCo+= _informativeSites[i]->getCo();
+		}
+		avgCo /= _informativeSites.size();
+
+		if (verbose)
+			cout << "  Site " << siteCol+1 << ": Comp=" << siteComp << " Co=" << siteCo << " avgCo=" << avgCo << endl;
+	}
+
+	sort(_informativeSites.begin(), _informativeSites.end(), compPos);
+
+	stringstream ss;
+	ss << options->prefix << ".iterative." << threshold;
+	writeSummary(ss.str());
+	Alignment a = getSubAlignment(_informativeSites);
+	a.write(ss.str(), options->alignmentFormat);
+}
+
+
 void Alignment::collectSites(Options *options)
 {
 	cout << endl;
@@ -208,24 +257,23 @@ void Alignment::collectSites(Options *options)
 	long lastTime = t1;
 	unsigned int numOfSites = (getNumOfCols() - options->groupOffset) / options->groupLength;
 	unsigned int count = 0;
-	bool requireInformative = options->writeSiteSummary || options->filterAlignment;
 	_sites.resize(numOfSites, NULL);
 
 #ifdef _OPENMP
-#pragma omp parallel for shared (count)
+#pragma omp parallel for shared (count) schedule(guided)
 #endif
 	for (unsigned int i = 0; i < numOfSites; i++)
 	{
 		Site *s = NULL;
 		switch (_dataType) {
 			case _DNA_DATA:
-				s = new DNASite(&_alignment, i, options);
+				s = new DNASite(i, options);
 				break;
 			case _AA_DATA:
-				s = new AASite(&_alignment, i, options);
+				s = new AASite(i, options);
 				break;
 			case _ALPHANUM_DATA:
-				s = new AlphanumericSite(&_alignment, i, options);
+				s = new AlphanumericSite(i, options);
 				break;
 			default:
 				cerr << "Unknown data type " << _dataType << " at Alignment::Alignment()" << endl;
@@ -234,7 +282,8 @@ void Alignment::collectSites(Options *options)
 		if (s)
 		{
 			_sites[i] = s;
-			if (requireInformative)
+			s->initialize(&_alignment);
+			if (options->requireInformative)
 				s->checkInformative();
 		}
 		count++;
@@ -254,7 +303,7 @@ void Alignment::collectSites(Options *options)
 	long t2 = time(NULL);
 	cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
 
-	if (requireInformative)
+	if (options->requireInformative)
 	{
 		for (unsigned int i = 0; i < _sites.size(); i++)
 		{
@@ -264,7 +313,7 @@ void Alignment::collectSites(Options *options)
 		}
 	}
 
-	if (requireInformative)
+	if (options->requireInformative)
 		cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative." << endl;
 	else
 		cout << "Found " << numOfSites << " sites." << endl;
@@ -291,15 +340,15 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 
 		bowkerFile.open(bowkerFileName.c_str(), ifstream::trunc);
 		if (!bowkerFile.is_open())
-			throw("\n\nError, cannot open file " + bowkerFileName);
+			throw("Error, cannot open file " + bowkerFileName);
 
 		delta_sFile.open(delta_sFileName.c_str(), ifstream::trunc);
 		if (!delta_sFile.is_open())
-			throw("\n\nError, cannot open file " + delta_sFileName);
+			throw("Error, cannot open file " + delta_sFileName);
 
 		delta_msFile.open(delta_msFileName.c_str(), ifstream::trunc);
 		if (!delta_msFile.is_open())
-			throw("\n\nError, cannot open file " + delta_msFileName);
+			throw("Error, cannot open file " + delta_msFileName);
 	} else
 	{
 		cout << resultsFileName << endl;
@@ -307,7 +356,7 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 
 	resultsFile.open(resultsFileName.c_str(), ifstream::trunc);
 	if (!resultsFile.is_open())
-		throw("\n\nError, cannot open file " + resultsFileName);
+		throw("Error, cannot open file " + resultsFileName);
 
 	unsigned int n = _alignment.size();
 	unsigned int cols = _sites.size();
@@ -342,8 +391,8 @@ void Alignment::testSymmetry(string prefix, bool extended, int windowSize, int w
 				for (unsigned int m = windowStart; m < windowStart + windowSize; m++)
 				{
 					Site *s = _sites[m];
-					int c1 = s->getPos(k);
-					int c2 = s->getPos(l);
+					unsigned int c1 = s->getPos(k);
+					unsigned int c2 = s->getPos(l);
 					if (s->charIsUnambiguous(c1) && s->charIsUnambiguous(c2))
 					{
 						dm[c1 * dim + c2]++;
@@ -474,10 +523,10 @@ void Alignment::checkIdenticalSites()
 }
 
 
-void Alignment::computeBasicScores()
+void Alignment::computeNonContextScores()
 {
 	cout << endl;
-	cout << "Computing basic scores..." << endl;
+	cout << "Computing non context sensitive scores..." << endl;
 
 	unsigned long n = _informativeSites.size();
 	long t1 = time(NULL);
@@ -494,121 +543,200 @@ void Alignment::computeBasicScores()
 }
 
 #ifdef _MPI
-void Alignment::computeCompatibilityScores(int randomizations)
+void Alignment::computeContextScores(int randomizations)
 {
 	if (myId == 0)
 	{
 		cout << endl;
-		cout << "Computing compatibility scores, doing " << randomizations << " randomizations..." << endl;
-		cout << "0%" << flush;
+		cout << "Computing context sensitive scores, doing " << randomizations << " randomizations for POC:" << endl;
+		cout << "  Computing Co:  0%" << flush;
 	}
 
+	long t1, t2, lastTime, total, count;
 	unsigned long n = _informativeSites.size();
+
 	unsigned int share = (n + numProcs - 1)/ numProcs;
 	unsigned int start = myId * share;
 	unsigned int end = (myId + 1) * share - 1;
 	if (end >= _informativeSites.size())
 		end = _informativeSites.size() - 1;
-	unsigned long total = share * (randomizations+1) * (n-1);
-	unsigned long count = 0;
-	long t1 = time(NULL);
-	long lastTime = t1;
 
-	double *sendBuf = (double *) malloc(sizeof(double) * share * 2);
-	int k = 0;
-	Site *site;
-	srand ( time(NULL) );
+	t1 = time(NULL);
+	srand( t1 );
+	lastTime = t1;
+	total = share * (n-1);
+	count = 0;
+
 	for (unsigned int i = start; i <= end; i++)
 	{
-		site = _informativeSites[i];
 		for (unsigned int j = 0; j < n; j++)
 		{
-			if (i != j && site->checkCompatibility(_informativeSites[j]))
-				site->incComp();
+			if (i != j && _informativeSites[i]->checkCompatibility(_informativeSites[j]))
+			    _informativeSites[i]->addCompatibleSite(j);
 		}
-		count+= n-1;
-
-		site->computeCo(n);
-
-		if (randomizations)
-		{
-#ifdef _DEBUG
-			srand ( i+42 );
-#endif
-			int poc = 0;
-			for (int r = 0; r < randomizations; r++)
-			{
-				int comp = 0;
-				Site* randomSite = site->randomize();
-				for (unsigned int j = 0; j < n; j++)
-				{
-					if (i != j && randomSite->checkCompatibility(_informativeSites[j]))
-						comp++;
-				}
-				delete randomSite;
-				if (site->getComp() <= comp)
-					poc++;
-			}
-			count+= randomizations*(n-1);
-			site->computePOC(poc, randomizations);
-		}
-		sendBuf[k*2] = site->getCo();
-		sendBuf[k*2 + 1] = site->getPOC();
-		k++;
+		_informativeSites[i]->computeCo(n);
 
 		if (myId == 0)
 		{
-			long t2 = time(NULL);
+			count+= n-1;
+			t2 = time(NULL);
 			if (t2 > lastTime)
 			{
 				long elapsed = t2 - t1;
 				long eta = (elapsed * total) / count - elapsed;
-				cout << "\r" << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
-
+				cout << "\r  Computing Co:  " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
 			}
 		}
 	}
 
-
-	double *recvBuf;
 	if (myId == 0)
-		recvBuf = (double *) malloc(sizeof(double) * share * 2 * numProcs);
-	MPI_Gather(sendBuf, share*2, MPI_DOUBLE, recvBuf, share*2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+	{
+	    t2 = time(NULL);
+	    cout << "\r  Computing Co:  Done, taking " << printTime(t2-t1) << "                         " << endl;
+	    t1 = t2;
+
+	    count = 0;
+	    total = share * (n-1) * randomizations;
+	}
+
+	if (randomizations)
+	{
+	    if (myId == 0)
+		cout << "  Computing POC: 0%" << flush;
+
+		for (unsigned int i = start; i <= end; i++)
+		{
+#ifdef _DEBUG
+		    srand( i+42 );
+#endif
+		    int poc = 0;
+		    for (int r = 0; r < randomizations; r++)
+		    {
+			int comp = 0;
+			Site* randomSite = _informativeSites[i]->randomize();
+			for (unsigned int j = 0; j < n; j++)
+			{
+			    if (i != j && randomSite->checkCompatibility(_informativeSites[j]))
+				comp++;
+			}
+			delete randomSite;
+			_informativeSites[i]->addRandomizedCo(((double) comp) / n);
+			if (_informativeSites[i]->getComp() <= comp)
+			    poc++;
+		    }
+
+		    count+= randomizations*(n-1);
+		    _informativeSites[i]->computePOC(poc, randomizations);
+
+		    if (myId == 0)
+		    {
+			t2 = time(NULL);
+			if (t2 > lastTime)
+			{
+			    long elapsed = t2 - t1;
+			    long eta = (elapsed * total) / count - elapsed;
+			    cout << "\r  Computing POC: " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+			}
+		    }
+		}
+
+		if (myId == 0)
+		{
+		    t2 = time(NULL);
+		    cout << "\r  Computing POC: Done, taking " << printTime(t2-t1) << "                         " << endl;
+		    t1 = t2;
+		}
+	}
+
+	if (myId == 0)
+	{
+	    count = 0;
+	    total = share * (n-1);
+	    cout << "  Computing r_i: 0%" << flush;
+	}
+
+	for (unsigned int i = 0; i < n; i++)
+	    _informativeSites[i]->checkInformative();
+
+	for (unsigned int i = start; i <= end; i++)
+	{
+	    double sum = 0;
+	    for (unsigned int j = 0; j < n; j++)
+	    {
+		if (i != j)
+		    sum+= _informativeSites[i]->checkPattern(_informativeSites[j]);
+	    }
+	    _informativeSites[i]->setR_i(sum/(n-1));
+
+	    count+= n-1;
+	    if (myId == 0)
+	    {
+		t2 = time(NULL);
+		if (t2 > lastTime)
+		{
+		    long elapsed = t2 - t1;
+		    long eta = (elapsed * total) / count - elapsed;
+		    cout << "\r  Computing r_i: " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+		}
+
+	    }
+	}
+
+	if (myId == 0)
+	{
+	    t2 = time(NULL);
+	    cout << "\r  Computing r_i: Done, taking " << printTime(t2-t1) << "                         " << endl << endl;
+	}
+
+	unsigned int k=0;
+	double *sendBuf = (double *) malloc(sizeof(double) * share * 3);
+	for (unsigned int i = start; i <= end; i++)
+	{
+	    sendBuf[k*3] = _informativeSites[i]->getCo();
+	    sendBuf[k*3 + 1] = _informativeSites[i]->getPOC();
+	    sendBuf[k*3 + 2] = _informativeSites[i]->getR_i();
+	    k++;
+	}
+
+	double *recvBuf = NULL;
+	if (myId == 0)
+		recvBuf = (double *) malloc(sizeof(double) * share * 3 * numProcs);
+	MPI_Gather(sendBuf, share*3, MPI_DOUBLE, recvBuf, share*3, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
 	if (myId == 0)
 	{
 		for (unsigned int i = 0; i < n; i++)
 		{
-			_informativeSites[i]->setCo(recvBuf[i*2]);
-			_informativeSites[i]->setPOC(recvBuf[i*2 + 1]);
+			_informativeSites[i]->setCo(recvBuf[i*3]);
+			_informativeSites[i]->setPOC(recvBuf[i*3 + 1]);
+			_informativeSites[i]->setR_i(recvBuf[i*3 + 2]);
 		}
 		free(recvBuf);
 	}
 
 	free(sendBuf);
 
-	if (myId == 0)
-	{
-		long t2 = time(NULL);
-		cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
-	}
+
 }
 #else
-void Alignment::computeCompatibilityScores(int randomizations)
+void Alignment::computeContextScores(int randomizations)
 {
 	cout << endl;
-	cout << "Computing compatibility scores, doing " << randomizations << " randomizations..." << endl;
-	cout << "0%" << flush;
+	cout << "Computing context sensitive scores, doing " << randomizations << " randomizations for POC:" << endl;
 
-	long t1 = time(NULL);
-	long lastTime = t1;
+	long t1, t2, lastTime, total, count;
 	unsigned long n = _informativeSites.size();
-	unsigned long total = n * (n - 1) / 2 + n * n * randomizations;
-	unsigned long count = 0;
 
+	t1 = time(NULL);
+	lastTime = t1;
 	srand( t1 );
+
+	count = 0;
+	total = n * (n - 1) / 2;
+	cout << "  Computing Co:  0%" << flush;
 #ifdef _OPENMP
-#pragma omp parallel for shared(count)
+	long chunk = n / (omp_get_num_threads() * 8);
+#pragma omp parallel for shared(count) schedule(dynamic, chunk)
 #endif
 	for (unsigned int i = 0; i < n; i++)
 	{
@@ -616,26 +744,33 @@ void Alignment::computeCompatibilityScores(int randomizations)
 		{
 			if (_informativeSites[i]->checkCompatibility(_informativeSites[j]))
 			{
-				_informativeSites[i]->incComp();
-				_informativeSites[j]->incComp();
+				_informativeSites[i]->addCompatibleSite(_informativeSites[j]->getCols()[0]);
+				_informativeSites[j]->addCompatibleSite(_informativeSites[i]->getCols()[0]);
 			}
 		}
 		count += n - i - 1;
 		if (omp_get_thread_num() == 0)
 		{
-			long t2 = time(NULL);
+			t2 = time(NULL);
 			if (t2 > lastTime)
 			{
 				long elapsed = t2 - t1;
 				long eta = (elapsed * total) / count - elapsed;
-				cout << "\r" << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+				cout << "\r  Computing Co:  " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
 
 			}
 		}
 	}
+	t2 = time(NULL);
+	cout << "\r  Computing Co:  Done, taking " << printTime(t2-t1) << "                         " << endl;
+	t1 = t2;
 
+	count = 0;
+	total = n * n * randomizations;
+	if (randomizations)
+	    cout << "  Computing POC: 0%" << flush;
 #ifdef _OPENMP
-#pragma omp parallel for shared(count)
+#pragma omp parallel for shared(count) schedule(guided)
 #endif
 	for (unsigned int i = 0; i < n; i++)
 	{
@@ -657,6 +792,7 @@ void Alignment::computeCompatibilityScores(int randomizations)
 						comp++;
 				}
 				delete randomSite;
+				_informativeSites[i]->addRandomizedCo(((double) comp) / n);
 				if (_informativeSites[i]->getComp() <= comp)
 					poc++;
 			}
@@ -664,44 +800,91 @@ void Alignment::computeCompatibilityScores(int randomizations)
 			count += randomizations * n;
 			if (omp_get_thread_num() == 0)
 			{
-				long t2 = time(NULL);
+				t2 = time(NULL);
 				if (t2 > lastTime)
 				{
 					long elapsed = t2 - t1;
 					long eta = (elapsed * total) / count - elapsed;
-					cout << "\r" << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+					cout << "\r  Computing POC: " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
 				}
 			}
 			_informativeSites[i]->computePOC(poc, randomizations);
 		}
 	}
+	if (randomizations)
+	{
+	    t2 = time(NULL);
+	    cout << "\r  Computing POC: Done, taking " << printTime(t2-t1) << "                         " << endl;
+	    t1 = t2;
+	}
 
-	long t2 = time(NULL);
-	cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
+	count = 0;
+	total = n * n;
+	cout << "  Computing r_i: 0%" << flush;
+#ifdef _OPENMP
+#pragma omp parallel for shared(count) schedule(guided)
+#endif
+	for (unsigned int i = 0; i < n; i++)
+	{
+	    double sum = 0;
+	    for (unsigned int j = 0; j < n; j++)
+	    {
+		if (i != j)
+		    sum+= _informativeSites[i]->checkPattern(_informativeSites[j]);
+	    }
+	    _informativeSites[i]->setR_i(sum/(n-1));
+
+	    count+= n;
+	    if (omp_get_thread_num() == 0)
+	    {
+		t2 = time(NULL);
+		if (t2 > lastTime)
+		{
+		    long elapsed = t2 - t1;
+		    long eta = (elapsed * total) / count - elapsed;
+		    cout << "\r  Computing r_i: " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+		}
+	    }
+	}
+	t2 = time(NULL);
+	cout << "\r  Computing r_i: Done, taking " << printTime(t2-t1) << "                         " << endl << endl;
 }
 #endif
 
-Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy)
-{
-	Alignment a(_dataType);
-	vector<int> sites;
 
+Alignment Alignment::getFilteredAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy)
+{
+	cout << "Creating new alignment with minCo=" << minCo << " minPOC=" << minPOC << " maxSmin=" << maxSmin << " maxEntropy=" << maxEntropy << endl;
+
+	vector<Site*> sites;
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
 		Site *site = _informativeSites[i];
-		if (site->getCo() >= minCo && site->getPOC() >= minPOC && site->getSmin() <= maxSmin && site->getEntropy() <= maxEntropy)
-			sites.push_back(i);
+		if (site->getCo() >= minCo && site->getPOC() >= minPOC && site->getSmin() <= maxSmin && (isnan(site->getEntropy()) || site->getEntropy() <= maxEntropy))
+			sites.push_back(site);
 	}
 
+	return getSubAlignment(sites);
+}
+
+
+Alignment Alignment::getInformativeSitesAlignment()
+{
+    return getSubAlignment(_informativeSites);
+}
+
+
+Alignment Alignment::getSubAlignment(vector<Site*> sites)
+{
+	Alignment a;
 	for (unsigned int i = 0; i < _alignment.size(); i++)
 	{
 		string newSeq;
 		Sequence seq = _alignment[i];
-		for (unsigned int j = 0; j < sites.size(); j++)
-		{
-			Site *site = _informativeSites[sites[j]];
-			newSeq += seq.getColumns(site->getCols());
-		}
+		vector<Site*>::iterator it;
+		for (it = sites.begin(); it != sites.end(); it++)
+			newSeq += seq.getColumns((*it)->getCols());
+
 		if (newSeq.length())
 		{
 			Sequence s(_alignment[i].getName(), newSeq);
@@ -712,12 +895,34 @@ Alignment Alignment::getModifiedAlignment(double minCo, double minPOC, int maxSm
 	return a;
 }
 
-void Alignment::writeSummary(string prefix)
+
+void Alignment::writeRandomizedCo(string prefix)
 {
-	string fileName = prefix + ".sites.csv";
+	string fileName = prefix + ".poc.csv";
 	ofstream file(fileName.c_str(), ifstream::trunc);
 	if (!file.is_open())
-		throw("\n\nError, cannot open file " + fileName);
+		throw("Error, cannot open file " + fileName);
+	cout << "Writing Co scores of randomized sites to " << fileName << endl;
+
+	for (unsigned int i = 0; i < _informativeSites.size(); i++)
+	{
+		Site* s = _informativeSites[i];
+		vector<double> co = s->getRandomizedCo();
+		file << s->getCols()[0] + 1;
+		for (unsigned int j = 0; j < co.size(); j++)
+			file << "," << scientific << co[j];
+		file << endl;
+	}
+	file.close();
+}
+
+
+void Alignment::writeSummary(string prefix)
+{
+	string fileName = prefix + ".csv";
+	ofstream file(fileName.c_str(), ifstream::trunc);
+	if (!file.is_open())
+		throw("Error, cannot open file " + fileName);
 	cout << "Writing site summary to " << fileName << endl;
 
 	set<int> bases;
@@ -729,7 +934,7 @@ void Alignment::writeSummary(string prefix)
 			bases.insert(it->first);
 	}
 
-	file << "Site No.,Smin,Entropy,OV,Co,Poc";
+	file << "Site No.,Smin,Entropy,OV,Co,Poc,r_i";
 	Site* s = _informativeSites[0];
 	for (set<int>::iterator it = bases.begin(); it != bases.end(); it++)
 		file << ",f(" << s->mapNumToChar(*it) << ")";
@@ -739,46 +944,46 @@ void Alignment::writeSummary(string prefix)
 	{
 		Site* s = _informativeSites[i];
 		BaseOccurenceMap f = s->getFrequencies();
-		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << fixed << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC();
+		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << fixed << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC()<< "," << s->getR_i();
 		for (set<int>::iterator it = bases.begin(); it != bases.end(); it++)
 			file << "," << (((double) f[*it]) / getNumOfRows());
 		file << "," << ((double) s->getAmbiguousCount()) / getNumOfRows() << endl;
 	}
 }
 
-void Alignment::write(string fileName)
+
+void Alignment::write(string baseName, int format)
 {
-	int type;
-	string ext = fileName.substr(fileName.find_last_of('.') + 1);
-	if (!ext.compare("phy") || !ext.compare("phylip"))
-		type = 0;
-	else if (!ext.compare("fsa") || !ext.compare("fasta"))
-		type = 1;
+	string fileName;
+	if (format == 0)
+		fileName = baseName + ".fsa";
 	else
-	{
-		cerr << "Couldn't recognize output format." << endl;
-		cerr << "Please use extension .phy or .phylip for Phylip format," << endl;
-		cerr << "and .fsa or .fasta for Fasta format." << endl;
-		return;
-	}
+		fileName = baseName + ".phy";
 
 	ofstream file(fileName.c_str(), ifstream::trunc);
 	if (!file.is_open())
-		throw("\n\nError, cannot open file " + fileName);
+		throw("Error, cannot open file " + fileName);
 
-	switch (type) {
-		case 0:
-			cout << "Writing Phylip alignment to " << fileName << endl;
-			file << getNumOfRows() << " " << getNumOfCols() << endl;
-			for (unsigned int i = 0; i < getNumOfRows(); i++)
-				file << setw(10) << left << _alignment[i].getName() << _alignment[i].getSequence() << endl;
-			break;
-
-		case 1:
+	switch (format) {
+		case _FASTA_FORMAT:
 			cout << "Writing Fasta alignment to " << fileName << endl;
 			for (unsigned int i = 0; i < getNumOfRows(); i++)
 			{
 				file << ">" << _alignment[i].getName() << endl;
+				file << _alignment[i].getSequence() << endl;
+			}
+			break;
+
+		case _PHYLIP_FORMAT:
+			cout << "Writing Phylip alignment to " << fileName << endl;
+			file << getNumOfRows() << " " << getNumOfCols() << endl;
+			for (unsigned int i = 0; i < getNumOfRows(); i++)
+			{
+				string name = _alignment[i].getName();
+				if (name.length() >= 10)
+					file << name << " ";
+				else
+					file << setw(10) << left << name;
 				file << _alignment[i].getSequence() << endl;
 			}
 			break;
@@ -796,16 +1001,16 @@ void Alignment::send()
 	buf[1] = (int) m;
 	buf[2] = (int) n;
 
-	int *buf2 = (int *) malloc(sizeof(int) * m * n);
+	unsigned int *buf2 = (unsigned int *) malloc(sizeof(unsigned int) * m * n);
 	for (unsigned int i = 0; i < m; i++)
 	{
 		Site *site = _informativeSites[i];
-		vector<int> v = site->getSite();
+		vector<unsigned int> v = site->getSite();
 		copy(v.begin(), v.end(), buf2+i*n);
 	}
 
 	MPI_Bcast(buf, 3, MPI_INT, 0, MPI_COMM_WORLD);
-	MPI_Bcast(buf2, m*n, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(buf2, m*n, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
 	free(buf2);
 }
@@ -820,10 +1025,10 @@ void Alignment::recv()
 	m = buf[1];
 	n = buf[2];
 
-	int *buf2 = (int *) malloc(sizeof(int) * m * n);
-	MPI_Bcast(buf2, m*n, MPI_INT, 0, MPI_COMM_WORLD);
+	unsigned int *buf2 = (unsigned int *) malloc(sizeof(unsigned int) * m * n);
+	MPI_Bcast(buf2, m*n, MPI_UNSIGNED, 0, MPI_COMM_WORLD);
 
-	vector<int> v;
+	vector<unsigned int> v;
 	v.resize(n);
 	for (unsigned int i = 0; i < m; i++)
 	{

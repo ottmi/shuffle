@@ -1,0 +1,26 @@
+CXX = @CXX@
+CXXFLAGS = @CXXFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+
+VERSION := $(shell awk '/VERSION/ {print $$3}' src/globals.h| sed 's/\"\(.*\)\"/\1/')
+MODULES := AASite.cpp Alignment.cpp AlignmentReader.cpp AlphanumericSite.cpp DNASite.cpp Sequence.cpp Site.cpp helper.cpp shuffle.cpp
+SRC := $(addprefix src/,$(MODULES))
+OBJ := $(patsubst src/%.cpp,src/%.o,$(SRC))
+INCLUDES := $(addprefix -I,$(SRC_DIR))
+BIN = shuffle
+
+all: $(BIN)
+
+$(BIN): $(OBJ)
+	$(CXX) $(LDFLAGS) $(LIBS) -o $(BIN) $(OBJ)
+
+src/%.o: src/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
+
+tarball:
+	tar --transform "s,^,shuffle-$(VERSION)/," -cjf shuffle-$(VERSION).tar.bz2 configure Makefile.in src/*.cpp src/*.h
+
+
+clean:
+	$(RM) $(BIN) $(OBJ)

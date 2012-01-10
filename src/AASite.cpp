@@ -1,6 +1,6 @@
 #include "AASite.h"
 
-AASite::AASite(vector<Sequence>* alignment, int offset, Options *options)
+AASite::AASite(int offset, Options *options)
 {
 	/*
 	 _unambiguousCharacters = "ACDEFGHIKLMNPQRSTVWY";
@@ -12,12 +12,10 @@ AASite::AASite(vector<Sequence>* alignment, int offset, Options *options)
 	_type = 1;
 	for (unsigned int i = 0; i < options->grouping.size(); i++)
 		_cols.push_back(options->grouping[i] + options->groupLength * offset);
-
-	initialize(alignment);
 }
 
 
-AASite::AASite(vector<int> site)
+AASite::AASite(vector<unsigned int> site)
 {
 	_unambiguousThreshold = 19;
 	_type = 1;
@@ -32,7 +30,7 @@ AASite::~AASite()
 }
 
 
-string AASite::mapNumToChar(int n)
+string AASite::mapNumToChar(unsigned int n)
 {
 	string map = _AA_MAP;
 	string s;
@@ -47,117 +45,141 @@ string AASite::mapNumToChar(int n)
 }
 
 
-int AASite::mapCharToNum(string s)
+unsigned int AASite::mapCharToNum(string s)
 {
-	int d = 0;
+	unsigned int d = 0;
 	for (unsigned int i = 0; i < s.size(); i++)
 	{
-		int c = s[i];
+		char c = s[i];
 		d = d << 8;
 		switch (c)
 		{
 			case 'A': // unambiguous
-				d = 0x00;
+			case 'a':
+				d += 0x00;
 				break;
 
 			case 'C':
-				d = 0x01;
+			case 'c':
+				d += 0x01;
 				break;
 
 			case 'D':
-				d = 0x02;
+			case 'd':
+				d += 0x02;
 				break;
 
 			case 'E':
-				d = 0x03;
+			case 'e':
+				d += 0x03;
 				break;
 
 			case 'F':
-				d = 0x04;
+			case 'f':
+				d += 0x04;
 				break;
 
 			case 'G':
-				d = 0x05;
+			case 'g':
+				d += 0x05;
 				break;
 
 			case 'H':
-				d = 0x06;
+			case 'h':
+				d += 0x06;
 				break;
 
 			case 'I':
-				d = 0x07;
+			case 'i':
+				d += 0x07;
 				break;
 
 			case 'K':
-				d = 0x08;
+			case 'k':
+				d += 0x08;
 				break;
 
 			case 'L':
-				d = 0x09;
+			case 'l':
+				d += 0x09;
 				break;
 
 			case 'M':
-				d = 0x0A;
+			case 'm':
+				d += 0x0A;
 				break;
 
 			case 'N':
-				d = 0x0B;
+			case 'n':
+				d += 0x0B;
 				break;
 
 			case 'P':
-				d = 0x0C;
+			case 'p':
+				d += 0x0C;
 				break;
 
 			case 'Q':
-				d = 0x0D;
+			case 'q':
+				d += 0x0D;
 				break;
 
 			case 'R':
-				d = 0x0E;
+			case 'r':
+				d += 0x0E;
 				break;
 
 			case 'S':
-				d = 0x0F;
+			case 's':
+				d += 0x0F;
 				break;
 
 			case 'T':
-				d = 0x10;
+			case 't':
+				d += 0x10;
 				break;
 
 			case 'V':
-				d = 0x11;
+			case 'v':
+				d += 0x11;
 				break;
 
 			case 'W':
-				d = 0x12;
+			case 'w':
+				d += 0x12;
 				break;
 
 			case 'Y':
-				d = 0x13;
+			case 'y':
+				d += 0x13;
 				break;
 
 			case 'B': // ambiguous
-				d = 0x14;
+			case 'b':
+				d += 0x14;
 				break;
 
 			case 'J':
-				d = 0x15;
+			case 'j':
+				d += 0x15;
 				break;
 
 			case 'X':
-				d = 0x16;
+			case 'x':
+				d += 0x16;
 				break;
 
 			case 'Z':
-				d = 0x17;
+			case 'z':
+				d += 0x17;
 				break;
 
 			case '?':
-				d = 0x18;
+				d += 0x18;
 				break;
 
 			default: // missing
-				d = 0x19;
+				d += 0x19;
 				break;
 		}
 	}

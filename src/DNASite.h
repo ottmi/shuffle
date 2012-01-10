@@ -5,13 +5,13 @@
 class DNASite: public Site
 {
 public:
-	DNASite(vector<Sequence>* alignment, int offset, Options *options);
-	DNASite(vector<int> site);
+	DNASite(int offset, Options *options);
+	DNASite(vector<unsigned int> site);
 	virtual ~DNASite();
 
 private:
-	string mapNumToChar(int n);
-	int mapCharToNum(string s);
+	string mapNumToChar(unsigned int n);
+	unsigned int mapCharToNum(string s);
 };
 
 #endif /* DNASITE_H_ */

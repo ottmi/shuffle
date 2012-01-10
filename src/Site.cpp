@@ -2,9 +2,8 @@
 #include <iomanip>
 #include <set>
 #include <sstream>
-#include <math.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cmath>
+#include <cstdlib>
 #include "globals.h"
 #include "helper.h"
 #include "AASite.h"
@@ -12,6 +11,10 @@
 #include "AlphanumericSite.h"
 #include "Sequence.h"
 #include "Site.h"
+#ifdef _MPFR
+#include <mpfr.h>
+#endif
+
 
 Site::Site()
 {
@@ -27,7 +30,6 @@ void Site::initialize()
 {
 	_unambiguousCount = 0;
 	_ambiguousCount = 0;
-	_compSites = 0;
 	_coScore = .0;
 	_poc = .0;
 	_entropy = .0;
@@ -40,7 +42,6 @@ void Site::initialize(vector<Sequence>* alignment)
 {
 	_unambiguousCount = 0;
 	_ambiguousCount = 0;
-	_compSites = 0;
 	_coScore = .0;
 	_poc = .0;
 	_entropy = .0;
@@ -50,10 +51,11 @@ void Site::initialize(vector<Sequence>* alignment)
 	for (unsigned int i = 0; i < alignment->size(); i++)
 	{
 		Sequence sequence = alignment->at(i);
-		int c = this->mapCharToNum(sequence.getColumns(_cols));
+		unsigned int c = this->mapCharToNum(sequence.getColumns(_cols));
 		_site.push_back(c);
 	}
 }
+
 
 void Site::remove(unsigned int i)
 {
@@ -67,7 +69,8 @@ bool Site::checkInformative()
 	_r.clear();
 	for (unsigned int i = 0; i < _site.size(); i++)
 	{
-		int c = _site[i];
+		unsigned int c = _site[i];
+		_pattern[c].insert(i);
 
 		if (charIsUnambiguous(c))
 		{
@@ -104,20 +107,20 @@ bool Site::checkInformative()
 }
 
 
-int getFirst(unsigned long x)
+unsigned int getFirst(unsigned long x)
 {
 	return x >> 32;
 }
 
-int getSecond(unsigned long x)
+unsigned int getSecond(unsigned long x)
 {
 	return x & 0xffffffff;
 }
 
 bool Site::checkCompatibility(Site* site)
 {
-	vector<int> s1 = _site;
-	vector<int> s2 = site->getSite();
+	vector<unsigned int> s1 = _site;
+	vector<unsigned int> s2 = site->getSite();
 
 	set<unsigned long> pairs;
 	for (unsigned int i = 0; i < s1.size(); i++)
@@ -145,10 +148,10 @@ bool Site::checkCompatibility(Site* site)
 		set<unsigned long>::iterator it = pairs.begin();
 		while (it != pairs.end())
 		{
-			int first = getFirst(*it);
+			unsigned int first = getFirst(*it);
 			if (occ1[first] == 1)
 			{
-				int second = getSecond(*it);
+				unsigned int second = getSecond(*it);
 				occ1[first]--;
 				occ2[second]--;
 				pairs.erase(it++);
@@ -162,10 +165,10 @@ bool Site::checkCompatibility(Site* site)
 		it = pairs.begin();
 		while (it != pairs.end())
 		{
-			int second = getSecond(*it);
+			unsigned int second = getSecond(*it);
 			if (occ2[second] == 1)
 			{
-				int first = getFirst(*it);
+				unsigned int first = getFirst(*it);
 				occ1[first]--;
 				occ2[second]--;
 				pairs.erase(it++);
@@ -181,38 +184,142 @@ bool Site::checkCompatibility(Site* site)
 }
 
 
-void Site::incComp()
+void Site::addCompatibleSite(int site)
 {
 #ifdef _OPENMP
-	#pragma omp atomic
+#pragma omp critical
 #endif
-	_compSites++;
+	_compatibleSites.insert(site);
+}
+
+
+void Site::removeCompatibleSite(int site)
+{
+	_compatibleSites.erase(site);
+}
+
+
+double Site::checkPattern(Site* site)
+{
+    /*
+     * Carla A. Cummins and James O. McInerney:
+     * "A Method for Inferring the Rate of Evolution of Homologous Characters that Can Potentially
+     * Improve Phylogenetic Inference, Resolve Deep Divergence and Correct Systematic Biases"
+     * Syst. Biol. 60(6):833–844, 2011
+     */
+
+    SitePattern p_i = getPattern();
+    SitePattern p_j = site->getPattern();
+    set<unsigned int>::iterator base;
+    unsigned int count = 0;
+
+    if (verbose >= 3)
+    {
+	cout << "  Site [" << getCols()[0] << "] ";
+	for (SitePatternIterator part = p_i.begin(); part != p_i.end(); part++)
+	{
+	    for (base = part->second.begin(); base != part->second.end(); base++)
+		cout << *base << " ";
+	    cout << "   ";
+	}
+	cout << endl;
+	cout << "  Site [" << site->getCols()[0] << "] ";
+	for (SitePatternIterator part = p_j.begin(); part != p_j.end(); part++)
+	{
+	    for (base = part->second.begin(); base != part->second.end(); base++)
+		cout << *base << " ";
+	    cout << "   ";
+	}
+	cout << endl;
+    }
+
+    for (SitePatternIterator part1 = p_j.begin(); part1 != p_j.end(); part1++)
+    {
+	for (SitePatternIterator part2 = p_i.begin(); part2 != p_i.end(); part2++)
+	{
+	    unsigned int matches = 0;
+	    for (base = part1->second.begin(); base != part1->second.end(); base++)
+	    {
+		if (part2->second.count(*base))
+		    matches++;
+		else
+		    break;
+	    }
+
+	    if (matches == part1->second.size())
+		count++;
+	}
+    }
+
+    double pa_ij = ((double) count) / p_j.size();
+    if (verbose >= 3)
+	cout << "  patterns=" << p_j.size() << " count=" << count << " pa_ij=" << pa_ij << endl;
+
+    return pa_ij;
 }
 
 
 void Site::computeScores(unsigned int cols)
 {
 	_smin = _r.size() - 1;
-	map<int, int> t;
-	map<int, int>::const_iterator t_it;
+	map<unsigned int, int> t;
+	map<unsigned int, int>::const_iterator t_it;
 
-	unsigned int n = 0;
-	bignum prod_r = 1;
+#ifdef _MPFR
+	mpfr_set_default_prec(512);
+	mpfr_t tmp1, tmp2;
+	mpfr_init(tmp1);
+	mpfr_init(tmp2);
+	mpfr_t prod_r;
+	mpfr_init_set_ui(prod_r, 1, GMP_RNDN);			/* prod_r = 1 */
 	for (BaseOccurenceMapIterator it = _r.begin(); it != _r.end(); it++)
 	{
-		n+= it->second;
+		t[it->second]++;
+		mpfr_fac_ui(tmp1, it->second, GMP_RNDN);	/* tmp1 = factorial(it->second) */
+		mpfr_set(tmp2, prod_r, GMP_RNDN);		/* tmp2 = prod_r */
+		mpfr_mul(prod_r, tmp1, tmp2, GMP_RNDN);		/* prod_r = tmp1 * tmp2 */
+	}
+
+	mpfr_t prod_t;
+	mpfr_init_set_ui(prod_t, 1, GMP_RNDN);			/* prod_t = 1 */
+	for (t_it = t.begin(); t_it != t.end(); t_it++)
+	{
+		mpfr_fac_ui(tmp1, t_it->second, GMP_RNDN);	/* tmp1 = factorial(t_it->second) */
+		mpfr_set(tmp2, prod_t, GMP_RNDN);		/* tmp2 = prod_t */
+		mpfr_mul(prod_t, tmp1, tmp2, GMP_RNDN);		/* prod_t = tmp1 * tmp2 */
+	}
+
+	mpfr_t unamb;
+	mpfr_init(unamb);
+	mpfr_fac_ui(unamb, _unambiguousCount, GMP_RNDN);	/* unamb = factorial(_unambiguousCount) */
+
+	mpfr_div(tmp1, unamb, prod_r, GMP_RNDN);		/* tmp1 = unamb / prod_r */
+	mpfr_div(tmp2, tmp1, prod_t, GMP_RNDN);			/* tmp2 = tmp1 / prod_t */
+	mpfr_log(tmp1, tmp2, GMP_RNDN);				/* tmp1 = log(tmp2) */
+
+	_entropy = mpfr_get_d(tmp1, GMP_RNDN);
+	mpfr_clears(tmp1, tmp2, prod_r, prod_t, unamb, (mpfr_ptr) 0);
+#else
+	double prod_r = 1;
+	for (BaseOccurenceMapIterator it = _r.begin(); it != _r.end(); it++)
+	{
 		t[it->second]++;
 		prod_r *= factorial(it->second);
 	}
 
-	bignum prod_t = 1.0;
+	double prod_t = 1.0;
 	for (t_it = t.begin(); t_it != t.end(); t_it++)
 	{
 		prod_t *= factorial(t_it->second);
 	}
-	bignum unamb = factorial(_unambiguousCount);
-	bignum div =  (unamb / prod_r) / prod_t;
-	_entropy = bignum_log(div);
+	double unamb = factorial(_unambiguousCount);
+	double div =  (unamb / prod_r) / prod_t;
+	_entropy = log(div);
+#endif
+
+	unsigned int n = 0;
+	for (BaseOccurenceMapIterator it = _r.begin(); it != _r.end(); it++)
+		n+= it->second;
 
 	unsigned int d = 0;
 	for (BaseOccurenceMapIterator it=_r.begin(); it!=_r.end(); it++)
@@ -226,7 +333,9 @@ void Site::computeScores(unsigned int cols)
 
 void Site::computeCo(unsigned int cols)
 {
-	_coScore = ((double) _compSites) / (cols-1);
+	_coScore = ((double) getComp()) / (cols-1);
+	if (verbose >= 5)
+		cout << "\rSite [" << colsToString() << "]: compSites=" << getComp() << " co=" << _coScore << endl;
 }
 
 
@@ -234,20 +343,20 @@ void Site::computePOC(int poc, int randomizations)
 {
 	_poc = ((double) poc) / randomizations;
 	if (verbose >= 5)
-		cout << "\rSite [" << colsToString() << "]: compSites=" << _compSites << " co=" << _coScore << " poc=" << _poc << " entropy=" << _entropy << " smin=" << _smin << endl;
+		cout << "\rSite [" << colsToString() << "]: poc=" << _poc << endl;
 }
 
 
 Site* Site::randomize()
 {
-	vector<int> r;
+	vector<unsigned int> r(_site.size(), 0);
 	Site* randomizedSite = NULL;
-	vector<int> positions = _site;
+	vector<unsigned int> positions = _site;
 
 	for (unsigned int i=0; i<_site.size(); i++)
 	{
 		unsigned int j = rand() % positions.size();
-		r.push_back(positions[j]);
+		r[i] = positions[j];
 		positions.erase(positions.begin()+j);
 	}
 
@@ -273,8 +382,8 @@ Site* Site::randomize()
 
 bool Site::compare(Site* s)
 {
-	vector<int> s1 = s->getSite();
-	vector<int> s2 = getSite();
+	vector<unsigned int> s1 = s->getSite();
+	vector<unsigned int> s2 = getSite();
 
 	if (s1.size() != s2.size())
 		return false;
@@ -289,7 +398,7 @@ bool Site::compare(Site* s)
 }
 
 
-bool Site::charIsUnambiguous(int n)
+bool Site::charIsUnambiguous(unsigned int n)
 {
 	for (unsigned int i = 0; i < _cols.size(); i++)
 	{

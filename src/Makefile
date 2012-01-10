@@ -1,14 +1,14 @@
 CXX = mpic++
-CXXFLAGS  = -Wall -g -O3 -D_GMP -D_MPI -D_DEBUG
-LDFLAGS = -lm -lgmpxx -lgmp -lmpfr
+CXXFLAGS  = -Wall -g -O3 -D_MPI -D_MPFR -D_DEBUG
+LDFLAGS = -lm -lmpfr
 
-OBJ = AASite.o Alignment.o AlignmentReader.o AlphanumericSite.o DNASite.o FastaReader.o PhylipReader.o Sequence.o Site.o helper.o shuffle.o
+OBJ = AASite.o Alignment.o AlignmentReader.o AlphanumericSite.o DNASite.o Sequence.o Site.o helper.o shuffle.o
 BIN = shuffle 
 
 all: $(BIN)
 
 $(BIN): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $(BIN) $(OBJ) $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(BIN) $(OBJ)
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $<

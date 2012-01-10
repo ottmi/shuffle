@@ -4,15 +4,16 @@
 
 #include <iostream>
 #include <algorithm>
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <float.h>
+#include <climits>
+#include <cfloat>
 #include <sstream>
 #include <cstdio>
 #include "globals.h"
 #include "Alignment.h"
 #include "helper.h"
+#ifdef _MPFR
+#include "mpfr.h"
+#endif
 
 using namespace std;
 
@@ -28,15 +29,26 @@ int parseArguments(int argc, char** argv, Options *options)
 	if (argc < 2)
 		return 0;
 
+	if (argc == 2 && argv[1][0] == '-')
+	{
+		options->help = true;
+		return 0;
+	}
+
 	options->inputAlignment = string(argv[--argc]);
 
+	options->alignmentFormat = -1;
 	options->dataType = -1;
 	options->removeDuplicates = false;
 	options->removeInformativeSitesDuplicates = false;
+	options->writeInformativeSitesAlignment = false;
+	options->removeIncompatibles = .0;
+	options->convertAlignment = false;
 	options->symmetryTest = false;
 	options->writeExtendedTestResults = false;
 	options->randomizations = 100;
 	options->writeSiteSummary = false;
+	options->writeRandomizedCo = false;
 	options->filterAlignment = false;
 	options->minCo = 0;
 	options->minPOC = 0.0;
@@ -51,7 +63,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ( (c = getopt(argc, argv, "t:p:g:diyxw:r:sf:n:v::h")) != -1)
+	while ((c = getopt(argc, argv, "t:p:g:deij:cyxw:r:szf:a:n:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -107,8 +119,22 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 'd':
 				options->removeDuplicates = true;
 				break;
-			case 'i':
+			case 'e':
 				options->removeInformativeSitesDuplicates = true;
+				break;
+			case 'i':
+				options->writeInformativeSitesAlignment = true;
+				break;
+			case 'j':
+			{
+				stringstream ss(optarg);
+				ss >> options->removeIncompatibles;
+				break;
+			}
+			case 'c':
+				options->convertAlignment = true;
+				if (options->alignmentFormat == -1)
+					options->alignmentFormat = -2;
 				break;
 			case 'y':
 				options->symmetryTest = true;
@@ -136,6 +162,9 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 's':
 				options->writeSiteSummary = true;
 				break;
+			case 'z':
+				options->writeRandomizedCo = true;
+				break;
 			case 'f':
 			{
 				options->filterAlignment = true;
@@ -144,7 +173,7 @@ int parseArguments(int argc, char** argv, Options *options)
 				while (!ss.eof())
 				{
 					char d = ss.get();
-					switch(d)
+					switch (d)
 					{
 						case 'c':
 							ss >> options->minCo;
@@ -167,15 +196,35 @@ int parseArguments(int argc, char** argv, Options *options)
 						default:
 							string param;
 							while (ss.peek() != ',' && ss.peek() != EOF)
-								param+= ss.get();
+								param += ss.get();
 							cerr << "Unknown alignment filter " << d << param << "." << endl;
 							break;
 					}
 				}
 				break;
 			}
+			case 'a':
+			{
+				char type = optarg[0];
+				switch (type)
+				{
+					case 'f':
+					case 'F':
+						options->alignmentFormat = _FASTA_FORMAT;
+						break;
+					case 'p':
+					case 'P':
+						options->alignmentFormat = _PHYLIP_FORMAT;
+						break;
+					default:
+						cerr << "Unknown alignment format: " << optarg << endl;
+						return 3;
+						break;
+				}
+				break;
+			}
 #ifdef _OPENMP
-			case 'n':
+				case 'n':
 				omp_set_num_threads(atoi(optarg));
 				break;
 #endif
@@ -203,9 +252,11 @@ int parseArguments(int argc, char** argv, Options *options)
 		int m = options->inputAlignment.find_last_of('/') + 1;
 		int n = options->inputAlignment.find_last_of('.');
 		if (n > -1)
-			n = n-m;
+			n = n - m;
 		options->prefix = options->inputAlignment.substr(m, n);
 	}
+
+	options->requireInformative = options->removeInformativeSitesDuplicates || options->writeInformativeSitesAlignment|| options->removeIncompatibles > 0 || options->writeSiteSummary || options->writeRandomizedCo || options->filterAlignment;
 
 	return 0;
 }
@@ -222,8 +273,11 @@ void printSyntax()
 	cout << "  -p<STRING>     Prefix for output files [default: name of alignment w/o .ext]" << endl;
 	cout << "  -g<LIST>       Grouping of sites, e.g. 0,1,-2 for duplets, 0,1,2 for codons" << endl;
 	cout << endl;
+	cout << "  -c             Convert alignment format" << endl;
 	cout << "  -d             Remove duplicates and write reduced alignment file" << endl;
-	cout << "  -i             Remove informative sites duplicates, write reduced alignment" << endl;
+	cout << "  -e             Remove informative sites duplicates, write reduced alignment" << endl;
+	cout << "  -i             Write reduced alignment only with parsimony informative sites" << endl;
+	cout << "  -j<NUM>        Iteratively remove incompatible sites until avgCo>=NUM" << endl;
 	cout << endl;
 	cout << "  -y             Perform tests of pairwise symmetry" << endl;
 	cout << "  -x             Write extended output files with test results" << endl;
@@ -231,27 +285,21 @@ void printSyntax()
 	cout << endl;
 	cout << "  -r<NUM>        Number of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -s             Write a site summary" << endl;
+	cout << "  -z             Write Co scores of randomized sites to file" << endl;
 	cout << "  -f<LIST>       Write a new alignment file, filtered by (comma-separated):" << endl;
 	cout << "                   c<NUM>  Minimum Co score [default: 0]" << endl;
 	cout << "                   p<NUM>  Minimum POC score [default: 0.0]" << endl;
 	cout << "                   s<NUM>  Maximum Smin [default: " << INT_MAX << "]" << endl;
 	cout << "                   e<NUM>  Maximum entropy [default: " << DBL_MAX << "]" << endl;
 	cout << endl;
+	cout << "  -a<f|p>        Write [F]asta or [P]hylip alignments [default: same as input]" << endl;
 #ifdef _OPENMP
 	cout << "  -n<NUM>        Number of threads [default: " << omp_get_max_threads() << "]" << endl;
 #endif
 	cout << "  -v[NUM]        Be increasingly verbose" << endl;
 	cout << "  -h             This help page" << endl;
 	cout << endl;
-
-	cout << "Note:" << endl;
-	cout << "  .phy or .phylip extensions indicate sequential Phylip file format" << endl;
-	cout << "  .fsa or .fasta extensions indicate Fasta file format" << endl;
-
-
-	exit(254);
 }
-
 
 int master(int argc, char** argv)
 {
@@ -264,59 +312,94 @@ int master(int argc, char** argv)
 	cout << "MPI|";
 #endif
 
-	cout << PROGDATE << endl << endl;;
+#ifdef _MPFR
+	cout << "MPFR|";
+#endif
 
-   	cout << "Parallel execution with " << numProcs << " processes." << endl << endl;
+	cout << PROGDATE << endl << endl;;
 
 	int ret = parseArguments(argc, argv, &options);
 	if (ret)
 		return ret;
 
 	if (!options.inputAlignment.length() || options.help)
-		printSyntax();
-
-#ifdef _MPI
-	MPI_Bcast(&(options.randomizations), 1, MPI_INT, 0, MPI_COMM_WORLD);
-#endif
-
-	Alignment alignment(&options);
-
-	if (options.removeDuplicates)
 	{
-		alignment.removeDuplicates();
-		alignment.write(options.prefix+".noDupes.fsa");
+		printSyntax();
+		return 254;
 	}
 
-	if (options.writeSiteSummary || options.filterAlignment || options.symmetryTest)
+#ifdef _MPFR
+	cout << "Using MPFR " << MPFR_VERSION_STRING << " for high precision entropy computation." << endl;
+#endif
+
+#ifdef _MPI
+   	cout << "Parallel execution with " << numProcs << " processes." << endl << endl;
+   	int buf[2];
+   	buf[0] = options.randomizations;
+   	buf[1] = verbose;
+	MPI_Bcast(buf, 2, MPI_INT, 0, MPI_COMM_WORLD);
+#endif
+
+	try
 	{
-		alignment.collectSites(&options);
+		Alignment alignment = Alignment(&options);
 
-		if (options.removeInformativeSitesDuplicates)
+		if (options.convertAlignment)
+			alignment.write(options.prefix, options.alignmentFormat);
+
+		if (options.removeDuplicates)
 		{
-			alignment.removeInformativeSitesDuplicates();
-			alignment.write(options.prefix+".noDupes2.fsa");
+			alignment.removeDuplicates();
+			alignment.write(options.prefix + ".noDupes", options.alignmentFormat);
 		}
 
-		if (options.symmetryTest)
-			alignment.testSymmetry(options.prefix, options.writeExtendedTestResults, options.windowSize, options.windowStep);
-
-		if (options.writeSiteSummary || options.filterAlignment)
+		if (options.symmetryTest || options.requireInformative)
 		{
-			alignment.computeBasicScores();
-			alignment.send();
-			alignment.computeCompatibilityScores(options.randomizations);
+			alignment.collectSites(&options);
+
+			if (options.writeInformativeSitesAlignment)
+			{
+			    Alignment informativeSitesAlignment = alignment.getInformativeSitesAlignment();
+			    informativeSitesAlignment.write(options.prefix+".informative", options.alignmentFormat);
+			}
+
+			if (options.removeInformativeSitesDuplicates)
+			{
+				alignment.removeInformativeSitesDuplicates();
+				alignment.write(options.prefix + ".noDupes2", options.alignmentFormat);
+			}
+
+			if (options.symmetryTest)
+				alignment.testSymmetry(options.prefix, options.writeExtendedTestResults, options.windowSize, options.windowStep);
+
+			if (options.removeIncompatibles || options.writeSiteSummary || options.writeRandomizedCo || options.filterAlignment)
+			{
+				alignment.computeNonContextScores();
+				alignment.send();
+				alignment.computeContextScores(options.randomizations);
+			}
+
+			if (options.writeSiteSummary)
+				alignment.writeSummary(options.prefix + ".sites");
+
+			if (options.writeRandomizedCo)
+				alignment.writeRandomizedCo(options.prefix);
+
+			if (options.filterAlignment)
+			{
+				Alignment filteredAlignment = alignment.getFilteredAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
+				cout << "New alignment contains " << filteredAlignment.getNumOfRows() << " sequences with " << filteredAlignment.getNumOfCols() << " columns." << endl;
+				filteredAlignment.write(options.prefix + ".filtered", options.alignmentFormat);
+			}
+
+			if (options.removeIncompatibles > 0)
+			    alignment.removeIncompatiblesIterative(&options);
 		}
 
-		if (options.writeSiteSummary)
-			alignment.writeSummary(options.prefix);
-
-		if (options.filterAlignment)
-		{
-			cout << "Creating new alignment with minCo=" << options.minCo << " minPOC=" << options.minPOC << " maxSmin=" << options.maxSmin << " maxEntropy=" << options.maxEntropy << endl;
-			Alignment modifiedAlignment = alignment.getModifiedAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
-			cout << "New alignment contains " << modifiedAlignment.getNumOfRows() << " sequences with " << modifiedAlignment.getNumOfCols() << " columns." << endl;
-			modifiedAlignment.write(options.prefix+".filtered.fsa");
-		}
+	} catch (string& s)
+	{
+		cerr << s << endl;
+		return(255);
 	}
 
 	return 0;
@@ -325,13 +408,14 @@ int master(int argc, char** argv)
 
 int worker()
 {
-	int randomizations;
+	int buf[2];
 
-	MPI_Bcast(&randomizations, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(buf, 2, MPI_INT, 0, MPI_COMM_WORLD);
+	verbose = buf[1];
 
 	Alignment alignment;
 	alignment.recv();
-	alignment.computeCompatibilityScores(randomizations);
+	alignment.computeContextScores(buf[0]);
 
 	return 0;
 }
