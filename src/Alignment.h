@@ -39,7 +39,7 @@ public:
 private:
 	void computeCo(unsigned int start, unsigned int stop, unsigned int n);
 	void computePOC(unsigned int start, unsigned int stop, unsigned int n, unsigned int randomizations);
-	void computeR_i(unsigned int start, unsigned int stop, unsigned int n);
+	void computeR(unsigned int start, unsigned int stop, unsigned int n);
 
 	int _dataType;
 	int _format;

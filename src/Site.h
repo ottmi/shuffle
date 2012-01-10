@@ -34,8 +34,8 @@ public:
 	bool compare(Site* s);
 	Site* randomize();
 	void setPOC(double poc);
-	void setR_i(double r_i) { _r_i = r_i; };
-	double getR_i() { return _r_i; };
+	void setR(double r) { _r = r; };
+	double getR() { return _r; };
 	vector<unsigned int> getSite() { return _site; };
 	vector<int> getCols() { return _cols; };
 	unsigned int getPos(unsigned int pos) { return _site[pos]; };
@@ -75,7 +75,7 @@ protected:
 	double _entropy;
 	int _smin;
 	double _ov;
-	double _r_i;
+	double _r;
 	vector<double> _randomizedCo;
 };
 

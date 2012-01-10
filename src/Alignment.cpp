@@ -466,9 +466,9 @@ void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n
 }
 
 
-void Alignment::computeR_i(unsigned int start, unsigned int stop, unsigned int n)
+void Alignment::computeR(unsigned int start, unsigned int stop, unsigned int n)
 {
-	cout << "  Computing r_i: 0%" << flush;
+	cout << "  Computing r: 0%" << flush;
 
 	long count, total, t1, t2, lastTime;
 	count = 0;
@@ -487,7 +487,7 @@ void Alignment::computeR_i(unsigned int start, unsigned int stop, unsigned int n
 		if (i != j)
 		    sum+= _informativeSites[i]->checkPattern(_informativeSites[j]);
 	    }
-	    _informativeSites[i]->setR_i(sum/(n-1));
+	    _informativeSites[i]->setR(sum/(n-1));
 
 	    count++;
 	    if (omp_get_thread_num() == 0)
@@ -497,12 +497,12 @@ void Alignment::computeR_i(unsigned int start, unsigned int stop, unsigned int n
 		{
 		    long elapsed = t2 - t1;
 		    long eta = (elapsed * total) / count - elapsed;
-		    cout << "\r  Computing r_i: " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+		    cout << "\r  Computing r: " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
 		}
 	    }
 	}
 	t2 = time(NULL);
-	cout << "\r  Computing r_i: Done, taking " << printTime(t2-t1) << "                         " << endl << endl;
+	cout << "\r  Computing r: Done, taking " << printTime(t2-t1) << "                         " << endl << endl;
 
 }
 
@@ -517,7 +517,7 @@ void Alignment::computeContextDependentScores(int randomizations)
 	computeCo(0, n, n);
 	if (randomizations)
 	    computePOC(0, n, n, randomizations);
-	computeR_i(0, n, n);
+	computeR(0, n, n);
 }
 
 
@@ -603,7 +603,7 @@ void Alignment::writeSummary(string prefix)
 			bases.insert(it->first);
 	}
 
-	file << "Site No.,Smin,Entropy,OV,Co,Poc,r_i";
+	file << "Site No.,Smin,Entropy,OV,Co,Poc,r";
 	Site* s = _informativeSites[0];
 	for (set<int>::iterator it = bases.begin(); it != bases.end(); it++)
 		file << ",f(" << s->mapNumToChar(*it) << ")";
@@ -613,7 +613,7 @@ void Alignment::writeSummary(string prefix)
 	{
 		Site* s = _informativeSites[i];
 		BaseOccurenceMap f = s->getFrequencies();
-		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << fixed << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC()<< "," << s->getR_i();
+		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << fixed << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC()<< "," << s->getR();
 		for (set<int>::iterator it = bases.begin(); it != bases.end(); it++)
 			file << "," << (((double) f[*it]) / getNumOfRows());
 		file << "," << ((double) s->getAmbiguousCount()) / getNumOfRows() << endl;
