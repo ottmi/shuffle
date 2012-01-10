@@ -15,11 +15,11 @@ DNASite::DNASite(int offset, Options *options)
 }
 
 
-DNASite::DNASite(vector<unsigned int> site)
+DNASite::DNASite(int col, vector<unsigned int> site)
 {
 	_unambiguousThreshold = 4;
 	_type = 0;
-	_cols = vector<int> (1, -1);
+	_cols = vector<int> (1, col);
 	_site = site;
 	initialize();
 }

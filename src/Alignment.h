@@ -21,10 +21,9 @@ public:
 	void removeInformativeSitesDuplicates();
 	void removeIncompatiblesIterative(Options *options);
 	void collectSites(Options *options);
-	void testSymmetry(string prefix, bool extended, int windowSize, int windowStep);
 	void checkIdenticalSites();
-	void computeNonContextScores();
-	void computeContextScores(int randomizations);
+	void computeContextIndependentScores();
+	void computeContextDependentScores(int randomizations);
 	void writeRandomizedCo(string prefix);
 	void writeSummary(string prefix);
 	Alignment getFilteredAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
@@ -40,6 +39,10 @@ public:
 	unsigned int getNumOfCols() { return _cols; };
 
 private:
+	void computeCo(unsigned int start, unsigned int stop, unsigned int n);
+	void computePOC(unsigned int start, unsigned int stop, unsigned int n, unsigned int randomizations);
+	void computeR(unsigned int start, unsigned int stop, unsigned int n);
+
 	int _dataType;
 	int _format;
 	unsigned int _cols;

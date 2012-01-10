@@ -6,7 +6,7 @@ class AASite: public Site
 {
 public:
 	AASite(int offset, Options *options);
-	AASite(vector<unsigned int> site);
+	AASite(int col, vector<unsigned int> site);
 	virtual ~AASite();
 
 private:

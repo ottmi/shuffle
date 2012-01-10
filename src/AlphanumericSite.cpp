@@ -9,11 +9,11 @@ AlphanumericSite::AlphanumericSite(int offset, Options *options)
 }
 
 
-AlphanumericSite::AlphanumericSite(vector<unsigned int> site)
+AlphanumericSite::AlphanumericSite(int col, vector<unsigned int> site)
 {
 	_unambiguousThreshold = 35;
 	_type = _ALPHANUM_DATA;
-	_cols = vector<int> (1, -1);
+	_cols = vector<int> (1, col);
 	_site = site;
 	initialize();
 }

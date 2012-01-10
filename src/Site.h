@@ -34,15 +34,15 @@ public:
 	void computePOC(int poc, int randomizations);
 	bool compare(Site* s);
 	Site* randomize();
-	void setCo(double coScore) { _coScore = coScore; };
 	void setPOC(double poc) { _poc = poc; };
-	void setR_i(double r_i) { _r_i = r_i; };
-	double getR_i() { return _r_i; };
+	void setR(double r) { _r = r; };
+	double getR() { return _r; };
 	vector<unsigned int> getSite() { return _site; };
 	vector<int> getCols() { return _cols; };
 	unsigned int getPos(unsigned int pos) { return _site[pos]; };
 	bool isInformative() { return _isInformative; };
-	int getComp() { return _compatibleSites.size(); };
+	int getComp();
+	void setComp(unsigned int val);
 	double getCo() { return _coScore; };
 	double getPOC() { return _poc; };
 	double getEntropy() { return _entropy; };
@@ -53,7 +53,7 @@ public:
 	SitePattern& getPattern() { return _pattern; };
 	int getUnambiguousCount() { return _unambiguousCount; };
 	int getAmbiguousCount() { return _ambiguousCount; };
-	BaseOccurenceMap& getFrequencies() { return _r; };
+	BaseOccurenceMap& getFrequencies() { return _baseOccurences; };
 	bool charIsUnambiguous(unsigned int n);
 	virtual string mapNumToChar(unsigned int n) =0;
 	virtual unsigned int mapCharToNum(string s) =0;
@@ -65,19 +65,23 @@ protected:
 	int _type; // 0=DNA, 1=AA
 	vector<unsigned int> _site;
 	char _unambiguousThreshold;
-	BaseOccurenceMap _r;
+	BaseOccurenceMap _baseOccurences;
 	SitePattern _pattern;
 	int _unambiguousCount;
 	int _ambiguousCount;
 	vector<int> _cols;
+#ifdef _MPI
+	unsigned int _compatibleSites;
+#else
 	set<int> _compatibleSites;
+#endif
 	bool _isInformative;
 	double _coScore;
 	double _poc;
 	double _entropy;
 	int _smin;
 	double _ov;
-	double _r_i;
+	double _r;
 	vector<double> _randomizedCo;
 };
 

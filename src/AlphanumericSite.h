@@ -7,7 +7,7 @@ class AlphanumericSite: public Site
 {
 public:
 	AlphanumericSite(int offset, Options *options);
-	AlphanumericSite(vector<unsigned int> site);
+	AlphanumericSite(int col, vector<unsigned int> site);
 	virtual ~AlphanumericSite();
 
 private:

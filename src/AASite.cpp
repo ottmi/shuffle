@@ -15,11 +15,11 @@ AASite::AASite(int offset, Options *options)
 }
 
 
-AASite::AASite(vector<unsigned int> site)
+AASite::AASite(int col, vector<unsigned int> site)
 {
 	_unambiguousThreshold = 19;
 	_type = 1;
-	_cols = vector<int> (1, -1);
+	_cols = vector<int> (1, col);
 	_site = site;
 	initialize();
 }
