@@ -331,8 +331,8 @@ int main(int argc, char** argv)
 
 			if (options.removeIncompatibles || options.writeSiteSummary || options.writeRandomizedCo || options.filterAlignment)
 			{
-				alignment.computeNonContextScores();
-				alignment.computeContextScores(options.randomizations);
+				alignment.computeContextIndependentScores();
+				alignment.computeContextDependentScores(options.randomizations);
 			}
 
 			if (options.writeSiteSummary)

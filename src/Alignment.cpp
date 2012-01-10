@@ -343,10 +343,10 @@ void Alignment::checkIdenticalSites()
 }
 
 
-void Alignment::computeNonContextScores()
+void Alignment::computeContextIndependentScores()
 {
 	cout << endl;
-	cout << "Computing non context sensitive scores..." << endl;
+	cout << "Computing context-independent scores..." << endl;
 
 	unsigned long n = _informativeSites.size();
 	long t1 = time(NULL);
@@ -363,10 +363,10 @@ void Alignment::computeNonContextScores()
 }
 
 
-void Alignment::computeContextScores(int randomizations)
+void Alignment::computeContextDependentScores(int randomizations)
 {
 	cout << endl;
-	cout << "Computing context sensitive scores, doing " << randomizations << " randomizations for POC:" << endl;
+	cout << "Computing context-dependent scores, doing " << randomizations << " randomizations for POC:" << endl;
 
 	long t1, t2, lastTime, total, count;
 	unsigned long n = _informativeSites.size();

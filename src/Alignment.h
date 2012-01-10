@@ -22,8 +22,8 @@ public:
 	void removeIncompatiblesIterative(Options *options);
 	void collectSites(Options *options);
 	void checkIdenticalSites();
-	void computeNonContextScores();
-	void computeContextScores(int randomizations);
+	void computeContextIndependentScores();
+	void computeContextDependentScores(int randomizations);
 	void writeRandomizedCo(string prefix);
 	void writeSummary(string prefix);
 	Alignment getFilteredAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
