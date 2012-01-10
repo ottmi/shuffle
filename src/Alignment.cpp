@@ -363,26 +363,21 @@ void Alignment::computeContextIndependentScores()
 }
 
 
-void Alignment::computeContextDependentScores(int randomizations)
+void Alignment::computeCo(unsigned int start, unsigned int stop, unsigned int n)
 {
-	cout << endl;
-	cout << "Computing context-dependent scores, doing " << randomizations << " randomizations for POC:" << endl;
+	cout << "  Computing Co:  0%" << flush;
 
-	long t1, t2, lastTime, total, count;
-	unsigned long n = _informativeSites.size();
-
+	long count, total, t1, t2, lastTime;
+	count = 0;
+	total = stop - start;
 	t1 = time(NULL);
 	lastTime = t1;
-	srand( t1 );
 
-	count = 0;
-	total = n * (n - 1) / 2;
-	cout << "  Computing Co:  0%" << flush;
 #ifdef _OPENMP
 	long chunk = n / (omp_get_num_threads() * 8);
 #pragma omp parallel for shared(count) schedule(dynamic, chunk)
 #endif
-	for (unsigned int i = 0; i < n; i++)
+	for (unsigned int i = start; i < stop; i++)
 	{
 		for (unsigned int j = i + 1; j < n; j++)
 		{
@@ -392,7 +387,8 @@ void Alignment::computeContextDependentScores(int randomizations)
 				_informativeSites[j]->addCompatibleSite(_informativeSites[i]->getCols()[0]);
 			}
 		}
-		count += n - i - 1;
+
+		count++;
 		if (omp_get_thread_num() == 0)
 		{
 			t2 = time(NULL);
@@ -405,70 +401,85 @@ void Alignment::computeContextDependentScores(int randomizations)
 			}
 		}
 	}
-	t2 = time(NULL);
-	cout << "\r  Computing Co:  Done, taking " << printTime(t2-t1) << "                         " << endl;
-	t1 = t2;
 
-	count = 0;
-	total = n * n * randomizations;
-	if (randomizations)
-	    cout << "  Computing POC: 0%" << flush;
 #ifdef _OPENMP
 #pragma omp parallel for shared(count) schedule(guided)
 #endif
-	for (unsigned int i = 0; i < n; i++)
-	{
+	for (unsigned int i = start; i < stop; i++)
 		_informativeSites[i]->computeCo(n);
 
-		if (randomizations)
-		{
-#ifdef _DEBUG
-			srand( i+42 );
-#endif
-			int poc = 0;
-			for (int r = 0; r < randomizations; r++)
-			{
-				int comp = 0;
-				Site* randomSite = _informativeSites[i]->randomize();
-				for (unsigned int j = 0; j < n; j++)
-				{
-					if (i != j && randomSite->checkCompatibility(_informativeSites[j]))
-						comp++;
-				}
-				delete randomSite;
-				_informativeSites[i]->addRandomizedCo(((double) comp) / n);
-				if (_informativeSites[i]->getComp() <= comp)
-					poc++;
-			}
+	t2 = time(NULL);
+	cout << "\r  Computing Co:  Done, taking " << printTime(t2-t1) << "                         " << endl;
+}
 
-			count += randomizations * n;
-			if (omp_get_thread_num() == 0)
-			{
-				t2 = time(NULL);
-				if (t2 > lastTime)
-				{
-					long elapsed = t2 - t1;
-					long eta = (elapsed * total) / count - elapsed;
-					cout << "\r  Computing POC: " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
-				}
-			}
-			_informativeSites[i]->computePOC(poc, randomizations);
-		}
-	}
-	if (randomizations)
-	{
-	    t2 = time(NULL);
-	    cout << "\r  Computing POC: Done, taking " << printTime(t2-t1) << "                         " << endl;
-	    t1 = t2;
-	}
 
+void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n, unsigned int randomizations)
+{
+	cout << "  Computing POC: 0%" << flush;
+
+	long count, total, t1, t2, lastTime;
 	count = 0;
-	total = n * n;
-	cout << "  Computing r_i: 0%" << flush;
+	total = stop - start;
+	t1 = time(NULL);
+	lastTime = t1;
+
 #ifdef _OPENMP
 #pragma omp parallel for shared(count) schedule(guided)
 #endif
-	for (unsigned int i = 0; i < n; i++)
+	for (unsigned int i = start; i < stop; i++)
+	{
+#ifdef _DEBUG
+		srand( i+42 );
+#endif
+		int poc = 0;
+		for (int r = 0; r < randomizations; r++)
+		{
+			int comp = 0;
+			Site* randomSite = _informativeSites[i]->randomize();
+			for (unsigned int j = 0; j < n; j++)
+			{
+				if (i != j && randomSite->checkCompatibility(_informativeSites[j]))
+					comp++;
+			}
+			delete randomSite;
+			_informativeSites[i]->addRandomizedCo(((double) comp) / n);
+			if (_informativeSites[i]->getComp() <= comp)
+				poc++;
+		}
+
+		count++;
+		if (omp_get_thread_num() == 0)
+		{
+			t2 = time(NULL);
+			if (t2 > lastTime)
+			{
+				long elapsed = t2 - t1;
+				long eta = (elapsed * total) / count - elapsed;
+				cout << "\r  Computing POC: " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+			}
+		}
+		_informativeSites[i]->computePOC(poc, randomizations);
+	}
+
+	t2 = time(NULL);
+	cout << "\r  Computing POC: Done, taking " << printTime(t2-t1) << "                         " << endl;
+}
+
+
+void Alignment::computeR_i(unsigned int start, unsigned int stop, unsigned int n)
+{
+	cout << "  Computing r_i: 0%" << flush;
+
+	long count, total, t1, t2, lastTime;
+	count = 0;
+	total = stop - start;
+	t1 = time(NULL);
+	lastTime = t1;
+
+#ifdef _OPENMP
+#pragma omp parallel for shared(count) schedule(guided)
+#endif
+	for (unsigned int i = start; i < stop; i++)
 	{
 	    double sum = 0;
 	    for (unsigned int j = 0; j < n; j++)
@@ -478,7 +489,7 @@ void Alignment::computeContextDependentScores(int randomizations)
 	    }
 	    _informativeSites[i]->setR_i(sum/(n-1));
 
-	    count+= n;
+	    count++;
 	    if (omp_get_thread_num() == 0)
 	    {
 		t2 = time(NULL);
@@ -492,6 +503,21 @@ void Alignment::computeContextDependentScores(int randomizations)
 	}
 	t2 = time(NULL);
 	cout << "\r  Computing r_i: Done, taking " << printTime(t2-t1) << "                         " << endl << endl;
+
+}
+
+void Alignment::computeContextDependentScores(int randomizations)
+{
+	cout << endl;
+	cout << "Computing context-dependent scores, doing " << randomizations << " randomizations for POC:" << endl;
+
+	unsigned int n = _informativeSites.size();
+	srand( time(NULL) );
+
+	computeCo(0, n, n);
+	if (randomizations)
+	    computePOC(0, n, n, randomizations);
+	computeR_i(0, n, n);
 }
 
 
