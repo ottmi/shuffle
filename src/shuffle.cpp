@@ -305,6 +305,9 @@ int main(int argc, char** argv)
 #ifdef _MPFR
 	cout << "MPFR|";
 #endif
+#ifdef _DEBUG
+	cout << "DEBUG|";
+#endif
 
 	cout << PROGDATE << endl << endl;
 
