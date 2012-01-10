@@ -51,7 +51,7 @@ public:
 	SitePattern& getPattern() { return _pattern; };
 	int getUnambiguousCount() { return _unambiguousCount; };
 	int getAmbiguousCount() { return _ambiguousCount; };
-	BaseOccurenceMap& getFrequencies() { return _r; };
+	BaseOccurenceMap& getFrequencies() { return _baseOccurences; };
 	bool charIsUnambiguous(unsigned int n);
 	virtual string mapNumToChar(unsigned int n) =0;
 	virtual unsigned int mapCharToNum(string s) =0;
@@ -63,7 +63,7 @@ protected:
 	int _type; // 0=DNA, 1=AA
 	vector<unsigned int> _site;
 	char _unambiguousThreshold;
-	BaseOccurenceMap _r;
+	BaseOccurenceMap _baseOccurences;
 	SitePattern _pattern;
 	int _unambiguousCount;
 	int _ambiguousCount;

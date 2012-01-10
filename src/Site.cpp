@@ -54,7 +54,7 @@ void Site::remove(unsigned int i)
 bool Site::checkInformative()
 {
 	_unambiguousCount = 0;
-	_r.clear();
+	_baseOccurences.clear();
 	for (unsigned int i = 0; i < _site.size(); i++)
 	{
 		unsigned int c = _site[i];
@@ -62,14 +62,14 @@ bool Site::checkInformative()
 
 		if (charIsUnambiguous(c))
 		{
-			_r[c]++;
+			_baseOccurences[c]++;
 			_unambiguousCount++;
 		}
 	}
 	_ambiguousCount = _site.size()-_unambiguousCount;
 
 	int informative = 0;
-	for (BaseOccurenceMapIterator it=_r.begin(); it!=_r.end(); it++)
+	for (BaseOccurenceMapIterator it=_baseOccurences.begin(); it!=_baseOccurences.end(); it++)
 		if (charIsUnambiguous(it->first) && it->second >= 2)
 			informative++;
 
@@ -249,7 +249,7 @@ double Site::checkPattern(Site* site)
 
 void Site::computeScores(unsigned int cols)
 {
-	_smin = _r.size() - 1;
+	_smin = _baseOccurences.size() - 1;
 	map<unsigned int, int> t;
 	map<unsigned int, int>::const_iterator t_it;
 
@@ -260,7 +260,7 @@ void Site::computeScores(unsigned int cols)
 	mpfr_init(tmp2);
 	mpfr_t prod_r;
 	mpfr_init_set_ui(prod_r, 1, GMP_RNDN);			/* prod_r = 1 */
-	for (BaseOccurenceMapIterator it = _r.begin(); it != _r.end(); it++)
+	for (BaseOccurenceMapIterator it = _baseOccurences.begin(); it != _baseOccurences.end(); it++)
 	{
 		t[it->second]++;
 		mpfr_fac_ui(tmp1, it->second, GMP_RNDN);	/* tmp1 = factorial(it->second) */
@@ -289,7 +289,7 @@ void Site::computeScores(unsigned int cols)
 	mpfr_clears(tmp1, tmp2, prod_r, prod_t, unamb, (mpfr_ptr) 0);
 #else
 	double prod_r = 1;
-	for (BaseOccurenceMapIterator it = _r.begin(); it != _r.end(); it++)
+	for (BaseOccurenceMapIterator it = _baseOccurences.begin(); it != _baseOccurences.end(); it++)
 	{
 		t[it->second]++;
 		prod_r *= factorial(it->second);
@@ -306,11 +306,11 @@ void Site::computeScores(unsigned int cols)
 #endif
 
 	unsigned int n = 0;
-	for (BaseOccurenceMapIterator it = _r.begin(); it != _r.end(); it++)
+	for (BaseOccurenceMapIterator it = _baseOccurences.begin(); it != _baseOccurences.end(); it++)
 		n+= it->second;
 
 	unsigned int d = 0;
-	for (BaseOccurenceMapIterator it=_r.begin(); it!=_r.end(); it++)
+	for (BaseOccurenceMapIterator it=_baseOccurences.begin(); it!=_baseOccurences.end(); it++)
 		if (charIsUnambiguous(it->first))
 			d+= (n - it->second) * it->second;
 
