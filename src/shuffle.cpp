@@ -37,8 +37,6 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->writeInformativeSitesAlignment = false;
 	options->removeIncompatibles = .0;
 	options->convertAlignment = false;
-	options->symmetryTest = false;
-	options->writeExtendedTestResults = false;
 	options->randomizations = 100;
 	options->writeSiteSummary = false;
 	options->writeRandomizedCo = false;
@@ -49,14 +47,11 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->maxEntropy = DBL_MAX;
 	options->help = 0;
 	options->grouping.push_back(0);
-	options->windowSize = -1;
-	options->windowStep = -1;
-	options->writeExtendedTestResults = false;
 
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ((c = getopt(argc, argv, "t:p:g:deij:cyxw:r:szf:a:n:v::h")) != -1)
+	while ((c = getopt(argc, argv, "t:p:g:deij:cr:szf:a:n:v::h")) != -1)
 	{
 		switch (c)
 		{
@@ -129,26 +124,6 @@ int parseArguments(int argc, char** argv, Options *options)
 				if (options->alignmentFormat == -1)
 					options->alignmentFormat = -2;
 				break;
-			case 'y':
-				options->symmetryTest = true;
-				break;
-			case 'x':
-				options->writeExtendedTestResults = true;
-				break;
-			case 'w':
-			{
-				int i;
-				stringstream ss(optarg);
-				while (ss >> i)
-				{
-					if (options->windowSize < 0)
-						options->windowSize = i;
-					options->windowStep = i;
-					if (ss.peek() == ',')
-						ss.ignore();
-				}
-				break;
-			}
 			case 'r':
 				options->randomizations = atoi(optarg);
 				break;
@@ -272,10 +247,6 @@ void printSyntax()
 	cout << "  -i             Write reduced alignment only with parsimony informative sites" << endl;
 	cout << "  -j<NUM>        Iteratively remove incompatible sites until avgCo>=NUM" << endl;
 	cout << endl;
-	cout << "  -y             Perform tests of pairwise symmetry" << endl;
-	cout << "  -x             Write extended output files with test results" << endl;
-	cout << "  -w<NUM>,[NUM]  Window size and step width for symmetry test" << endl;
-	cout << endl;
 	cout << "  -r<NUM>        Number of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -s             Write a site summary" << endl;
 	cout << "  -z             Write Co scores of randomized sites to file" << endl;
@@ -342,7 +313,7 @@ int main(int argc, char** argv)
 			alignment.write(options.prefix + ".noDupes", options.alignmentFormat);
 		}
 
-		if (options.symmetryTest || options.requireInformative)
+		if (options.requireInformative)
 		{
 			alignment.collectSites(&options);
 
@@ -357,9 +328,6 @@ int main(int argc, char** argv)
 				alignment.removeInformativeSitesDuplicates();
 				alignment.write(options.prefix + ".noDupes2", options.alignmentFormat);
 			}
-
-			if (options.symmetryTest)
-				alignment.testSymmetry(options.prefix, options.writeExtendedTestResults, options.windowSize, options.windowStep);
 
 			if (options.removeIncompatibles || options.writeSiteSummary || options.writeRandomizedCo || options.filterAlignment)
 			{

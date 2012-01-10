@@ -16,9 +16,5 @@ double factorial(int n);
 string printTime(long t);
 istream& safeGetline(istream& is, string& t);
 string adjustString(string s, bool upercase=false);
-void gcf(double *gammcf, double a, double x, double *gln);
-void gser(double *gamser, double a, double x, double *gln);
-double gammln(double xx);
-double gammq(double a, double x);
 
 #endif /* HELPER_H_ */

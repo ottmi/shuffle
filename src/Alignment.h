@@ -21,7 +21,6 @@ public:
 	void removeInformativeSitesDuplicates();
 	void removeIncompatiblesIterative(Options *options);
 	void collectSites(Options *options);
-	void testSymmetry(string prefix, bool extended, int windowSize, int windowStep);
 	void checkIdenticalSites();
 	void computeNonContextScores();
 	void computeContextScores(int randomizations);
