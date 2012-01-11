@@ -321,10 +321,11 @@ int master(int argc, char** argv)
 
 #ifdef _MPI
    	cout << "Parallel execution with " << numProcs << " processes." << endl << endl;
-   	int buf[2];
-   	buf[0] = options.randomizations;
-   	buf[1] = verbose;
-	MPI_Bcast(buf, 2, MPI_INT, 0, MPI_COMM_WORLD);
+   	int buf[5];
+   	buf[0] = verbose;
+   	buf[1] = options.randomizations;
+   	buf[2] = (int) options.writeRandomizedCo;
+	MPI_Bcast(buf, 5, MPI_INT, 0, MPI_COMM_WORLD);
 #endif
 
 	try
@@ -362,7 +363,7 @@ int master(int argc, char** argv)
 #ifdef _MPI
 				alignment.send();
 #endif
-				alignment.computeContextDependentScores(options.randomizations);
+				alignment.computeContextDependentScores(options.randomizations, options.writeRandomizedCo);
 			}
 
 			if (options.writeSiteSummary)
@@ -395,14 +396,14 @@ int master(int argc, char** argv)
 #ifdef _MPI
 int worker()
 {
-	int buf[2];
+	int buf[5];
 
-	MPI_Bcast(buf, 2, MPI_INT, 0, MPI_COMM_WORLD);
-	verbose = buf[1];
+	MPI_Bcast(buf, 5, MPI_INT, 0, MPI_COMM_WORLD);
+	verbose = buf[0];
 
 	Alignment alignment;
 	alignment.recv();
-	alignment.computeContextDependentScores(buf[0]);
+	alignment.computeContextDependentScores(buf[1], (bool) buf[2]);
 
 	return 0;
 }
