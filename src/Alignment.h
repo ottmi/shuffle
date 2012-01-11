@@ -23,7 +23,7 @@ public:
 	void collectSites(Options *options);
 	void checkIdenticalSites();
 	void computeContextIndependentScores();
-	void computeContextDependentScores(int randomizations);
+	void computeContextDependentScores(unsigned int randomizations, bool writeRandomizedCo);
 	void writeRandomizedCo(string prefix);
 	void writeSummary(string prefix);
 	Alignment getFilteredAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
@@ -38,7 +38,7 @@ public:
 
 private:
 	void computeCo(unsigned int start, unsigned int stop, unsigned int n);
-	void computePOC(unsigned int start, unsigned int stop, unsigned int n, unsigned int randomizations);
+	void computePOC(unsigned int start, unsigned int stop, unsigned int n, unsigned int randomizations, bool writeRandomizedCo);
 	void computeR(unsigned int start, unsigned int stop, unsigned int n);
 
 	int _dataType;

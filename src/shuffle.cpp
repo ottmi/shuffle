@@ -332,7 +332,7 @@ int main(int argc, char** argv)
 			if (options.removeIncompatibles || options.writeSiteSummary || options.writeRandomizedCo || options.filterAlignment)
 			{
 				alignment.computeContextIndependentScores();
-				alignment.computeContextDependentScores(options.randomizations);
+				alignment.computeContextDependentScores(options.randomizations, options.writeRandomizedCo);
 			}
 
 			if (options.writeSiteSummary)

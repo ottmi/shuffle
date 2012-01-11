@@ -413,7 +413,7 @@ void Alignment::computeCo(unsigned int start, unsigned int stop, unsigned int n)
 }
 
 
-void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n, unsigned int randomizations)
+void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n, unsigned int randomizations, bool writeRandomizedCo)
 {
 	cout << "  Computing POC: 0%" << flush;
 
@@ -442,7 +442,8 @@ void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n
 					comp++;
 			}
 			delete randomSite;
-			_informativeSites[i]->addRandomizedCo(((double) comp) / n);
+			if (writeRandomizedCo)
+			    _informativeSites[i]->addRandomizedCo(((double) comp) / n);
 			if (_informativeSites[i]->getComp() <= comp)
 				poc++;
 		}
@@ -506,7 +507,7 @@ void Alignment::computeR(unsigned int start, unsigned int stop, unsigned int n)
 
 }
 
-void Alignment::computeContextDependentScores(int randomizations)
+void Alignment::computeContextDependentScores(unsigned int randomizations, bool writeRandomizedCo)
 {
 	cout << endl;
 	cout << "Computing context-dependent scores, doing " << randomizations << " randomizations for POC:" << endl;
@@ -516,7 +517,7 @@ void Alignment::computeContextDependentScores(int randomizations)
 
 	computeCo(0, n, n);
 	if (randomizations)
-	    computePOC(0, n, n, randomizations);
+	    computePOC(0, n, n, randomizations, writeRandomizedCo);
 	computeR(0, n, n);
 }
 
