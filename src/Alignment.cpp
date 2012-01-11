@@ -287,7 +287,7 @@ void Alignment::collectSites(Options *options)
 				s->checkInformative();
 		}
 		count++;
-		if (omp_get_thread_num() == 0)
+		if (myId == 0)
 		{
 			long t2 = time(NULL);
 			if (t2 > lastTime)
@@ -407,11 +407,10 @@ void Alignment::computeCo(unsigned int start, unsigned int stop, unsigned int n)
 		}
 	}
 
-
+#ifndef _MPI
 #ifdef _OPENMP
 #pragma omp parallel for shared(count) schedule(guided)
 #endif
-#ifndef _MPI
 	for (unsigned int i = start; i <= stop; i++)
 		_informativeSites[i]->computeCo(n);
 #endif
@@ -741,7 +740,7 @@ void Alignment::write(string baseName, int format)
 	file.close();
 }
 
-
+#ifdef _MPI
 void Alignment::send()
 {
 	unsigned int m = _informativeSites.size();
@@ -809,3 +808,4 @@ void Alignment::recv()
 	free(buf2);
 	free(buf3);
 }
+#endif

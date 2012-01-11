@@ -346,7 +346,9 @@ int master(int argc, char** argv)
 			if (options.removeIncompatibles || options.writeSiteSummary || options.writeRandomizedCo || options.filterAlignment)
 			{
 				alignment.computeContextIndependentScores();
+#ifdef _MPI
 				alignment.send();
+#endif
 				alignment.computeContextDependentScores(options.randomizations);
 			}
 
@@ -376,7 +378,7 @@ int master(int argc, char** argv)
 	return 0;
 }
 
-
+#ifdef _MPI
 int worker()
 {
 	int buf[2];
@@ -390,7 +392,7 @@ int worker()
 
 	return 0;
 }
-
+#endif
 
 int main(int argc, char** argv)
 {
@@ -402,20 +404,18 @@ int main(int argc, char** argv)
     }
     MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
     MPI_Comm_rank(MPI_COMM_WORLD, &myId);
-#elif _OPENMP
-    numProcs = omp_get_max_threads();
-#endif
-
 
     if (myId == 0)
     	master(argc, argv);
     else
     	worker();
 
-
-#ifdef _MPI
-	MPI_Finalize();
+    MPI_Finalize();
+#else
+    myId = omp_get_thread_num();
+    numProcs = omp_get_max_threads();
+    master(argc, argv);
 #endif
 
-	return 0;
+    return 0;
 }

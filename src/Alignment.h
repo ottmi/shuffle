@@ -30,9 +30,10 @@ public:
 	Alignment getInformativeSitesAlignment();
 	Alignment getSubAlignment(vector<Site*> sites);
 	void write(string baseName, int format);
+#ifdef _MPI
 	void send();
 	void recv();
-
+#endif
 	vector<Sequence>& getAlignment() { return _alignment; };
 	Sequence getSequence(int col) { return _alignment[col]; };
 	unsigned int getNumOfRows() { return _alignment.size(); };
