@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <climits>
 #include <cfloat>
+#include <string>
 #include <sstream>
 #include <cstdio>
 #include "globals.h"
@@ -58,7 +59,15 @@ int parseArguments(int argc, char** argv, Options *options)
 	int minGroup = 0;
 	int maxGroup = 0;
 
-	while ((c = getopt(argc, argv, "t:p:g:deij:cr:szf:a:n:v::h")) != -1)
+#ifdef _MPI
+	string parameters = "t:p:g:deicr:szf:a:v::h";
+#elif _OPENMP
+	string parameters = "t:p:g:deij:cr:szf:a:n:v::h";
+#else
+	string parameters = "t:p:g:deij:cr:szf:a:v::h";
+#endif
+
+	while ((c = getopt(argc, argv, parameters.c_str())) != -1)
 	{
 		switch (c)
 		{
@@ -120,12 +129,14 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 'i':
 				options->writeInformativeSitesAlignment = true;
 				break;
+#ifndef _MPI
 			case 'j':
 			{
 				stringstream ss(optarg);
 				ss >> options->removeIncompatibles;
 				break;
 			}
+#endif
 			case 'c':
 				options->convertAlignment = true;
 				if (options->alignmentFormat == -1)
@@ -252,7 +263,9 @@ void printSyntax()
 	cout << "  -d             Remove duplicates and write reduced alignment file" << endl;
 	cout << "  -e             Remove informative sites duplicates, write reduced alignment" << endl;
 	cout << "  -i             Write reduced alignment only with parsimony informative sites" << endl;
+#ifndef _MPI
 	cout << "  -j<NUM>        Iteratively remove incompatible sites until avgCo>=NUM" << endl;
+#endif
 	cout << endl;
 	cout << "  -r<NUM>        Number of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -s             Write a site summary" << endl;
@@ -364,9 +377,10 @@ int master(int argc, char** argv)
 				cout << "New alignment contains " << filteredAlignment.getNumOfRows() << " sequences with " << filteredAlignment.getNumOfCols() << " columns." << endl;
 				filteredAlignment.write(options.prefix + ".filtered", options.alignmentFormat);
 			}
-
+#ifndef _MPI
 			if (options.removeIncompatibles > 0)
 			    alignment.removeIncompatiblesIterative(&options);
+#endif
 		}
 
 	} catch (string& s)

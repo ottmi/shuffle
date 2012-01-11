@@ -190,7 +190,7 @@ void Alignment::removeInformativeSitesDuplicates()
 	cout << "Removed " << total << " duplicates, " << getNumOfRows() << " sequences with " << _informativeSites.size() << " informative sites remain in the alignment." << endl;
 }
 
-
+#ifndef _MPI
 bool compPos(Site *a, Site *b)
 {
 	return a->getCols()[0] < b->getCols()[0];
@@ -247,7 +247,7 @@ void Alignment::removeIncompatiblesIterative(Options *options)
 	Alignment a = getSubAlignment(_informativeSites);
 	a.write(ss.str(), options->alignmentFormat);
 }
-
+#endif
 
 void Alignment::collectSites(Options *options)
 {

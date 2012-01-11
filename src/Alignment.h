@@ -19,7 +19,6 @@ public:
 	void addSequence(Sequence sequence);
 	void removeDuplicates();
 	void removeInformativeSitesDuplicates();
-	void removeIncompatiblesIterative(Options *options);
 	void collectSites(Options *options);
 	void checkIdenticalSites();
 	void computeContextIndependentScores();
@@ -33,6 +32,8 @@ public:
 #ifdef _MPI
 	void send();
 	void recv();
+#else
+	void removeIncompatiblesIterative(Options *options);
 #endif
 	vector<Sequence>& getAlignment() { return _alignment; };
 	Sequence getSequence(int col) { return _alignment[col]; };
