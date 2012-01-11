@@ -645,7 +645,7 @@ Alignment Alignment::getSubAlignment(vector<Site*> sites)
 	return a;
 }
 
-
+#ifndef _MPI
 void Alignment::writeRandomizedCo(string prefix)
 {
 	string fileName = prefix + ".poc.csv";
@@ -665,7 +665,7 @@ void Alignment::writeRandomizedCo(string prefix)
 	}
 	file.close();
 }
-
+#endif
 
 void Alignment::writeSummary(string prefix)
 {

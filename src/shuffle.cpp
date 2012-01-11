@@ -60,7 +60,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	int maxGroup = 0;
 
 #ifdef _MPI
-	string parameters = "t:p:g:deicr:szf:a:v::h";
+	string parameters = "t:p:g:deicr:sf:a:v::h";
 #elif _OPENMP
 	string parameters = "t:p:g:deij:cr:szf:a:n:v::h";
 #else
@@ -129,14 +129,12 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 'i':
 				options->writeInformativeSitesAlignment = true;
 				break;
-#ifndef _MPI
 			case 'j':
 			{
 				stringstream ss(optarg);
 				ss >> options->removeIncompatibles;
 				break;
 			}
-#endif
 			case 'c':
 				options->convertAlignment = true;
 				if (options->alignmentFormat == -1)
@@ -269,7 +267,9 @@ void printSyntax()
 	cout << endl;
 	cout << "  -r<NUM>        Number of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -s             Write a site summary" << endl;
+#ifndef _MPI
 	cout << "  -z             Write Co scores of randomized sites to file" << endl;
+#endif
 	cout << "  -f<LIST>       Write a new alignment file, filtered by (comma-separated):" << endl;
 	cout << "                   c<NUM>  Minimum Co score [default: 0]" << endl;
 	cout << "                   p<NUM>  Minimum POC score [default: 0.0]" << endl;
@@ -369,9 +369,6 @@ int master(int argc, char** argv)
 			if (options.writeSiteSummary)
 				alignment.writeSummary(options.prefix + ".sites");
 
-			if (options.writeRandomizedCo)
-				alignment.writeRandomizedCo(options.prefix);
-
 			if (options.filterAlignment)
 			{
 				Alignment filteredAlignment = alignment.getFilteredAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
@@ -379,6 +376,9 @@ int master(int argc, char** argv)
 				filteredAlignment.write(options.prefix + ".filtered", options.alignmentFormat);
 			}
 #ifndef _MPI
+			if (options.writeRandomizedCo)
+				alignment.writeRandomizedCo(options.prefix);
+
 			if (options.removeIncompatibles > 0)
 			    alignment.removeIncompatiblesIterative(&options);
 #endif
