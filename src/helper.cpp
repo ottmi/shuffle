@@ -4,7 +4,37 @@
 #include <sstream>
 #include <cmath>
 #include <cstdio>
+#ifdef _MPI
+#include <mpi.h>
+#endif
+
 using namespace std;
+
+int getMyId()
+{
+#if defined (_MPI)
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    return rank;
+#elif defined (_OPENMP)
+    return omp_get_thread_num();
+#else
+    return 0;
+#endif
+}
+
+int getNumOfCpus()
+{
+#if defined (_MPI)
+    int num;
+    MPI_Comm_size(MPI_COMM_WORLD, &num);
+    return num;
+#elif defined (_OPENMP)
+    return omp_get_max_threads();
+#else
+    return 1;
+#endif
+}
 
 double factorial(int n)
 {

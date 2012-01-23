@@ -20,8 +20,6 @@ using namespace std;
 
 int verbose = 0;
 int numProcs = 1;
-int myId = 0;
-
 
 int parseArguments(int argc, char** argv, Options *options)
 {
@@ -321,6 +319,8 @@ int master(int argc, char** argv)
 
 #ifdef _MPI
    	cout << "Parallel execution with " << numProcs << " processes." << endl << endl;
+	if (verbose)
+	    cout << "This is master " << getMyId() << endl;
    	int buf[5];
    	buf[0] = verbose;
    	buf[1] = options.randomizations;
@@ -401,6 +401,9 @@ int worker()
 	MPI_Bcast(buf, 5, MPI_INT, 0, MPI_COMM_WORLD);
 	verbose = buf[0];
 
+	if (verbose)
+	    cout << "This is worker " << getMyId() << endl;
+
 	Alignment alignment;
 	alignment.recv();
 	alignment.computeContextDependentScores(buf[1], (bool) buf[2]);
@@ -411,24 +414,23 @@ int worker()
 
 int main(int argc, char** argv)
 {
+
 #ifdef _MPI
     if (MPI_Init(&argc,&argv)!=MPI_SUCCESS)
     {
     	cerr << "MPI_Init failed." << endl;
     	return -1;
     }
-    MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
-    MPI_Comm_rank(MPI_COMM_WORLD, &myId);
 
-    if (myId == 0)
+    numProcs = getNumOfCpus();
+    if (getMyId() == 0)
     	master(argc, argv);
     else
     	worker();
 
     MPI_Finalize();
 #else
-    myId = omp_get_thread_num();
-    numProcs = omp_get_max_threads();
+    numProcs = getNumOfCpus();
     master(argc, argv);
 #endif
 

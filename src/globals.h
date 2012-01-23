@@ -6,8 +6,8 @@
 using namespace std;
 
 #define PROGNAME "shuffle++"
-#define VERSION "0.7.35"
-#define PROGDATE "2012-01-18"
+#define VERSION "0.7.37"
+#define PROGDATE "2012-01-23"
 
 #define _DNA_DATA				0
 #define	_AA_DATA				1
@@ -21,8 +21,6 @@ using namespace std;
 #define _ALPHANUM_MAP "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?-"
 
 extern int verbose;
-extern int numProcs;
-extern int myId;
 
 typedef struct opt_struct
 {

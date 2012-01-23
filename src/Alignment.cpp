@@ -287,7 +287,7 @@ void Alignment::collectSites(Options *options)
 				s->checkInformative();
 		}
 		count++;
-		if (myId == 0)
+		if (getMyId() == 0)
 		{
 			long t2 = time(NULL);
 			if (t2 > lastTime)
@@ -369,7 +369,7 @@ void Alignment::computeContextIndependentScores()
 
 void Alignment::computeCo(unsigned int start, unsigned int stop, unsigned int n)
 {
-	if (myId == 0)
+	if (getMyId() == 0)
 	    cout << "  Computing Co:  0%" << flush;
 
 	long count, total, t1, t2, lastTime;
@@ -394,7 +394,7 @@ void Alignment::computeCo(unsigned int start, unsigned int stop, unsigned int n)
 		}
 
 		count++;
-		if (myId == 0)
+		if (getMyId() == 0)
 		{
 			t2 = time(NULL);
 			if (t2 > lastTime)
@@ -414,7 +414,7 @@ void Alignment::computeCo(unsigned int start, unsigned int stop, unsigned int n)
 	for (unsigned int i = start; i <= stop; i++)
 		_informativeSites[i]->computeCo(n);
 #endif
-	if (myId == 0)
+	if (getMyId() == 0)
 	{
 	    t2 = time(NULL);
 	    cout << "\r  Computing Co:  Done, taking " << printTime(t2-t1) << "                         " << endl;
@@ -424,7 +424,7 @@ void Alignment::computeCo(unsigned int start, unsigned int stop, unsigned int n)
 
 void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n, unsigned int randomizations, bool writeRandomizedCo)
 {
-	if (myId == 0)
+	if (getMyId() == 0)
 	    cout << "  Computing POC: 0%" << flush;
 
 	long count, total, t1, t2, lastTime;
@@ -459,7 +459,7 @@ void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n
 		}
 
 		count++;
-		if (myId == 0)
+		if (getMyId() == 0)
 		{
 			t2 = time(NULL);
 			if (t2 > lastTime)
@@ -472,7 +472,7 @@ void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n
 		_informativeSites[i]->computePOC(poc, randomizations);
 	}
 
-	if (myId == 0)
+	if (getMyId() == 0)
 	{
 	    t2 = time(NULL);
 	    cout << "\r  Computing POC: Done, taking " << printTime(t2-t1) << "                         " << endl;
@@ -482,7 +482,7 @@ void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n
 
 void Alignment::computeR(unsigned int start, unsigned int stop, unsigned int n)
 {
-	if (myId == 0)
+	if (getMyId() == 0)
 	    cout << "  Computing r: 0%" << flush;
 
 	long count, total, t1, t2, lastTime;
@@ -505,7 +505,7 @@ void Alignment::computeR(unsigned int start, unsigned int stop, unsigned int n)
 	    _informativeSites[i]->setR(sum/(n-1));
 
 	    count++;
-	    if (myId == 0)
+	    if (getMyId() == 0)
 	    {
 		t2 = time(NULL);
 		if (t2 > lastTime)
@@ -517,7 +517,7 @@ void Alignment::computeR(unsigned int start, unsigned int stop, unsigned int n)
 	    }
 	}
 
-	if (myId == 0)
+	if (getMyId() == 0)
 	{
 	    t2 = time(NULL);
 	    cout << "\r  Computing r: Done, taking " << printTime(t2-t1) << "                         " << endl << endl;
@@ -526,7 +526,7 @@ void Alignment::computeR(unsigned int start, unsigned int stop, unsigned int n)
 
 void Alignment::computeContextDependentScores(unsigned int randomizations, bool writeRandomizedCo)
 {
-	if (myId == 0)
+	if (getMyId() == 0)
 	{
 	    cout << endl;
 	    cout << "Computing context-dependent scores, doing " << randomizations << " randomizations for POC:" << endl;
@@ -536,9 +536,9 @@ void Alignment::computeContextDependentScores(unsigned int randomizations, bool 
 	unsigned int n = _informativeSites.size();
 	srand( time(NULL) );
 #ifdef _MPI
-	unsigned int share = (n + numProcs - 1)/ numProcs;
-	start = myId * share;
-	end = (myId + 1) * share - 1;
+	unsigned int share = (n + getNumOfCpus() - 1)/ getNumOfCpus();
+	start = getMyId() * share;
+	end = (getMyId() + 1) * share - 1;
 	if (end >= _informativeSites.size())
 		end = _informativeSites.size() - 1;
 
@@ -573,11 +573,11 @@ void Alignment::computeContextDependentScores(unsigned int randomizations, bool 
 	}
 
 	double *recvBuf2 = NULL;
-	if (myId == 0)
-		recvBuf2 = (double *) malloc(sizeof(double) * share * 2 * numProcs);
+	if (getMyId() == 0)
+		recvBuf2 = (double *) malloc(sizeof(double) * share * 2 * getNumOfCpus());
 	MPI_Gather(sendBuf2, share*2, MPI_DOUBLE, recvBuf2, share*2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-	if (myId == 0)
+	if (getMyId() == 0)
 	{
 		for (unsigned int i = 0; i < n; i++)
 		{
