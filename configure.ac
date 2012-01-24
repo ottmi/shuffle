@@ -2,36 +2,31 @@ AC_INIT
 AC_CONFIG_SRCDIR([src/shuffle.cpp])
 AC_LANG(C++)
 
-#if test -z $CXXFLAGS; then
-#    CXXFLAGS='-O3'
-#fi
+if test -z $CXXFLAGS; then
+    CXXFLAGS='-O3'
+fi
 
 AC_ARG_ENABLE([debug],
               [AS_HELP_STRING([--enable-debug],[Enable debug mode: creates reproducible randomizations for POC scores])])
-AC_ARG_WITH([openmp],
-            [AS_HELP_STRING([--with-openmp],
-            [Compile OpenMP parallel code @<:@default=auto@:>@])],
-            [],
-            [with_openmp=auto])
-AC_ARG_WITH([mpi],
-            [AS_HELP_STRING([--with-mpi],
-            [Compile MPI parallel code @<:@default=no@:>@])],
-            [],
-            [with_mpi=no])
+AC_ARG_ENABLE([openmp],
+              [AS_HELP_STRING([--disable-openmp],[Do not compile OpenMP parallel code])])
+AC_ARG_ENABLE([mpi],
+              [AS_HELP_STRING([--enable-mpi],[Compile MPI parallel code])])
+
 AC_ARG_WITH([libmpfr],
             [AS_HELP_STRING([--with-libmpfr],
             [use GNU MPFR Library @<:@default=auto@:>@])],
             [],
             [with_libmpfr=auto])
 
-if test "$with_mpi" = "yes" && test "$with_openmp" = "yes"; then
+if test "$enable_mpi" = "yes" && test "$enable_openmp" = "yes"; then
   AC_MSG_FAILURE([Cannot compile for OpenMP and MPI at the same time])
 fi
 
 m4_include([ax_prog_cxx_mpi.m4])
-AX_PROG_CXX_MPI([test "$with_mpi" != "no"],[use_mpi=yes],[use_mpi=no])
+AX_PROG_CXX_MPI([test "$enable_mpi" = "yes"],[use_mpi=yes],[use_mpi=no])
 if test "$use_mpi" = "no"; then
-  if test "$with_mpi" = "yes"; then
+  if test "$enable_mpi" = "yes"; then
     AC_MSG_FAILURE([MPI requested, but failed to enable it])
   fi
 else
@@ -39,11 +34,11 @@ else
 fi
 
 use_openmp=no
-if test "$with_openmp" != "no" && test "$use_mpi" = "no"; then
+if test "$enable_openmp" != "no" && test "$use_mpi" = "no"; then
   m4_include([ax_openmp.m4])
   AX_OPENMP([use_openmp=yes],)
   if test "$use_openmp" = "no"; then  
-    if test "$with_openmp" = "yes"; then
+    if test "$enable_openmp" = "yes"; then
       AC_MSG_FAILURE([OpenMP requested, but failed to enable it])
     fi
   else
@@ -98,9 +93,9 @@ echo "==========================================================================
 echo "Summary:"
 
 if test "$enable_debug" = "yes"; then
-  echo "  Debug mode: yes"
+  echo "  Debug mode:    yes"
 else
-  echo "  Debug mode: no"
+  echo "  Debug mode:    no"
 fi
 
 if test "$use_mpfr" = "yes"; then
@@ -110,15 +105,15 @@ else
 fi
 
 if test "$use_openmp" = "yes"; then
-  echo "  Using OpenMP: yes"
+  echo "  Using OpenMP:  yes"
 else
-  echo "  Using OpenMP: no"
+  echo "  Using OpenMP:  no"
 fi
 
 if test "$use_mpi" = "yes"; then
-  echo "  Using MPI: yes"
+  echo "  Using MPI:     yes"
 else
-  echo "  Using MPI: no"
+  echo "  Using MPI:     no"
 fi
 
 echo "================================================================================"

@@ -654,8 +654,8 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_debug
-with_openmp
-with_mpi
+enable_openmp
+enable_mpi
 with_libmpfr
 '
       ac_precious_vars='build_alias
@@ -1280,12 +1280,12 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-debug          Enable debug mode: creates reproducible
                           randomizations for POC scores
+  --disable-openmp        Do not compile OpenMP parallel code
+  --enable-mpi            Compile MPI parallel code
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-openmp           Compile OpenMP parallel code [default=auto]
-  --with-mpi              Compile MPI parallel code [default=no]
   --with-libmpfr          use GNU MPFR Library [default=auto]
 
 Some influential environment variables:
@@ -2019,30 +2019,25 @@ ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ex
 ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
-#if test -z $CXXFLAGS; then
-#    CXXFLAGS='-O3'
-#fi
+if test -z $CXXFLAGS; then
+    CXXFLAGS='-O3'
+fi
 
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then :
   enableval=$enable_debug;
 fi
 
-
-# Check whether --with-openmp was given.
-if test "${with_openmp+set}" = set; then :
-  withval=$with_openmp;
-else
-  with_openmp=auto
+# Check whether --enable-openmp was given.
+if test "${enable_openmp+set}" = set; then :
+  enableval=$enable_openmp;
 fi
 
-
-# Check whether --with-mpi was given.
-if test "${with_mpi+set}" = set; then :
-  withval=$with_mpi;
-else
-  with_mpi=no
+# Check whether --enable-mpi was given.
+if test "${enable_mpi+set}" = set; then :
+  enableval=$enable_mpi;
 fi
+
 
 
 # Check whether --with-libmpfr was given.
@@ -2053,7 +2048,7 @@ else
 fi
 
 
-if test "$with_mpi" = "yes" && test "$with_openmp" = "yes"; then
+if test "$enable_mpi" = "yes" && test "$enable_openmp" = "yes"; then
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "Cannot compile for OpenMP and MPI at the same time
@@ -2143,7 +2138,7 @@ fi
 
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to compile using MPI" >&5
 $as_echo_n "checking whether to compile using MPI... " >&6; }
-    if test "$with_mpi" != "no"; then
+    if test "$enable_mpi" = "yes"; then
       _ax_prog_cxx_mpi_mpi_wanted=yes
     else
       _ax_prog_cxx_mpi_mpi_wanted=no
@@ -2882,7 +2877,7 @@ fi
 
 
 if test "$use_mpi" = "no"; then
-  if test "$with_mpi" = "yes"; then
+  if test "$enable_mpi" = "yes"; then
     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "MPI requested, but failed to enable it
@@ -2893,7 +2888,7 @@ else
 fi
 
 use_openmp=no
-if test "$with_openmp" != "no" && test "$use_mpi" = "no"; then
+if test "$enable_openmp" != "no" && test "$use_mpi" = "no"; then
   # ===========================================================================
 #         http://www.gnu.org/software/autoconf-archive/ax_openmp.html
 # ===========================================================================
@@ -3023,7 +3018,7 @@ else
 fi
 
   if test "$use_openmp" = "no"; then
-    if test "$with_openmp" = "yes"; then
+    if test "$enable_openmp" = "yes"; then
       { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "OpenMP requested, but failed to enable it
@@ -4761,9 +4756,9 @@ echo "==========================================================================
 echo "Summary:"
 
 if test "$enable_debug" = "yes"; then
-  echo "  Debug mode: yes"
+  echo "  Debug mode:    yes"
 else
-  echo "  Debug mode: no"
+  echo "  Debug mode:    no"
 fi
 
 if test "$use_mpfr" = "yes"; then
@@ -4773,15 +4768,15 @@ else
 fi
 
 if test "$use_openmp" = "yes"; then
-  echo "  Using OpenMP: yes"
+  echo "  Using OpenMP:  yes"
 else
-  echo "  Using OpenMP: no"
+  echo "  Using OpenMP:  no"
 fi
 
 if test "$use_mpi" = "yes"; then
-  echo "  Using MPI: yes"
+  echo "  Using MPI:     yes"
 else
-  echo "  Using MPI: no"
+  echo "  Using MPI:     no"
 fi
 
 echo "================================================================================"
