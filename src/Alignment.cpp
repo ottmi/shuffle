@@ -367,44 +367,67 @@ void Alignment::computeContextIndependentScores()
 }
 
 
-void Alignment::computeCo(unsigned int start, unsigned int stop, unsigned int n)
+void Alignment::computeCo(unsigned int n)
 {
-	if (getMyId() == 0)
+	if (getMyId() ==  0)
 	    cout << "  Computing Co:  0%" << flush;
 
 	long count, total, t1, t2, lastTime;
 	count = 0;
-	total = stop - start;
 	t1 = time(NULL);
 	lastTime = t1;
 
-#ifdef _OPENMP
-	long chunk = n / (omp_get_num_threads() * 8);
-#pragma omp parallel for shared(count) schedule(dynamic, chunk)
-#endif
-	for (unsigned int i = start; i <= stop; i++)
+	total = n * (n - 1) / 2;
+	vector<unsigned int> checks(total * 2, 0);
+	unsigned int k = 0;
+	for (unsigned int i = 0; i < n; i++)
 	{
-		for (unsigned int j = i + 1; j < n; j++)
-		{
-			if (_informativeSites[i]->checkCompatibility(_informativeSites[j]))
-			{
-				_informativeSites[i]->addCompatibleSite(_informativeSites[j]->getCols()[0]);
-				_informativeSites[j]->addCompatibleSite(_informativeSites[i]->getCols()[0]);
-			}
-		}
+	    for (unsigned int j = i + 1; j < n; j++)
+	    {
+		checks[k*2] = i;
+		checks[k*2 + 1] = j;
+		k++;
+	    }
+	}
 
-		count++;
-		if (getMyId() == 0)
-		{
-			t2 = time(NULL);
-			if (t2 > lastTime)
-			{
-				long elapsed = t2 - t1;
-				long eta = (elapsed * total) / count - elapsed;
-				cout << "\r  Computing Co:  " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+	unsigned int start, stop;
+#ifdef _MPI
+	unsigned int share = (total + getNumOfCpus() - 1)/ getNumOfCpus();
+	start = getMyId() * share;
+	stop = (getMyId() + 1) * share - 1;
+	if (stop >= total)
+		stop = total-1;
+#else
+	start = 0;
+	stop = total-1;
+#endif
 
-			}
+#ifdef _OPENMP
+#pragma omp parallel for shared(count) schedule(guided)
+#endif
+	for (unsigned int k = start; k <= stop; k++)
+	{
+	    unsigned int i = checks[k * 2];
+	    unsigned int j = checks[k * 2 + 1];
+	    if (_informativeSites[i]->checkCompatibility(_informativeSites[j]))
+	    {
+		_informativeSites[i]->addCompatibleSite(_informativeSites[j]->getCols()[0]);
+		_informativeSites[j]->addCompatibleSite(_informativeSites[i]->getCols()[0]);
+	    }
+
+	    if (k % 100 == 0)
+		count+= 100;
+
+	    if (getMyId() == 0)
+	    {
+		t2 = time(NULL);
+		if (t2 > lastTime)
+		{
+		    long elapsed = t2 - t1;
+		    long eta = (elapsed * total) / count - elapsed;
+		    cout << "\r  Computing Co:  " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
 		}
+	    }
 	}
 
 #ifndef _MPI
@@ -536,13 +559,7 @@ void Alignment::computeContextDependentScores(unsigned int randomizations, bool 
 	unsigned int n = _informativeSites.size();
 	srand( time(NULL) );
 #ifdef _MPI
-	unsigned int share = (n + getNumOfCpus() - 1)/ getNumOfCpus();
-	start = getMyId() * share;
-	end = (getMyId() + 1) * share - 1;
-	if (end >= _informativeSites.size())
-		end = _informativeSites.size() - 1;
-
-	computeCo(start, end, n);
+	computeCo(n);
 	int *sendBuf1 = (int *) malloc(sizeof(int) * n);
 	int *recvBuf1 = (int *) malloc(sizeof(int) * n);
 	for (unsigned int i = 0; i < n; i++)
@@ -555,6 +572,12 @@ void Alignment::computeContextDependentScores(unsigned int randomizations, bool 
 	}
 	free(recvBuf1);
 	free(sendBuf1);
+
+	unsigned int share = (n + getNumOfCpus() - 1)/ getNumOfCpus();
+	start = getMyId() * share;
+	end = (getMyId() + 1) * share - 1;
+	if (end >= _informativeSites.size())
+		end = _informativeSites.size() - 1;
 
 	if (randomizations)
 	    computePOC(start, end, n, randomizations, writeRandomizedCo);
@@ -589,11 +612,10 @@ void Alignment::computeContextDependentScores(unsigned int randomizations, bool 
 
 	free(sendBuf2);
 #else
+	computeCo(n);
+
 	start = 0;
 	end = n-1;
-
-	computeCo(start, end, n);
-
 	if (randomizations)
 	    computePOC(start, end, n, randomizations, writeRandomizedCo);
 

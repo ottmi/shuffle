@@ -41,7 +41,7 @@ public:
 	unsigned int getNumOfCols() { return _cols; };
 
 private:
-	void computeCo(unsigned int start, unsigned int stop, unsigned int n);
+	void computeCo(unsigned int n);
 	void computePOC(unsigned int start, unsigned int stop, unsigned int n, unsigned int randomizations, bool writeRandomizedCo);
 	void computeR(unsigned int start, unsigned int stop, unsigned int n);
 
