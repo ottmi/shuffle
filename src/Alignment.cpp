@@ -435,7 +435,7 @@ void Alignment::computeCo(unsigned int n)
 #ifdef _OPENMP
 #pragma omp parallel for shared(count) schedule(guided)
 #endif
-	for (unsigned int i = start; i <= stop; i++)
+	for (unsigned int i = 0; i < n; i++)
 		_informativeSites[i]->computeCo(n);
 #endif
 	if (getMyId() == 0)
