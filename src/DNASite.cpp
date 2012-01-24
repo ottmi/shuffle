@@ -1,5 +1,6 @@
 #include "DNASite.h"
 
+/* This constructor is used in Alignment::collectSites() */
 DNASite::DNASite(int offset, Options *options)
 {
 	/*
@@ -15,6 +16,7 @@ DNASite::DNASite(int offset, Options *options)
 }
 
 
+/* This constructor is used in Alignment::recv() and Site::randomize() */
 DNASite::DNASite(int col, vector<unsigned int> site)
 {
 	_unambiguousThreshold = 4;

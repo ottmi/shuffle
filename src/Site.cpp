@@ -25,7 +25,8 @@ Site::~Site()
 {
 }
 
-
+/* This function is called from Alignment::recv() and Site::randomize() via
+ * AASite::AASite(), AlphanumericSite::AlphanumericSite(), and DNASite::DNASite() */
 void Site::initialize()
 {
 #ifdef _MPI
@@ -39,10 +40,9 @@ void Site::initialize()
 	_smin = 0;
 	_ov = .0;
 	createRandomSeed(_randomSeed, _cols[0]);
-
 }
 
-
+/* This function is called from Alignment::collectSites() */
 void Site::initialize(vector<Sequence>* alignment)
 {
 #ifdef _MPI

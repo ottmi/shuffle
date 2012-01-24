@@ -1,5 +1,6 @@
 #include "AASite.h"
 
+/* This constructor is used in Alignment::collectSites() */
 AASite::AASite(int offset, Options *options)
 {
 	/*
@@ -14,7 +15,7 @@ AASite::AASite(int offset, Options *options)
 		_cols.push_back(options->grouping[i] + options->groupLength * offset);
 }
 
-
+/* This constructor is used in Alignment::recv() and Site::randomize() */
 AASite::AASite(int col, vector<unsigned int> site)
 {
 	_unambiguousThreshold = 19;

@@ -1,5 +1,6 @@
 #include "AlphanumericSite.h"
 
+/* This constructor is used in Alignment::collectSites() */
 AlphanumericSite::AlphanumericSite(int offset, Options *options)
 {
 	_unambiguousThreshold = 35;
@@ -9,6 +10,7 @@ AlphanumericSite::AlphanumericSite(int offset, Options *options)
 }
 
 
+/* This constructor is used in Alignment::recv() and Site::randomize() */
 AlphanumericSite::AlphanumericSite(int col, vector<unsigned int> site)
 {
 	_unambiguousThreshold = 35;
