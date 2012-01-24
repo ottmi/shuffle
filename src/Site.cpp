@@ -38,6 +38,8 @@ void Site::initialize()
 	_entropy = .0;
 	_smin = 0;
 	_ov = .0;
+	createRandomSeed(_randomSeed, _cols[0]);
+
 }
 
 
@@ -60,6 +62,7 @@ void Site::initialize(vector<Sequence>* alignment)
 		unsigned int c = this->mapCharToNum(sequence.getColumns(_cols));
 		_site.push_back(c);
 	}
+	createRandomSeed(_randomSeed, _cols[0]);
 }
 
 
@@ -388,7 +391,7 @@ Site* Site::randomize()
 
 	for (unsigned int i=0; i<_site.size(); i++)
 	{
-		unsigned int j = rand() % positions.size();
+		unsigned int j = nrand48(_randomSeed) % positions.size();
 		r[i] = positions[j];
 		positions.erase(positions.begin()+j);
 	}

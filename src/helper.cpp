@@ -4,6 +4,7 @@
 #include <sstream>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 #ifdef _MPI
 #include <mpi.h>
 #endif
@@ -35,6 +36,21 @@ int getNumOfCpus()
     return 1;
 #endif
 }
+
+
+void createRandomSeed(unsigned short *seed, unsigned int n)
+{
+#ifdef _DEBUG
+	long val = 42;
+#else
+	long val = time(NULL);
+#endif
+	seed[0] = val & 0xffff;
+	seed[1] = (val >> 16) & 0xffff;
+	seed[1]+= (n >> 16) & 0xffff;
+	seed[2] = n & 0xffff;
+}
+
 
 double factorial(int n)
 {

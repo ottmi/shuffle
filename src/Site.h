@@ -83,6 +83,8 @@ protected:
 	double _ov;
 	double _r;
 	vector<double> _randomizedCo;
+	unsigned short _randomSeed[3];
+
 };
 
 #endif /* SITE_H_ */

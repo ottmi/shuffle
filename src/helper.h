@@ -10,6 +10,7 @@ using namespace std;
 
 int getMyId();
 int getNumOfCpus();
+void createRandomSeed(unsigned short *seed, unsigned int n);
 
 double factorial(int n);
 string printTime(long t);

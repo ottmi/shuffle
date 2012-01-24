@@ -462,9 +462,6 @@ void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n
 #endif
 	for (unsigned int i = start; i <= stop; i++)
 	{
-#ifdef _DEBUG
-		srand( i+42 );
-#endif
 		int poc = 0;
 		for (int r = 0; r < randomizations; r++)
 		{
@@ -560,7 +557,6 @@ void Alignment::computeContextDependentScores(unsigned int randomizations, bool 
 
 	unsigned int start, end;
 	unsigned int n = _informativeSites.size();
-	srand( time(NULL) );
 #ifdef _MPI
 	computeCo(n);
 	int *sendBuf1 = (int *) malloc(sizeof(int) * n);
