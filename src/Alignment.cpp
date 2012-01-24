@@ -426,6 +426,7 @@ void Alignment::computeCo(unsigned int n)
 		    long elapsed = t2 - t1;
 		    long eta = (elapsed * total) / count - elapsed;
 		    cout << "\r  Computing Co:  " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+		    lastTime = t2;
 		}
 	    }
 	}
@@ -490,6 +491,7 @@ void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n
 				long elapsed = t2 - t1;
 				long eta = (elapsed * total) / count - elapsed;
 				cout << "\r  Computing POC: " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+				lastTime = t2;
 			}
 		}
 		_informativeSites[i]->computePOC(poc, randomizations);
@@ -536,6 +538,7 @@ void Alignment::computeR(unsigned int start, unsigned int stop, unsigned int n)
 		    long elapsed = t2 - t1;
 		    long eta = (elapsed * total) / count - elapsed;
 		    cout << "\r  Computing r: " << count * 100 / total << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+		    lastTime = t2;
 		}
 	    }
 	}
