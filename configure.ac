@@ -6,6 +6,8 @@ AC_LANG(C++)
 #    CXXFLAGS='-O3'
 #fi
 
+AC_ARG_ENABLE([debug],
+              [AS_HELP_STRING([--enable-debug],[Enable debug mode: creates reproducible randomizations for POC scores])])
 AC_ARG_WITH([openmp],
             [AS_HELP_STRING([--with-openmp],
             [Compile OpenMP parallel code @<:@default=auto@:>@])],
@@ -50,6 +52,10 @@ if test "$with_openmp" != "no" && test "$use_mpi" = "no"; then
   fi
 fi
 
+if test "$enable_debug" = yes; then
+  CXXFLAGS="$CXXFLAGS -D_DEBUG"
+fi
+
 AC_CHECK_HEADERS([cmath], , AC_MSG_ERROR([This package needs libm]))
 AC_CHECK_LIB(m, log, , AC_MSG_ERROR([This package needs libm]))
 
@@ -86,19 +92,29 @@ fi
 
 AC_OUTPUT(Makefile)
 
+
 echo
 echo "================================================================================"
 echo "Summary:"
+
+if test "$enable_debug" = "yes"; then
+  echo "  Debug mode: yes"
+else
+  echo "  Debug mode: no"
+fi
+
 if test "$use_mpfr" = "yes"; then
   echo "  Using libmpfr: yes"
 else
   echo "  Using libmpfr: no"
 fi
+
 if test "$use_openmp" = "yes"; then
   echo "  Using OpenMP: yes"
 else
   echo "  Using OpenMP: no"
 fi
+
 if test "$use_mpi" = "yes"; then
   echo "  Using MPI: yes"
 else
