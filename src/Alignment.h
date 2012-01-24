@@ -42,8 +42,8 @@ public:
 
 private:
 	void computeCo(unsigned int n);
-	void computePOC(unsigned int start, unsigned int stop, unsigned int n, unsigned int randomizations, bool writeRandomizedCo);
-	void computeR(unsigned int start, unsigned int stop, unsigned int n);
+	void computePOC(unsigned int n, unsigned int randomizations, bool writeRandomizedCo);
+	void computeR(unsigned int n);
 
 	int _dataType;
 	int _format;

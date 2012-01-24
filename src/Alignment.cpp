@@ -390,22 +390,13 @@ void Alignment::computeCo(unsigned int n)
 	    }
 	}
 
-	unsigned int start, stop;
-#ifdef _MPI
-	unsigned int share = (total + getNumOfCpus() - 1)/ getNumOfCpus();
-	start = getMyId() * share;
-	stop = (getMyId() + 1) * share - 1;
-	if (stop >= total)
-		stop = total-1;
-#else
-	start = 0;
-	stop = total-1;
-#endif
+	unsigned int start, end;
+	getMyShare(start, end, total);
 
 #ifdef _OPENMP
 #pragma omp parallel for shared(count) schedule(guided)
 #endif
-	for (unsigned int k = start; k <= stop; k++)
+	for (unsigned int k = start; k <= end; k++)
 	{
 	    unsigned int i = checks[k * 2];
 	    unsigned int j = checks[k * 2 + 1];
@@ -446,21 +437,25 @@ void Alignment::computeCo(unsigned int n)
 }
 
 
-void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n, unsigned int randomizations, bool writeRandomizedCo)
+void Alignment::computePOC(unsigned int n, unsigned int randomizations, bool writeRandomizedCo)
 {
 	if (getMyId() == 0)
 	    cout << "  Computing POC: 0%" << flush;
 
+	unsigned int start, end;
+	getMyShare(start, end, n);
+
 	long count, total, t1, t2, lastTime;
 	count = 0;
-	total = stop - start;
+	total = end - start + 1;
 	t1 = time(NULL);
 	lastTime = t1;
+
 
 #ifdef _OPENMP
 #pragma omp parallel for shared(count) schedule(guided)
 #endif
-	for (unsigned int i = start; i <= stop; i++)
+	for (unsigned int i = start; i <= end; i++)
 	{
 		int poc = 0;
 		for (int r = 0; r < randomizations; r++)
@@ -502,21 +497,24 @@ void Alignment::computePOC(unsigned int start, unsigned int stop, unsigned int n
 }
 
 
-void Alignment::computeR(unsigned int start, unsigned int stop, unsigned int n)
+void Alignment::computeR(unsigned int n)
 {
 	if (getMyId() == 0)
 	    cout << "  Computing r: 0%" << flush;
 
+	unsigned int start, end;
+	getMyShare(start, end, n);
+
 	long count, total, t1, t2, lastTime;
 	count = 0;
-	total = stop - start;
+	total = end - start + 1;
 	t1 = time(NULL);
 	lastTime = t1;
 
 #ifdef _OPENMP
 #pragma omp parallel for shared(count) schedule(guided)
 #endif
-	for (unsigned int i = start; i <= stop; i++)
+	for (unsigned int i = start; i <= end; i++)
 	{
 	    double sum = 0;
 	    for (unsigned int j = 0; j < n; j++)
@@ -555,7 +553,6 @@ void Alignment::computeContextDependentScores(unsigned int randomizations, bool 
 	    cout << "Computing context-dependent scores, doing " << randomizations << " randomizations for POC:" << endl;
 	}
 
-	unsigned int start, end;
 	unsigned int n = _informativeSites.size();
 #ifdef _MPI
 	computeCo(n);
@@ -572,27 +569,27 @@ void Alignment::computeContextDependentScores(unsigned int randomizations, bool 
 	free(recvBuf1);
 	free(sendBuf1);
 
-	unsigned int share = (n + getNumOfCpus() - 1)/ getNumOfCpus();
-	start = getMyId() * share;
-	end = (getMyId() + 1) * share - 1;
-	if (end >= _informativeSites.size())
-		end = _informativeSites.size() - 1;
-
 	if (randomizations)
-	    computePOC(start, end, n, randomizations, writeRandomizedCo);
+	    computePOC(n, randomizations, writeRandomizedCo);
 
 	for (unsigned int i = 0; i < n; i++)
 	    _informativeSites[i]->checkInformative();
-	computeR(start, end, n);
+	computeR(n);
 
+
+	unsigned int start, end;
+	getMyShare(start, end, n);
+	unsigned int share = (n + getNumOfCpus() - 1)/ getNumOfCpus();
+	double *sendBuf2 = (double *) malloc(sizeof(double) * share*2);
 	unsigned int k=0;
-	double *sendBuf2 = (double *) malloc(sizeof(double) * share * 2);
 	for (unsigned int i = start; i <= end; i++)
 	{
 	    sendBuf2[k*2] = _informativeSites[i]->getPOC();
 	    sendBuf2[k*2 + 1] = _informativeSites[i]->getR();
 	    k++;
 	}
+	if (end-start > k)
+	    cout << "k=" << k << " " << end-start << endl;
 
 	double *recvBuf2 = NULL;
 	if (getMyId() == 0)
@@ -608,17 +605,14 @@ void Alignment::computeContextDependentScores(unsigned int randomizations, bool 
 		}
 		free(recvBuf2);
 	}
-
 	free(sendBuf2);
 #else
 	computeCo(n);
 
-	start = 0;
-	end = n-1;
 	if (randomizations)
-	    computePOC(start, end, n, randomizations, writeRandomizedCo);
+	    computePOC(n, randomizations, writeRandomizedCo);
 
-	computeR(start, end, n);
+	computeR(n);
 #endif
 }
 

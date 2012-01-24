@@ -38,6 +38,21 @@ int getNumOfCpus()
 }
 
 
+void getMyShare(unsigned int &start, unsigned int &end, unsigned int n)
+{
+#ifdef _MPI
+    unsigned int share = (n + getNumOfCpus() - 1)/ getNumOfCpus();
+    start = getMyId() * share;
+    end = (getMyId() + 1) * share - 1;
+    if (end >= n)
+	end = n - 1;
+#else
+    start = 0;
+    end = n-1;
+#endif
+}
+
+
 void createRandomSeed(unsigned short *seed, unsigned int n)
 {
 #ifdef _DEBUG
