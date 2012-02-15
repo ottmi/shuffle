@@ -29,7 +29,6 @@ typedef struct opt_struct
 	int dataType;
 	string prefix;
 	vector<int> grouping;
-	int groupOffset;
 	int groupLength;
 	bool removeDuplicates;
 	bool removeInformativeSitesDuplicates;

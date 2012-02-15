@@ -6,7 +6,7 @@ AlphanumericSite::AlphanumericSite(int offset, Options *options)
 	_unambiguousThreshold = 35;
 	_type = _ALPHANUM_DATA;
 	for (unsigned int i = 0; i < options->grouping.size(); i++)
-		_cols.push_back(options->grouping[i] + options->groupLength * offset);
+		_cols.push_back(options->grouping[i] - 1 + options->groupLength * offset);
 }
 
 

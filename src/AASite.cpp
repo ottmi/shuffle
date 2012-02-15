@@ -12,7 +12,7 @@ AASite::AASite(int offset, Options *options)
 	_unambiguousThreshold = 19;
 	_type = 1;
 	for (unsigned int i = 0; i < options->grouping.size(); i++)
-		_cols.push_back(options->grouping[i] + options->groupLength * offset);
+		_cols.push_back(options->grouping[i] - 1 + options->groupLength * offset);
 }
 
 /* This constructor is used in Alignment::recv() and Site::randomize() */

@@ -255,7 +255,7 @@ void Alignment::collectSites(Options *options)
 	cout << "Collecting sites..." << endl;
 	long t1 = time(NULL);
 	long lastTime = t1;
-	unsigned int numOfSites = (getNumOfCols() - options->groupOffset) / options->groupLength;
+	unsigned int numOfSites = getNumOfCols() / options->groupLength;
 	unsigned int count = 0;
 	_sites.resize(numOfSites, NULL);
 
@@ -319,7 +319,7 @@ void Alignment::collectSites(Options *options)
 		cout << "Found " << numOfSites << " sites." << endl;
 
 	if (options->groupLength > 1)
-		cout << "Each site consists of " << options->groupLength << " out of " << getNumOfCols() << " columns, starting with an offset of " << options->groupOffset << "." << endl;
+		cout << "Each site consists of " << options->groupLength << " out of " << getNumOfCols() << " columns." << endl;
 }
 
 

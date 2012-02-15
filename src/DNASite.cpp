@@ -12,7 +12,7 @@ DNASite::DNASite(int offset, Options *options)
 	_unambiguousThreshold = 4;
 	_type = 0;
 	for (unsigned int i = 0; i < options->grouping.size(); i++)
-		_cols.push_back(options->grouping[i] + options->groupLength * offset);
+		_cols.push_back(options->grouping[i] - 1 + options->groupLength * offset);
 }
 
 

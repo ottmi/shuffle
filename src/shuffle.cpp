@@ -52,7 +52,7 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->maxSmin = INT_MAX;
 	options->maxEntropy = DBL_MAX;
 	options->help = 0;
-	options->grouping.push_back(0);
+	options->grouping.push_back(1);
 
 	int minGroup = 0;
 	int maxGroup = 0;
@@ -104,17 +104,19 @@ int parseArguments(int argc, char** argv, Options *options)
 				stringstream ss(optarg);
 				while (ss >> i)
 				{
-					if (i >= 0)
+					if (i == 0)
+					{
+						cerr << "The site numbers used in groupings start with 1." << endl;
+						return 3;
+					}
+					if (i > 0)
 						options->grouping.push_back(i);
 					else
 						i = -i;
-					if (i > maxGroup)
-						maxGroup = i;
-					if (i < minGroup)
-						minGroup = i;
+					if (i > maxGroup) maxGroup = i;
+					if (i < minGroup) minGroup = i;
 
-					if (ss.peek() == ',')
-						ss.ignore();
+					if (ss.peek() == ',') ss.ignore();
 				}
 				break;
 			}
@@ -226,7 +228,6 @@ int parseArguments(int argc, char** argv, Options *options)
 		}
 	}
 
-	options->groupOffset = minGroup;
 	options->groupLength = maxGroup - minGroup + 1;
 
 	if (options->prefix.length() == 0)
