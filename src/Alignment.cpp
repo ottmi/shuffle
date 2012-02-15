@@ -759,16 +759,21 @@ void Alignment::write(string baseName, int format)
 void Alignment::printSites()
 {
 	cout << endl;
-	cout << "Sites: " << endl;
+	cout << "Informative:";
+	for (unsigned int col = 0; col < _sites.size(); col++)
+		if (_sites[col]->isInformative())
+			cout << " *";
+		else
+			cout << "  ";
+	cout << endl;
+
 	for (unsigned int row = 0; row < getNumOfRows(); row++)
 	{
-		cout << setw(10) << left << _alignment[row].getName();
+		cout << setw(12) << left << _alignment[row].getName();
 		for (unsigned int col = 0; col < _sites.size(); col++)
 			cout << " " << _sites[col]->mapNumToChar(_sites[col]->getPos(row));
 		cout << endl;
 	}
-
-
 }
 
 #ifdef _MPI
