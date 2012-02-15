@@ -107,9 +107,9 @@ bool Site::checkInformative()
 		_isInformative = false;
 	}
 
-	if (verbose >= 3)
+	if (verbose >= 5)
 		cout << "   " << toString() << endl;
-	if (verbose >= 4)
+	if (verbose >= 6)
 		cout << "   " << toNumString() << endl;
 
 	return _isInformative;
@@ -249,7 +249,7 @@ double Site::checkPattern(Site* site)
     set<unsigned int>::iterator base;
     unsigned int count = 0;
 
-    if (verbose >= 3)
+    if (verbose >= 5)
     {
 	cout << "  Site [" << getCols()[0] << "] ";
 	for (SitePatternIterator part = p_i.begin(); part != p_i.end(); part++)
@@ -288,7 +288,7 @@ double Site::checkPattern(Site* site)
     }
 
     double pa_ij = ((double) count) / p_j.size();
-    if (verbose >= 3)
+    if (verbose >= 5)
 	cout << "  patterns=" << p_j.size() << " count=" << count << " pa_ij=" << pa_ij << endl;
 
     return pa_ij;

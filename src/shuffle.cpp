@@ -345,6 +345,9 @@ int master(int argc, char** argv)
 		{
 			alignment.collectSites(&options);
 
+			if (verbose >= 4)
+				alignment.printSites();
+
 			if (options.writeInformativeSitesAlignment)
 			{
 			    Alignment informativeSitesAlignment = alignment.getInformativeSitesAlignment();

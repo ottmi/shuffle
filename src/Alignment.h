@@ -40,6 +40,8 @@ public:
 	unsigned int getNumOfRows() { return _alignment.size(); };
 	unsigned int getNumOfCols() { return _cols; };
 
+	void printSites();
+
 private:
 	void computeCo(unsigned int n);
 	void computePOC(unsigned int n, unsigned int randomizations, bool writeRandomizedCo);
