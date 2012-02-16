@@ -13,7 +13,7 @@ class AlignmentReader
 public:
 	AlignmentReader(string fileName);
 	~AlignmentReader();
-	vector<Sequence> getSequences();
+	vector<Sequence> getSequences(int from, int to);
 	int getFormat() { return _format; };
 	unsigned int getRows() { return _rows; };
 	unsigned int getCols() { return _cols; };

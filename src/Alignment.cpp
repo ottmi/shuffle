@@ -28,7 +28,7 @@ Alignment::Alignment()
 Alignment::Alignment(Options *options)
 {
 	AlignmentReader alignmentReader(options->inputAlignment);
- 	_alignment = alignmentReader.getSequences();
+ 	_alignment = alignmentReader.getSequences(options->columnFrom, options->columnTo);
  	_cols = alignmentReader.getCols();
 
  	if (options->alignmentFormat == -1)

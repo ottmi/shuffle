@@ -26,6 +26,8 @@ typedef struct opt_struct
 {
 	string inputAlignment;
 	int alignmentFormat;
+	int columnFrom;
+	int columnTo;
 	int dataType;
 	string prefix;
 	vector<int> grouping;

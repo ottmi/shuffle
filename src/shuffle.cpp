@@ -38,6 +38,8 @@ int parseArguments(int argc, char** argv, Options *options)
 
 	options->alignmentFormat = -1;
 	options->dataType = -1;
+	options->columnFrom = -1;
+	options->columnTo = -1;
 	options->removeDuplicates = false;
 	options->removeInformativeSitesDuplicates = false;
 	options->writeInformativeSitesAlignment = false;
@@ -58,11 +60,11 @@ int parseArguments(int argc, char** argv, Options *options)
 	int maxGroup = 0;
 
 #ifdef _MPI
-	string parameters = "t:p:g:deicr:sf:a:v::h";
+	string parameters = "t:p:c:g:deixr:sf:a:v::h";
 #elif _OPENMP
-	string parameters = "t:p:g:deij:cr:szf:a:n:v::h";
+	string parameters = "t:p:c:g:deij:xr:szf:a:n:v::h";
 #else
-	string parameters = "t:p:g:deij:cr:szf:a:v::h";
+	string parameters = "t:p:c:g:deij:xr:szf:a:v::h";
 #endif
 
 	while ((c = getopt(argc, argv, parameters.c_str())) != -1)
@@ -96,6 +98,22 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 'p':
 				options->prefix = optarg;
 				break;
+			case 'c':
+			{
+				stringstream ss(optarg);
+				ss >> options->columnFrom;
+				if (options->columnFrom == 0)
+				{
+					cerr << "Alignment column enumeration starts with 1" << endl;
+					return 4;
+				}
+				if (ss.peek() == '-')
+				{
+					ss.ignore();
+					ss >> options->columnTo;
+				}
+				break;
+			}
 			case 'g':
 			{
 				options->grouping.clear();
@@ -135,7 +153,7 @@ int parseArguments(int argc, char** argv, Options *options)
 				ss >> options->removeIncompatibles;
 				break;
 			}
-			case 'c':
+			case 'x':
 				options->convertAlignment = true;
 				if (options->alignmentFormat == -1)
 					options->alignmentFormat = -2;
@@ -228,6 +246,8 @@ int parseArguments(int argc, char** argv, Options *options)
 		}
 	}
 
+	if (options->columnFrom > 0) cout << "Columns: " << options->columnFrom << " - " << options->columnTo << endl;
+
 	options->groupLength = maxGroup - minGroup + 1;
 
 	if (options->prefix.length() == 0)
@@ -254,9 +274,10 @@ void printSyntax()
 	cout << "Options:" << endl;
 	cout << "  -t<a|d|n>      Data type a=AA, d=DNA, n=Alphanumeric [default: auto-detect]" << endl;
 	cout << "  -p<STRING>     Prefix for output files [default: name of alignment w/o .ext]" << endl;
+	cout << "  -c<from-to>    Only consider alignment columns from-to, enumeration starts with 1" << endl;
 	cout << "  -g<LIST>       Grouping of sites, e.g. 0,1,-2 for duplets, 0,1,2 for codons" << endl;
 	cout << endl;
-	cout << "  -c             Convert alignment format" << endl;
+	cout << "  -x             Convert alignment format" << endl;
 	cout << "  -d             Remove duplicates and write reduced alignment file" << endl;
 	cout << "  -e             Remove informative sites duplicates, write reduced alignment" << endl;
 	cout << "  -i             Write reduced alignment only with parsimony informative sites" << endl;
