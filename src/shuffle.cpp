@@ -274,8 +274,8 @@ void printSyntax()
 	cout << "Options:" << endl;
 	cout << "  -t<a|d|n>      Data type a=AA, d=DNA, n=Alphanumeric [default: auto-detect]" << endl;
 	cout << "  -p<STRING>     Prefix for output files [default: name of alignment w/o .ext]" << endl;
-	cout << "  -c<from-to>    Only consider alignment columns from-to, enumeration starts with 1" << endl;
-	cout << "  -g<LIST>       Grouping of sites, e.g. 0,1,-2 for duplets, 0,1,2 for codons" << endl;
+	cout << "  -c<from-to>    Only consider alignment columns from-to, columns start from 1" << endl;
+	cout << "  -g<LIST>       Grouping of sites, e.g. 1,2,-3 for duplets, 1,2,3 for codons" << endl;
 	cout << endl;
 	cout << "  -x             Convert alignment format" << endl;
 	cout << "  -d             Remove duplicates and write reduced alignment file" << endl;
