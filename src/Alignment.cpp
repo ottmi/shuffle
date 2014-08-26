@@ -458,7 +458,7 @@ void Alignment::computePOC(unsigned int n, unsigned int randomizations, bool wri
 	for (unsigned int i = start; i <= end; i++)
 	{
 		int poc = 0;
-		for (int r = 0; r < randomizations; r++)
+		for (unsigned int r = 0; r < randomizations; r++)
 		{
 			int comp = 0;
 			Site* randomSite = _informativeSites[i]->randomize();

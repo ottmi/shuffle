@@ -438,7 +438,7 @@ bool Site::charIsUnambiguous(unsigned int n)
 {
 	for (unsigned int i = 0; i < _cols.size(); i++)
 	{
-		if ((n & 255) > _unambiguousThreshold)
+		if ((char) (n & 255) > _unambiguousThreshold)
 			return false;
 		n = n >> 8;
 	}

@@ -80,7 +80,7 @@ vector<Sequence> AlignmentReader::getSequences(int from, int to)
 			name = adjustString(name.substr(1), false);
 			if (name.length() > 1 && seq.length())
 			{
-				if (_cols & seq.length() != (unsigned int) _cols)
+				if (_cols && seq.length() != (unsigned int) _cols)
 				{
 					stringstream ss;
 					ss << "Sequence #" << sequences.size() + 1 << " (" << name << ") consists of " << seq.length() << " characters. All previous sequences consisted of "

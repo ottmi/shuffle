@@ -85,6 +85,7 @@ if test "$with_libmpfr" != "no"; then
   fi
 fi
 
+CXXFLAGS="$CXXFLAGS -Wall"
 AC_OUTPUT(Makefile)
 
 
