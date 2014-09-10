@@ -703,16 +703,26 @@ void Alignment::writeSummary(string prefix)
 	Site* s = _informativeSites[0];
 	for (set<int>::iterator it = bases.begin(); it != bases.end(); it++)
 		file << ",f(" << s->mapNumToChar(*it) << ")";
-	file << ",f(?)" << endl;
+	file << ",f(?), fmin" << endl;
 
 	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 	{
 		Site* s = _informativeSites[i];
 		BaseOccurenceMap f = s->getFrequencies();
+		double fcur = 0.0;
+		double fmin = 1.0;
 		file << s->getCols()[0] + 1 << "," << s->getSmin() << "," << fixed << s->getEntropy() << "," << s->getOV() << "," << s->getCo() << "," << s->getPOC()<< "," << s->getR();
-		for (set<int>::iterator it = bases.begin(); it != bases.end(); it++)
-			file << "," << (((double) f[*it]) / getNumOfRows());
-		file << "," << ((double) s->getAmbiguousCount()) / getNumOfRows() << endl;
+		for (set<int>::iterator it = bases.begin(); it != bases.end(); it++) {
+		    fcur = ((double) f[*it]) / getNumOfRows();
+		    file << "," << fcur;
+		    if (fcur < fmin)
+			fmin = fcur;
+		}
+		fcur = ((double) s->getAmbiguousCount()) / getNumOfRows();
+		if (fcur < fmin)
+		    fmin = fcur;
+
+		file << "," << fcur << "," << fmin << endl;
 	}
 }
 
