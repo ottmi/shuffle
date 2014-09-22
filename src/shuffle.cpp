@@ -266,6 +266,11 @@ int parseArguments(int argc, char** argv, Options *options)
 
 	options->requireInformative = options->removeInformativeSitesDuplicates || options->writeInformativeSitesAlignment|| options->removeIncompatibles > 0 || options->writeSiteSummary || options->writeRandomizedCo || options->filterAlignment;
 
+	if (options->includeUninformativeSites && !(options->filterAlignment || options->removeIncompatibles)) {
+	    cerr << "Parameter -u may only be used in combination with -j or -f." << endl;
+		    return 100;
+	}
+
 	return 0;
 }
 
