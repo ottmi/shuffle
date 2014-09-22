@@ -301,7 +301,7 @@ void printSyntax()
 	cout << "                   p<NUM>  Minimum POC score [default: 0.0]" << endl;
 	cout << "                   s<NUM>  Maximum Smin [default: " << INT_MAX << "]" << endl;
 	cout << "                   e<NUM>  Maximum entropy [default: " << DBL_MAX << "]" << endl;
-	cout << "  -u             Also include uninformative sites in new alignment (with -f)" << endl;
+	cout << "  -u             Also include uninformative sites in new alignment (with -j/-f)" << endl;
 	cout << endl;
 	cout << "  -a<f|p>        Write [F]asta or [P]hylip alignments [default: same as input]" << endl;
 #ifdef _OPENMP
@@ -404,7 +404,6 @@ int master(int argc, char** argv)
 			if (options.filterAlignment)
 			{
 				Alignment filteredAlignment = alignment.getFilteredAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy, options.includeUninformativeSites);
-				cout << "New alignment contains " << filteredAlignment.getNumOfRows() << " sequences with " << filteredAlignment.getNumOfCols() << " columns." << endl;
 				filteredAlignment.write(options.prefix + ".filtered", options.alignmentFormat);
 			}
 #ifndef _MPI

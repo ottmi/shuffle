@@ -211,6 +211,10 @@ void Alignment::removeIncompatiblesIterative(Options *options)
 {
 	double threshold = options->removeIncompatibles;
 	cout << endl << "Removing incompatbile sites iteratively, target avgCo=" << threshold << endl;
+	if (options->includeUninformativeSites) {
+	    cout << "Also keeping uninformative sites." << endl;
+	}
+
 
 	double avgCo = .0;
 	double siteCo;
@@ -239,12 +243,21 @@ void Alignment::removeIncompatiblesIterative(Options *options)
 			cout << "  Site " << siteCol+1 << ": Comp=" << siteComp << " Co=" << siteCo << " avgCo=" << avgCo << endl;
 	}
 
-	sort(_informativeSites.begin(), _informativeSites.end(), compPos);
+	vector<Site*> sites = _informativeSites;
+	if (options->includeUninformativeSites) {
+	    for (unsigned int i = 0; i < _sites.size(); i++) {
+		if (!_sites[i]->isInformative()) {
+		    sites.push_back(_sites[i]);
+		}
+	    }
+	}
+
+	sort(sites.begin(), sites.end(), compPos);
 
 	stringstream ss;
 	ss << options->prefix << ".iterative." << threshold;
 	writeSummary(ss.str());
-	Alignment a = getSubAlignment(_informativeSites);
+	Alignment a = getSubAlignment(sites);
 	a.write(ss.str(), options->alignmentFormat);
 }
 #endif
@@ -769,6 +782,8 @@ void Alignment::write(string baseName, int format)
 			break;
 	}
 	file.close();
+	cout << "Alignment contains " << getNumOfRows() << " sequences with " << getNumOfCols() << " columns." << endl;
+
 }
 
 void Alignment::printSites()
