@@ -44,7 +44,6 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->removeDuplicates = false;
 	options->removeInformativeSitesDuplicates = false;
 	options->writeInformativeSitesAlignment = false;
-	options->removeIncompatibles = .0;
 	options->convertAlignment = false;
 	options->randomizations = 100;
 	options->writeSiteSummary = false;
@@ -54,6 +53,8 @@ int parseArguments(int argc, char** argv, Options *options)
 	options->minPOC = 0.0;
 	options->maxSmin = INT_MAX;
 	options->maxEntropy = DBL_MAX;
+	options->removeIncompatibles = .0;
+	options->includeUninformativeSites =false;
 	options->help = 0;
 	options->grouping.push_back(1);
 
@@ -61,11 +62,11 @@ int parseArguments(int argc, char** argv, Options *options)
 	int maxGroup = 0;
 
 #ifdef _MPI
-	string parameters = "t:p:c:g:deixr:sf:a:v::h";
+	string parameters = "t:p:c:g:deixr:sf:ua:v::h";
 #elif _OPENMP
-	string parameters = "t:p:c:g:deij:xr:szf:a:n:v::h";
+	string parameters = "t:p:c:g:deixr:szj:f:ua:n:v::h";
 #else
-	string parameters = "t:p:c:g:deij:xr:szf:a:v::h";
+	string parameters = "t:p:c:g:deixr:szj:f:ua:v::h";
 #endif
 
 	while ((c = getopt(argc, argv, parameters.c_str())) != -1)
@@ -148,12 +149,6 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 'i':
 				options->writeInformativeSitesAlignment = true;
 				break;
-			case 'j':
-			{
-				stringstream ss(optarg);
-				ss >> options->removeIncompatibles;
-				break;
-			}
 			case 'x':
 				options->convertAlignment = true;
 				if (options->alignmentFormat == -1)
@@ -168,6 +163,12 @@ int parseArguments(int argc, char** argv, Options *options)
 			case 'z':
 				options->writeRandomizedCo = true;
 				break;
+			case 'j':
+			{
+				stringstream ss(optarg);
+				ss >> options->removeIncompatibles;
+				break;
+			}
 			case 'f':
 			{
 				options->filterAlignment = true;
@@ -206,6 +207,9 @@ int parseArguments(int argc, char** argv, Options *options)
 				}
 				break;
 			}
+			case 'u':
+				options->includeUninformativeSites = true;
+				break;
 			case 'a':
 			{
 				char type = optarg[0];
@@ -282,20 +286,22 @@ void printSyntax()
 	cout << "  -d             Remove duplicates and write reduced alignment file" << endl;
 	cout << "  -e             Remove informative sites duplicates, write reduced alignment" << endl;
 	cout << "  -i             Write reduced alignment only with parsimony informative sites" << endl;
-#ifndef _MPI
-	cout << "  -j<NUM>        Iteratively remove incompatible sites until avgCo>=NUM" << endl;
-#endif
 	cout << endl;
 	cout << "  -r<NUM>        Number of randomizations for POC computations [default: 100]" << endl;
 	cout << "  -s             Write a site summary" << endl;
 #ifndef _MPI
 	cout << "  -z             Write Co scores of randomized sites to file" << endl;
 #endif
-	cout << "  -f<LIST>       Write a new alignment file, filtered by (comma-separated):" << endl;
+	cout << endl;
+#ifndef _MPI
+	cout << "  -j<NUM>        Iteratively remove incompatible sites until avgCo>=NUM" << endl;
+#endif
+	cout << "  -f<LIST>       Remove sites according to filter criteria (comma-separated):" << endl;
 	cout << "                   c<NUM>  Minimum Co score [default: 0]" << endl;
 	cout << "                   p<NUM>  Minimum POC score [default: 0.0]" << endl;
 	cout << "                   s<NUM>  Maximum Smin [default: " << INT_MAX << "]" << endl;
 	cout << "                   e<NUM>  Maximum entropy [default: " << DBL_MAX << "]" << endl;
+	cout << "  -u             Also include uninformative sites in new alignment (with -f)" << endl;
 	cout << endl;
 	cout << "  -a<f|p>        Write [F]asta or [P]hylip alignments [default: same as input]" << endl;
 #ifdef _OPENMP
@@ -397,7 +403,7 @@ int master(int argc, char** argv)
 
 			if (options.filterAlignment)
 			{
-				Alignment filteredAlignment = alignment.getFilteredAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy);
+				Alignment filteredAlignment = alignment.getFilteredAlignment(options.minCo, options.minPOC, options.maxSmin, options.maxEntropy, options.includeUninformativeSites);
 				cout << "New alignment contains " << filteredAlignment.getNumOfRows() << " sequences with " << filteredAlignment.getNumOfCols() << " columns." << endl;
 				filteredAlignment.write(options.prefix + ".filtered", options.alignmentFormat);
 			}

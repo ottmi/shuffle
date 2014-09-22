@@ -6,7 +6,7 @@
 using namespace std;
 
 #define PROGNAME "shuffle++"
-#define VERSION "0.7.55"
+#define VERSION "0.7.57"
 #define PROGDATE "2014-09-22"
 
 #define _DNA_DATA				0
@@ -35,7 +35,6 @@ typedef struct opt_struct
 	bool removeDuplicates;
 	bool removeInformativeSitesDuplicates;
 	bool writeInformativeSitesAlignment;
-	double removeIncompatibles;
 	bool convertAlignment;
 	int randomizations;
 	bool requireInformative;
@@ -46,6 +45,8 @@ typedef struct opt_struct
 	double minPOC;
 	int maxSmin;
 	double maxEntropy;
+	double removeIncompatibles;
+	bool includeUninformativeSites;
 	int help;
 } Options;
 

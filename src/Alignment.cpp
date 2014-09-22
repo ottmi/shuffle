@@ -617,16 +617,21 @@ void Alignment::computeContextDependentScores(unsigned int randomizations, bool 
 }
 
 
-Alignment Alignment::getFilteredAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy)
+Alignment Alignment::getFilteredAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy, bool includeUninformativeSites)
 {
 	cout << "Creating new alignment with minCo=" << minCo << " minPOC=" << minPOC << " maxSmin=" << maxSmin << " maxEntropy=" << maxEntropy << endl;
+	if (includeUninformativeSites) {
+	    cout << "Also keeping uninformative sites." << endl;
+	}
 
 	vector<Site*> sites;
-	for (unsigned int i = 0; i < _informativeSites.size(); i++)
+	for (unsigned int i = 0; i < _sites.size(); i++)
 	{
-		Site *site = _informativeSites[i];
-		if (site->getCo() >= minCo && site->getPOC() >= minPOC && site->getSmin() <= maxSmin && (isnan(site->getEntropy()) || site->getEntropy() <= maxEntropy))
-			sites.push_back(site);
+		Site *site = _sites[i];
+		if ((includeUninformativeSites && !site->isInformative()) ||
+		    (site->isInformative() && site->getCo() >= minCo && site->getPOC() >= minPOC && site->getSmin() <= maxSmin && (isnan(site->getEntropy()) || site->getEntropy() <= maxEntropy))) {
+		    sites.push_back(site);
+		}
 	}
 
 	return getSubAlignment(sites);

@@ -25,7 +25,7 @@ public:
 	void computeContextDependentScores(unsigned int randomizations, bool writeRandomizedCo);
 	void writeRandomizedCo(string prefix);
 	void writeSummary(string prefix);
-	Alignment getFilteredAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy);
+	Alignment getFilteredAlignment(double minCo, double minPOC, int maxSmin, double maxEntropy, bool includeUninformativeSites);
 	Alignment getInformativeSitesAlignment();
 	Alignment getSubAlignment(vector<Site*> sites);
 	void write(string baseName, int format);
