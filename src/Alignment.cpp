@@ -66,11 +66,11 @@ Alignment::Alignment(Options *options)
 			dataTypeGuess = _AA_DATA;
 		_dataType = dataTypeGuess;
 
-		cout << "It contains " << getNumOfRows() << " sequences " << "which appear to be " << dataTypeDesc[_dataType] << "." << endl;
+		cout << "  It contains " << getNumOfRows() << " sequences " << "which appear to be " << dataTypeDesc[_dataType] << "." << endl;
 	} else
 	{
 		_dataType = options->dataType;
-		cout << "It contains " << getNumOfRows() << " sequences which have been defined to be " << dataTypeDesc[_dataType] << "." << endl;
+		cout << "  It contains " << getNumOfRows() << " sequences which have been defined to be " << dataTypeDesc[_dataType] << "." << endl;
 	}
 }
 
@@ -129,7 +129,7 @@ void Alignment::removeDuplicates()
 	if (!verbose)
 		cout << "\b\b\b, done." << endl;
 
-	cout << "Removed " << count << " duplicates, " << getNumOfRows() << " sequences remain in the alignment." << endl;
+	cout << "  Removed " << count << " duplicates, " << getNumOfRows() << " sequences remain in the alignment." << endl;
 }
 
 
@@ -198,7 +198,7 @@ void Alignment::removeInformativeSitesDuplicates()
 	if (!verbose)
 		cout << "\b\b\b, done." << endl;
 
-	cout << "Removed " << total << " duplicates, " << getNumOfRows() << " sequences with " << _informativeSites.size() << " informative sites remain in the alignment." << endl;
+	cout << "  Removed " << total << " duplicates, " << getNumOfRows() << " sequences with " << _informativeSites.size() << " informative sites remain in the alignment." << endl;
 }
 
 #ifndef _MPI
@@ -223,7 +223,7 @@ void Alignment::removeIncompatiblesIterative(Options *options)
 	double threshold = options->removeIncompatibles;
 	cout << endl << "Removing incompatbile sites iteratively, target avgCo=" << threshold << endl;
 	if (options->includeUninformativeSites) {
-	    cout << "Also keeping uninformative sites." << endl;
+	    cout << "  Keeping uninformative sites." << endl;
 	}
 
 
@@ -328,13 +328,13 @@ void Alignment::collectSites(Options *options)
 				long elapsed = t2 - t1;
 				long eta = (elapsed * numOfSites) / count - elapsed;
 				lastTime = t2;
-				cout << "\r" << count * 100 / numOfSites << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
+				cout << "\r  " << count * 100 / numOfSites << "%\tTime elapsed: " << printTime(elapsed) << "\tETA: " << printTime(eta) << "  " << flush;
 			}
 		}
 	}
 
 	long t2 = time(NULL);
-	cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
+	cout << "\r  Finished, time taken: " << printTime(t2-t1) << "                         " << endl;
 
 	if (options->requireInformative)
 	{
@@ -347,12 +347,12 @@ void Alignment::collectSites(Options *options)
 	}
 
 	if (options->requireInformative)
-		cout << "Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative." << endl;
+		cout << "  Found " << numOfSites << " sites, " << _informativeSites.size() << " of which are informative." << endl;
 	else
-		cout << "Found " << numOfSites << " sites." << endl;
+		cout << "  Found " << numOfSites << " sites." << endl;
 
 	if (options->groupLength > 1)
-		cout << "Each site consists of " << options->groupLength << " out of " << getNumOfCols() << " columns." << endl;
+		cout << "  Each site consists of " << options->groupLength << " out of " << getNumOfCols() << " columns." << endl;
 }
 
 
@@ -376,7 +376,7 @@ void Alignment::checkIdenticalSites()
 				count++;
 			}
 
-	cout << "Done, found " << count << " identical sites." << endl;
+	cout << "  Found " << count << " identical sites." << endl;
 }
 
 
@@ -396,7 +396,7 @@ void Alignment::computeContextIndependentScores()
 		_informativeSites[i]->computeScores(n);
 
 	long t2 = time(NULL);
-	cout << "\rDone, taking " << printTime(t2-t1) << "                         " << endl;
+	cout << "\r  Finished, time taken: " << printTime(t2-t1) << "                         " << endl;
 }
 
 
@@ -465,7 +465,7 @@ void Alignment::computeCo(unsigned int n)
 	if (getMyId() == 0)
 	{
 	    t2 = time(NULL);
-	    cout << "\r  Computing Co:  Done, taking " << printTime(t2-t1) << "                         " << endl;
+	    cout << "\r  Computing Co:  Finished, time taken: " << printTime(t2-t1) << "                         " << endl;
 	}
 }
 
@@ -525,7 +525,7 @@ void Alignment::computePOC(unsigned int n, unsigned int randomizations, bool wri
 	if (getMyId() == 0)
 	{
 	    t2 = time(NULL);
-	    cout << "\r  Computing POC: Done, taking " << printTime(t2-t1) << "                         " << endl;
+	    cout << "\r  Computing POC: Finished, time taken: " << printTime(t2-t1) << "                         " << endl;
 	}
 }
 
@@ -574,7 +574,7 @@ void Alignment::computeR(unsigned int n)
 	if (getMyId() == 0)
 	{
 	    t2 = time(NULL);
-	    cout << "\r  Computing r: Done, taking " << printTime(t2-t1) << "                         " << endl << endl;
+	    cout << "\r  Computing r: Finished, time taken: " << printTime(t2-t1) << "                         " << endl << endl;
 	}
 }
 
@@ -654,7 +654,7 @@ Alignment Alignment::getFilteredAlignment(double minCo, double minPOC, int maxSm
 {
 	cout << "Creating new alignment with minCo=" << minCo << " minPOC=" << minPOC << " maxSmin=" << maxSmin << " maxEntropy=" << maxEntropy << endl;
 	if (includeUninformativeSites) {
-	    cout << "Also keeping uninformative sites." << endl;
+	    cout << "  Keeping uninformative sites." << endl;
 	}
 
 	vector<Site*> sites;
@@ -806,7 +806,7 @@ void Alignment::write(string baseName, int format)
 			break;
 	}
 	file.close();
-	cout << "Alignment contains " << getNumOfRows() << " sequences with " << getNumOfCols() << " columns." << endl;
+	cout << "  Alignment contains " << getNumOfRows() << " sequences with " << getNumOfCols() << " columns." << endl;
 
 }
 
