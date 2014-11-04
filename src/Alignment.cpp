@@ -77,8 +77,12 @@ Alignment::Alignment(Options *options)
 
 Alignment::~Alignment()
 {
-	for (unsigned int i = 0; i < _informativeSites.size(); i++)
+/* FIXME: This should destroy all sites. But we need to fix getSubAlignment() first,
+ * otherwise sites will be destroyed multiple times
+ *
+  	for (unsigned int i = 0; i < _informativeSites.size(); i++)
 		delete _informativeSites[i];
+*/
 }
 
 
@@ -87,6 +91,13 @@ void Alignment::addSequence(Sequence s)
 	_alignment.push_back(s);
 	if (s.getLength() > _cols)
 		_cols = s.getLength();
+}
+
+void Alignment::addSite(Site *s)
+{
+	_sites.push_back(s);
+	if (s->isInformative())
+		_informativeSites.push_back(s);
 }
 
 
@@ -220,45 +231,54 @@ void Alignment::removeIncompatiblesIterative(Options *options)
 	double siteCo;
 	unsigned int siteComp;
 	int siteCol;
+	vector<Site*> discardedSites;
+	vector<Site*> remainingSites = _informativeSites;
 	while (avgCo < threshold)
 	{
-		sort(_informativeSites.begin(), _informativeSites.end(), compCo);
-		Site *s = _informativeSites.front();
+		sort(remainingSites.begin(), remainingSites.end(), compCo);
+		Site *s = remainingSites.front();
 		siteCol = s->getCols()[0];
 		siteCo = s->getCo();
 		siteComp = s->getComp();
 
-		_informativeSites.erase(_informativeSites.begin());
+		discardedSites.push_back(s);
+		remainingSites.erase(remainingSites.begin());
 
 		avgCo = .0;
-		for (unsigned int i = 0; i < _informativeSites.size(); i++)
+		for (unsigned int i = 0; i < remainingSites.size(); i++)
 		{
-			_informativeSites[i]->removeCompatibleSite(siteCol);
-			_informativeSites[i]->computeCo(_informativeSites.size());
-			avgCo+= _informativeSites[i]->getCo();
+		    remainingSites[i]->removeCompatibleSite(siteCol);
+		    remainingSites[i]->computeCo(remainingSites.size());
+			avgCo+= remainingSites[i]->getCo();
 		}
-		avgCo /= _informativeSites.size();
+		avgCo /= remainingSites.size();
 
 		if (verbose)
 			cout << "  Site " << siteCol+1 << ": Comp=" << siteComp << " Co=" << siteCo << " avgCo=" << avgCo << endl;
 	}
 
-	vector<Site*> sites = _informativeSites;
 	if (options->includeUninformativeSites) {
 	    for (unsigned int i = 0; i < _sites.size(); i++) {
 		if (!_sites[i]->isInformative()) {
-		    sites.push_back(_sites[i]);
+		    discardedSites.push_back(_sites[i]);
+		    remainingSites.push_back(_sites[i]);
 		}
 	    }
 	}
 
-	sort(sites.begin(), sites.end(), compPos);
+	sort(remainingSites.begin(), remainingSites.end(), compPos);
+	sort(discardedSites.begin(), discardedSites.end(), compPos);
 
-	stringstream ss;
-	ss << options->prefix << ".iterative." << threshold;
-	writeSummary(ss.str());
-	Alignment a = getSubAlignment(sites);
-	a.write(ss.str(), options->alignmentFormat);
+	stringstream remainOutFilename;
+	remainOutFilename << options->prefix << ".iterative." << threshold;
+	Alignment a = getSubAlignment(remainingSites);
+	a.writeSummary(remainOutFilename.str());
+	a.write(remainOutFilename.str(), options->alignmentFormat);
+
+	stringstream discardOutFilename;
+	discardOutFilename << options->prefix << ".discard." << threshold;
+	Alignment b = getSubAlignment(discardedSites);
+	b.write(discardOutFilename.str(), options->alignmentFormat);
 }
 #endif
 
@@ -673,6 +693,10 @@ Alignment Alignment::getSubAlignment(vector<Site*> sites)
 			Sequence s(_alignment[i].getName(), newSeq);
 			a.addSequence(s);
 		}
+	}
+
+	for (unsigned int i = 0; i < sites.size(); i++) {
+	    a.addSite(sites[i]);
 	}
 
 	return a;

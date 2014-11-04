@@ -17,6 +17,7 @@ public:
 	Alignment(Options *options);
 	virtual ~Alignment();
 	void addSequence(Sequence sequence);
+	void addSite(Site *s);
 	void removeDuplicates();
 	void removeInformativeSitesDuplicates();
 	void collectSites(Options *options);
